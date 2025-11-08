@@ -1,0 +1,10 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+
+# Documentation
+README.md
+docs/

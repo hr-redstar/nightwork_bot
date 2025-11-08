@@ -1,0 +1,142 @@
+name: Cloud Run デプロイ（Discordグローバルコマンド登録＋古いイメージ削除）
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: nightwork-bot
+  SERVICE_NAME: nightwork-bot
+  REGION: asia-northeast1
+  GAR_LOCATION: asia-northeast1
+  REPOSITORY: nightwork-bot
+  REGISTRY: asia-northeast1-docker.pkg.dev
+  MAX_IMAGES_KEEP: 5
+
+jobs:
+  deploy:
+    name: Cloud Run ビルド＆デプロイ
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+    steps:
+      - name: 📦 リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: 🧩 Node.js 環境セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 依存関係をインストール
+        run: npm ci
+
+      - name: 🪄 Discord グローバルコマンド登録
+        run: node scripts/deployGlobalCommands.js
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          NODE_ENV: production
+
+      - name: 🔐 GCP 認証
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: ☁️ gcloud SDK セットアップ
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: 🧾 Artifact Registry 認証
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+
+      - name: 🕒 ビルド情報の準備
+        run: |
+          echo "BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
+
+      - name: 🏗️ Docker イメージビルド＆push
+        run: |
+          IMAGE_TAG="${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}:${SHORT_SHA}"
+          LATEST_TAG="${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}:latest"
+
+          docker build \
+            --build-arg BUILDTIME="${BUILD_TIME}" \
+            --build-arg COMMIT_SHA="${GITHUB_SHA}" \
+            -t "${IMAGE_TAG}" \
+            -t "${LATEST_TAG}" .
+
+          docker push "${IMAGE_TAG}"
+          docker push "${LATEST_TAG}"
+
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: 🧹 古い Docker イメージ削除（最新 $MAX_IMAGES_KEEP 件を残す）
+        run: |
+          echo "古い Docker イメージを削除中..."
+          IMAGES=$(gcloud artifacts docker images list ${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME} \
+            --format='value(TAGS,CREATE_TIME)' | sort -k2)
+
+          COUNT=0
+          while IFS= read -r line; do
+            COUNT=$((COUNT+1))
+            if [ $COUNT -le $MAX_IMAGES_KEEP ]; then
+              continue
+            fi
+            TAGS=$(echo $line | awk '{print $1}')
+            IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
+            for TAG in "${TAG_ARRAY[@]}"; do
+              echo "削除対象イメージ: $TAG"
+              gcloud artifacts docker images delete ${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}:$TAG --quiet
+            done
+          done <<< "$IMAGES"
+
+      - name: 🚀 Cloud Run にデプロイ
+        run: |
+          ENV_VARS="NODE_ENV=production,TZ=Asia/Tokyo,BUILD_TIME=${BUILD_TIME},COMMIT_SHA=${GITHUB_SHA},REGISTRY_TYPE=artifact-registry,DISCORD_TOKEN=${DISCORD_TOKEN},GCS_BUCKET_NAME=${GCS_BUCKET_NAME},CLIENT_ID=${CLIENT_ID},AUTO_DEPLOY_COMMANDS=true,GCP_SA_KEY=${GCP_SA_KEY}"
+
+          gcloud run deploy ${SERVICE_NAME} \
+            --image ${IMAGE_TAG} \
+            --region ${REGION} \
+            --platform managed \
+            --allow-unauthenticated \
+            --ingress all \
+            --set-env-vars "${ENV_VARS}" \
+            --cpu 1 \
+            --memory 2Gi \
+            --min-instances 1 \
+            --max-instances 10 \
+            --port 8080 \
+            --timeout 900 \
+            --concurrency 80 \
+            --execution-environment gen2 \
+            --verbosity debug \
+            --quiet
+
+      - name: ✅ デプロイ結果確認
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} \
+            --region ${REGION} \
+            --format 'value(status.url)')
+          echo "🚀 デプロイ完了！"
+          echo "🌐 サービスURL: ${SERVICE_URL}"
+          echo "📦 Docker イメージ: ${IMAGE_TAG}"
+          echo "🕒 ビルド時刻: ${BUILD_TIME}"
+          echo "📝 コミット: ${GITHUB_SHA}"

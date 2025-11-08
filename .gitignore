@@ -1,0 +1,12 @@
+# ✅ 環境変数ファイル（APIキーなどを含む）
+.env
+
+# ✅ Google Cloudの認証キー
+path_to_service_account.json
+
+# ✅ Node.jsの依存パッケージ
+node_modules/
+hp/node_modules/
+
+# ✅ ローカルでのみ使うデータフォルダ
+local_data/

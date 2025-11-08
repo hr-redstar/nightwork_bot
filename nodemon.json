@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "local_data",
+    "GCS",
+    "*.json",
+    "logs",
+    "tmp"
+  ],
+  "ext": "js,mjs,cjs"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "nightwork-improvement-bot",
+  "version": "0.2.0",
+  "description": "ナイトワーク向け 業務改善bot（レベル・経費・設定・Slack自動通知）",
+  "author": "redstar-hr <redstar.hoshir@gmail.com>",
+  "license": "MIT",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "lint": "eslint .",
+    "dev": "nodemon src/index.js",
+    "deploy:guild": "node scripts/deployGuildCommands.js",
+    "deploy:global": "node scripts/deployGlobalCommands.js"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.6.0",
+    "@google-cloud/storage": "^7.11.0",
+    "@slack/webhook": "^7.0.6",
+    "dayjs": "^1.11.19",
+    "discord.js": "^14.15.0",
+    "dotenv": "^16.3.1",
+    "googleapis": "^131.0.0",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.2.0",
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "discord-bot",
+    "slack",
+    "gcs",
+    "cloud-run",
+    "経費管理",
+    "ナイトワーク",
+    "レベル管理",
+    "業務効率化"
+  ]
+}

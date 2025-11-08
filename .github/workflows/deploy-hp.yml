@@ -1,0 +1,47 @@
+name: Deploy HP to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'hp/**'
+      - '.github/workflows/deploy-hp.yml'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  deploy:
+    name: Build and Deploy HP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      # 1️⃣ ソース取得
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2️⃣ GCP認証（OIDC経由）
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID'
+          service_account: 'YOUR_SERVICE_ACCOUNT_EMAIL'
+
+      # 3️⃣ Google Cloud CLI セットアップ（必要）
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 4️⃣ Cloud Runへデプロイ
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: nightwork-dashboard # サービス名
+          region: asia-northeast1      # 東京リージョン
+          source: ./hp                 # ⬅️ hpディレクトリがNext.jsプロジェクト
+          env_vars: |
+            API_BASE_URL=https://your-cloudrun-api-url
+            NODE_ENV=production
+          allow_unauthenticated: true  # Webページ公開用
