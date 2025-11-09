@@ -26,27 +26,19 @@ function createDefaultConfig(guildId) {
  */
 async function getGuildConfig(guildId) {
   try {
-    let config = await readJson(CONFIG_PATH(guildId));
+    const config = await readJson(CONFIG_PATH(guildId));
 
     if (!config) {
-      logger.warn(`⚠️ ${CONFIG_PATH(guildId)} が存在しません。初期ファイルを作成します。`);
-
-      // デフォルト設定生成
-      config = createDefaultConfig(guildId);
-
-      // 自動保存
-      await writeJson(CONFIG_PATH(guildId), config);
-      logger.info(`✅ 初期config.json を生成しました (${guildId})`);
-    }
-
-    // 店舗ロール紐づけ設定を読み込み
-    if (config.mappingFiles?.storeRoleMapping) {
-      config.storeRoleMapping = await getStoreRoleMapping(guildId);
+      // ファイルが存在しない、または空の場合はデフォルト設定を返す
+      // ここではまだ保存しない
+      return createDefaultConfig(guildId);
     }
 
     return config;
   } catch (err) {
-    logger.error('❌ config.json の取得エラー:', err);
+    if (err.code !== 'ENOENT') { // ファイルが見つからないエラー以外はログに出力
+      logger.error('❌ config.json の取得エラー:', err);
+    }
     return createDefaultConfig(guildId); // 万が一パース失敗時も安全に動作
   }
 }

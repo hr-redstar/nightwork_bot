@@ -10,6 +10,7 @@ const {
   ButtonStyle,
   MessageFlags,
 } = require('discord.js');
+const { sendSettingLog } = require('../config/configLogger');
 const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
 const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 const dayjs = require('dayjs');
@@ -66,10 +67,15 @@ async function handleKeihiItemModal(interaction) {
 
   const config = await loadKeihiConfig(guildId);
 
+  // 変更前の項目を保持
+  const oldItems = config.storeItems?.[storeName] || [];
+
   // 経費項目を保存
   config.storeItems = config.storeItems || {};
   config.storeItems[storeName] = items;
   await saveKeihiConfig(guildId, config);
+
+  const newItems = items;
 
   let panelMsg = null;
   const channelId = config.stores[storeName];
@@ -85,7 +91,7 @@ async function handleKeihiItemModal(interaction) {
   // 🔍 経費パネルメッセージを探す
   if (channel) {
     const messages = await channel.messages.fetch({ limit: 10 });
-    panelMsg = messages.find(m => m.embeds?.[0]?.title?.includes(`経費申請パネル`));
+    panelMsg = messages.find(m => m.embeds?.[0]?.title === `📋 経費申請パネル（${storeName}）`);
 
     if (panelMsg) {
       // ✅ 既存パネルを更新
@@ -116,23 +122,53 @@ async function handleKeihiItemModal(interaction) {
     }
   }
 
-  // ✅ 管理者ログ出力
+  // 差分を計算
+  const addedItems = newItems.filter(item => !oldItems.includes(item));
+  const removedItems = oldItems.filter(item => !newItems.includes(item));
+
+  let descriptionText = '';
+  if (addedItems.length > 0) {
+    descriptionText += '項目が追加されました。';
+  }
+  if (removedItems.length > 0) {
+    descriptionText += (descriptionText ? ' また、' : '') + '項目が削除されました。';
+  }
+  if (addedItems.length === 0 && removedItems.length === 0) {
+    descriptionText = '経費項目に変更はありませんでした。';
+  }
+
+  // ログ用Embedを作成
+  const logEmbed = new EmbedBuilder()
+    .setColor('#3498db')
+    .setTitle(`🧾 ${storeName} の経費項目が更新されました`)
+    .setDescription(descriptionText || '経費項目が更新されました。') // 常にdescriptionを設定
+    .setURL(panelMsg ? panelMsg.url : interaction.channel.url) // panelMsgがない場合は現在のチャンネルURL
+    .addFields(
+      { name: '実行者', value: `<@${user.id}>`, inline: true },
+      { name: '実行時間', value: now, inline: true }
+    )
+    .setFooter({ text: `店舗: ${storeName}` });
+
+  if (addedItems.length > 0) {
+    logEmbed.addFields({ name: '追加', value: addedItems.join('\n').slice(0, 1000) });
+  }
+  if (removedItems.length > 0) {
+    logEmbed.addFields({ name: '削除', value: removedItems.join('\n').slice(0, 1000) });
+  }
+
+  // ✅ 設定ログと管理者ログに出力
   const globalConfig = await getGuildConfig(guildId);
-  const logChannelId = globalConfig.adminLogChannel;
-  if (logChannelId) {
-    const logCh = guild.channels.cache.get(logChannelId);
-    if (logCh) {
-      const logEmbed = new EmbedBuilder()
-        .setColor('#3498db')
-        .setTitle(`🧾 ${storeName} の経費項目が更新されました`)
-        .setURL(panelMsg ? panelMsg.url : interaction.channel.url)
-        .addFields(
-          { name: '📦 登録項目', value: items.join('\n').slice(0, 1000) },
-          { name: '👤 実行者', value: `<@${user.id}>` },
-          { name: '🕒 実行時間', value: now },
-        );
-      await logCh.send({ embeds: [logEmbed] });
-    }
+  // 設定ログ
+  if (globalConfig.settingLogThread) {
+    await sendSettingLog(guild, {
+      embed: logEmbed,
+      type: '経費項目設定',
+    });
+  }
+  // 管理者ログ
+  const adminLogChannel = guild.channels.cache.get(globalConfig.adminLogChannel);
+  if (adminLogChannel && adminLogChannel.isTextBased()) {
+    await adminLogChannel.send({ embeds: [logEmbed] });
   }
 
   await interaction.reply({

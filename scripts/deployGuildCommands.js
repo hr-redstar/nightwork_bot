@@ -45,4 +45,8 @@ async function deployCommands() {
   }
 }
 
-deployCommands();
+deployCommands().catch(error => {
+  logger.error('❌ deployCommands の実行中に予期せぬエラーが発生しました:', error);
+  // デプロイスクリプトで致命的なエラーが発生した場合はプロセスを終了
+  process.exit(1); 
+});

@@ -34,10 +34,13 @@ async function handleKeihiRequest(interaction) {
     });
   }
 
+  // 重複する項目を排除
+  const uniqueItems = [...new Set(items)];
+
   const menu = new StringSelectMenuBuilder()
     .setCustomId(`keihi_request_select_${storeName}`)
     .setPlaceholder('経費項目を選択してください')
-    .addOptions(items.map(i => ({ label: i, value: i })));
+    .addOptions(uniqueItems.map(i => ({ label: i, value: i })));
 
   const row = new ActionRowBuilder().addComponents(menu);
 

@@ -17,22 +17,14 @@ async function loadStoreRoleConfig(guildId) {
   const pathKey = getConfigPath(guildId);
   try {
     const data = await readJSON(pathKey);
-    return (
-      data || {
-        stores: [],
-        roles: [],
-        link_store_role: {},
-        link_role_role: {},
-      }
-    );
+    // データがnullやundefinedの場合もデフォルト値を返す
+    return data || { stores: [], roles: [], link_store_role: {}, link_role_role: {} };
   } catch (err) {
-    console.warn(`⚠️ 店舗_役職_ロール設定を読み込みできませんでした (${guildId})`, err);
-    return {
-      stores: [],
-      roles: [],
-      link_store_role: {},
-      link_role_role: {},
-    };
+    // ファイルが存在しない等のエラーの場合もデフォルト値を返す
+    if (err.code !== 'ENOENT') { // ファイルが見つからないエラー以外はログに出力
+      console.warn(`⚠️ 店舗_役職_ロール設定を読み込みできませんでした (${guildId})`, err);
+    }
+    return { stores: [], roles: [], link_store_role: {}, link_role_role: {} };
   }
 }
 
