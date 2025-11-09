@@ -5,10 +5,10 @@ const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 /**
  * 設定ログ・管理者ログへの出力
  * @param {Guild} guild Discordギルド
- * @param {{ user: User, message: string, type?: string }} options
+ * @param {{ user: User, message: string, type?: string, embed?: EmbedBuilder }} options
  */
 async function sendSettingLog(guild, options) {
-  const { user, message, type = '設定変更' } = options;
+  const { user, message, type = '設定変更', embed: providedEmbed } = options;
   const guildId = guild.id;
 
   try {
@@ -18,12 +18,14 @@ async function sendSettingLog(guild, options) {
       return;
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🪵 ${type}`)
-      .setDescription(message)
-      .setColor(0x2ecc71)
-      .setFooter({ text: `${user.username}`, iconURL: user.displayAvatarURL() })
-      .setTimestamp();
+    const embed = providedEmbed
+      ? providedEmbed.setFooter({ text: `${user.username}`, iconURL: user.displayAvatarURL() }).setTimestamp()
+      : new EmbedBuilder()
+          .setTitle(`🪵 ${type}`)
+          .setDescription(message || '詳細不明の操作が実行されました。')
+          .setColor(0x2ecc71)
+          .setFooter({ text: `${user.username}`, iconURL: user.displayAvatarURL() })
+          .setTimestamp();
 
     // 設定ログスレッド
     if (config.settingLogThread) {

@@ -13,19 +13,14 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await postOrUpdateKpiConfigPanel(interaction.channel);
-      await interaction.reply({
-        content: '✅ KPI設定パネルを設置しました。',
-        flags: MessageFlags.Ephemeral,
-      });
+      await interaction.editReply({ content: '✅ KPI設定パネルを設置しました。' });
     } catch (err) {
       console.error('❌ /設定KPI 実行エラー:', err);
-      if (interaction.isRepliable() && !interaction.replied) {
-        await interaction.reply({
-          content: 'パネル設置中にエラーが発生しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      await interaction.editReply({
+        content: '⚠️ パネル設置中にエラーが発生しました。',
+      });
     }
   },
 };

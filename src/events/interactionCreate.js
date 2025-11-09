@@ -76,8 +76,8 @@ module.exports = {
         }
 
         // --- 売上 ---
-        if (customId.startsWith('sales_')) {
-          await uriageBotHandler(interaction);
+        if (customId.startsWith('uriage_')) {
+          await uriageBotHandler.handleInteraction(interaction);
           return;
         }
 
@@ -188,7 +188,7 @@ module.exports = {
        if (customId.startsWith('kpi_')) return await KPIBotHandler(interaction);
         if (customId.startsWith('kuji_')) return await kuzibikiBotHandler(interaction);
         if (customId.startsWith('keihi_')) return await keihiBotHandlers.handleInteraction(interaction);
-        if (customId.startsWith('sales_')) return await uriageBotHandler(interaction);
+        if (customId.startsWith('uriage_')) return await uriageBotHandler.handleInteraction(interaction);
 
         if (customId === 'select_store_modal') {
           const storeName = interaction.fields.getTextInputValue('store_name');
@@ -208,10 +208,13 @@ module.exports = {
       }
     } catch (err) {
       logger.error('[interactionCreate] エラー:', err);
-      if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: '⚠️ エラーが発生しました', flags: MessageFlags.Ephemeral }).catch(e => logger.error('❌ interactionCreate reply error:', e));
-      } else if (interaction.deferred) {
-        await interaction.followUp({ content: '⚠️ エラーが発生しました', flags: MessageFlags.Ephemeral }).catch(e => logger.error('❌ interactionCreate followUp error:', e));
+      if (interaction && interaction.isRepliable()) {
+        const replyOptions = { content: '⚠️ エラーが発生しました', flags: MessageFlags.Ephemeral };
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(replyOptions).catch(e => logger.error('❌ interactionCreate followUp error:', e));
+        } else {
+          await interaction.reply(replyOptions).catch(e => logger.error('❌ interactionCreate reply error:', e));
+        }
       }
     }
   },

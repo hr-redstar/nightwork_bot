@@ -57,6 +57,8 @@ async function showItemModal(interaction, storeName) {
  * @param {import('discord.js').ModalSubmitInteraction} interaction
  */
 async function handleKeihiItemModal(interaction) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
   const guildId = interaction.guild.id;
   const user = interaction.user;
   const guild = interaction.guild;
@@ -82,7 +84,7 @@ async function handleKeihiItemModal(interaction) {
   const channel = guild.channels.cache.get(channelId);
 
   if (!channel) {
-    return interaction.reply({
+    return interaction.editReply({
       content: `⚠️ 店舗 ${storeName} のチャンネルが見つかりません。`,
       flags: MessageFlags.Ephemeral,
     });
@@ -161,8 +163,9 @@ async function handleKeihiItemModal(interaction) {
   // 設定ログ
   if (globalConfig.settingLogThread) {
     await sendSettingLog(guild, {
-      embed: logEmbed,
+      user: user,
       type: '経費項目設定',
+      message: `店舗「${storeName}」の経費項目が更新されました。`,
     });
   }
   // 管理者ログ
@@ -171,9 +174,8 @@ async function handleKeihiItemModal(interaction) {
     await adminLogChannel.send({ embeds: [logEmbed] });
   }
 
-  await interaction.reply({
+  await interaction.editReply({
     content: `✅ 経費項目を更新しました。\n対象店舗：${storeName}`,
-    flags: MessageFlags.Ephemeral,
   });
 }
 

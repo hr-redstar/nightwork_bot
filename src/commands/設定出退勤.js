@@ -1,5 +1,5 @@
 // src/commands/設定出退勤.js
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { postSyutPanel } = require('../handlers/syut/syutPanel');
 
 module.exports = {
@@ -9,7 +9,13 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    await postSyutPanel(interaction.channel);
-    await interaction.reply({ content: '✅ 出退勤設定パネルを設置しました。', flags: MessageFlags.Ephemeral });
+    try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await postSyutPanel(interaction.channel);
+      await interaction.editReply({ content: '✅ 出退勤設定パネルを設置しました。' });
+    } catch (err) {
+      console.error('❌ /設定出退勤 実行エラー:', err);
+      await interaction.editReply({ content: '⚠️ 出退勤設定パネルの設置に失敗しました。' });
+    }
   },
 };

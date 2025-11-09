@@ -7,14 +7,13 @@ module.exports = {
         .setDescription('くじ引き設定パネルを表示します'),
     async execute(interaction) {
         try {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             // kuzibikiPanel.js の updatePanel を呼び出してパネルを送信・更新
             await updatePanel(interaction.channel, interaction.guildId, interaction);
-            await interaction.reply({ content: '✅ くじ引き設定パネルを更新しました。', flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: '✅ くじ引き設定パネルを更新しました。' });
         } catch (err) {
             console.error('❌ /設定くじ引き コマンド実行エラー:', err);
-            if (!interaction.replied) {
-                await interaction.reply({ content: 'パネルの表示中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
-            }
+            await interaction.editReply({ content: '⚠️ パネルの表示中にエラーが発生しました。' });
         }
     }
 };

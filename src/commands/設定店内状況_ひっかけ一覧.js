@@ -1,17 +1,15 @@
 // src/commands/設定店内状況_ひっかけ一覧.js
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定店内状況_ひっかけ一覧')
-    .setDescription('店内状況_ひっかけ一覧設定パネルを設置します（管理者向け）'),
+    .setDescription('店内状況・ひっかけ一覧設定パネルを設置します（管理者向け）')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
     try {
-      // 管理者チェック
-      if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: '⚠️ このコマンドは管理者のみ実行できます。', ephemeral: true });
-      }
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // Embed作成
       const embed = new EmbedBuilder()
@@ -39,11 +37,11 @@ module.exports = {
           .setStyle(ButtonStyle.Success)
       );
 
-      await interaction.reply({ embeds: [embed], components: [buttonRow] });
+      await interaction.editReply({ embeds: [embed], components: [buttonRow] });
 
     } catch (error) {
       console.error('設定店内状況_ひっかけ一覧 エラー:', error);
-      await interaction.reply({ content: '⚠️ パネル設置中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: '⚠️ パネル設置中にエラーが発生しました。' });
     }
   },
 };
