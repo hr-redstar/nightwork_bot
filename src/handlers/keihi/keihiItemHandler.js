@@ -11,6 +11,7 @@ const {
   MessageFlags,
 } = require('discord.js');
 const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
+const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 const dayjs = require('dayjs');
 
 /**
@@ -116,7 +117,8 @@ async function handleKeihiItemModal(interaction) {
   }
 
   // ✅ 管理者ログ出力
-  const logChannelId = config.logChannelId;
+  const globalConfig = await getGuildConfig(guildId);
+  const logChannelId = globalConfig.adminLogChannel;
   if (logChannelId) {
     const logCh = guild.channels.cache.get(logChannelId);
     if (logCh) {

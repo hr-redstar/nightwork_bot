@@ -12,8 +12,7 @@ const {
 const dayjs = require('dayjs');
 const logger = require('../../utils/logger'); // loggerをインポート
 const { loadKeihiConfig, saveKeihiDaily, readKeihiDaily } = require('../../utils/keihi/keihiConfigManager');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
-const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
+const { getGuildConfig, loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 
 /**
  * 修正・削除の権限があるかチェックする
@@ -23,7 +22,7 @@ const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
  * @param {object} globalConfig - The server's global config containing role links.
  * @returns {boolean} - True if authorized, false otherwise.
  */
-async function isAuthorized(interaction, embed) {
+function isAuthorized(interaction, embed, keihiConfig, storeRoleConfig) {
   const user = interaction.user;
   const authorId = embed.fields?.find(f => f.name === '👤 入力者')?.value?.replace(/[<@>]/g, '');
   const isAuthor = user.id === authorId;
@@ -32,7 +31,7 @@ async function isAuthorized(interaction, embed) {
   if (isAuthor) return true;
 
   // 承認権限があるかチェック
-  const hasPerm = await hasApprovalPermission(interaction); // `await` を追加
+  const hasPerm = hasApprovalPermission(interaction, keihiConfig, storeRoleConfig);
 
   return hasPerm;
 }
@@ -48,31 +47,41 @@ function getEmbedFields(embed) {
 /**
  * 承認権限を持つか確認
  */
-async function hasApprovalPermission(interaction) {
+function hasApprovalPermission(interaction, keihiConfig, storeRoleConfig) {
   const guildId = interaction.guildId;
   const member = interaction.member;
 
-  // 1. 経費設定ファイルを読み込み、「approval」で指定された役職名を取得
-  const keihiConfig = await loadKeihiConfig(guildId);
-  if (!keihiConfig || !keihiConfig.roles || !keihiConfig.roles.approval) {
+  // 2. 経費設定から承認に必要な役職名を取得
+  if (!keihiConfig?.roles?.approval) {
     logger.warn(`[keihiApproveHandler] 経費設定ファイルまたは承認役職が未設定です (Guild: ${guildId})`);
     return false;
   }
-  const approvalPositionName = keihiConfig.roles?.approval;
+  const approvalPositionName = keihiConfig.roles.approval;
 
-  // 2. 店舗・役職・ロール対応表を読み込み
-  const storeRoleConfig = await loadStoreRoleConfig(guildId);
-  if (!storeRoleConfig || !storeRoleConfig.links?.link_role_role) {
+  // 3. サーバー設定から役職とロールの紐付け情報を取得
+  const roleLinkMap = storeRoleConfig?.link_role_role;
+  if (!roleLinkMap) {
+    // デバッグログを追加
+    logger.debug('[DEBUG keihiApproveHandler] roleLinkMap is missing.', {
+      guildId,
+      hasStoreRoleConfig: !!storeRoleConfig,
+      hasRoleLinks: !!storeRoleConfig?.link_role_role,
+      availableKeys: storeRoleConfig ? Object.keys(storeRoleConfig) : [],
+    });
     logger.warn(`[keihiApproveHandler] 店舗・役職・ロール設定または紐づけが見つかりません (Guild: ${guildId})`);
     return false;
   }
 
-  // 3. 役職名に対応するDiscordロールIDリストを取得
-  const roleLinks = storeRoleConfig.links.link_role_role || {};
-  const allowedRoleIds = roleLinks[approvalPositionName] || [];
+  // 4. 役職名に対応するDiscordロールIDリストを取得
+  // デバッグログを追加
+  logger.debug('[DEBUG keihiApproveHandler]', {
+    approvalRoleName: approvalPositionName,
+    availableRoleKeys: Object.keys(roleLinkMap || {}),
+  });
+  const allowedRoleIds = roleLinkMap[approvalPositionName] || [];
   if (allowedRoleIds.length === 0) return false;
 
-  // 4. メンバーが持っているロールと照合
+  // 5. メンバーが持っているロールと照合
   return member.roles.cache.some(r => allowedRoleIds.includes(r.id));
 }
 
@@ -93,8 +102,11 @@ async function updateChannelLog(interaction, fields, newStatusMessage) {
   const targetLogMessage = messages.find(m => m.content.includes(logIdentifier));
 
   if (targetLogMessage) {
-    const originalContent = `---------------------------\n経費申請しました。\n入力者：${fields['👤 入力者']}　入力時間：${createdAt}\n${interaction.message.url}`;
-    const newContent = `${originalContent}\n\n${newStatusMessage}\n---------------------------\n${logIdentifier}`;
+    // 元のメッセージから識別子と区切り線を削除
+    const baseContent = targetLogMessage.content
+      .replace(logIdentifier, '')
+      .replace(/^-+\s*$/m, ''); // 区切り線を削除
+    const newContent = `${baseContent.trim()}\n\n${newStatusMessage}\n---------------------------\n${logIdentifier}`;
 
     await targetLogMessage.edit({
       content: newContent,
@@ -109,9 +121,10 @@ async function handleKeihiApprove(interaction) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const guildId = interaction.guild.id;
   const user = interaction.user;
+  const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
 
   // 承認権限チェック
-  if (!(await hasApprovalPermission(interaction))) {
+  if (!hasApprovalPermission(interaction, keihiConfig, storeRoleConfig)) {
     return interaction.editReply({
       content: '⚠️ 承認権限がありません。',
     });
@@ -206,8 +219,8 @@ async function handleKeihiEdit(interaction) {
     return interaction.reply({ content: '⚠️ 元メッセージを取得できません。', flags: MessageFlags.Ephemeral });
 
   // 権限チェック
-  const keihiConfig = await loadKeihiConfig(guildId);
-  if (!(await isAuthorized(interaction, embed))) {
+  const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
+  if (!isAuthorized(interaction, embed, keihiConfig, storeRoleConfig)) {
     return interaction.reply({ content: '⚠️ 修正権限がありません。', flags: MessageFlags.Ephemeral });
   }
 
@@ -278,7 +291,7 @@ async function handleKeihiEditModal(interaction) {
     })
     .setTimestamp(new Date());
 
-  const globalConfig = await getGuildConfig(guildId);
+  const [globalConfig, keihiConfig] = await Promise.all([getGuildConfig(guildId), loadKeihiConfig(guildId)]);
   const logChannelId = globalConfig.adminLogChannel;
   const storeName = interaction.channel.name.split('-')[1] || '不明店舗';
 
@@ -349,8 +362,8 @@ async function handleKeihiDelete(interaction) {
   if (!embed) return interaction.editReply({ content: '⚠️ メッセージを読み取れませんでした。' });
   
   // 権限チェック
-  const keihiConfig = await loadKeihiConfig(guildId);
-  if (!(await isAuthorized(interaction, embed))) {
+  const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
+  if (!isAuthorized(interaction, embed, keihiConfig, storeRoleConfig)) {
     return interaction.editReply({ content: '⚠️ 削除権限がありません。' });
   }
 

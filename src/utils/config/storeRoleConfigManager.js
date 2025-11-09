@@ -1,5 +1,6 @@
 // src/utils/config/storeRoleConfigManager.js
 // 店舗・役職・紐づけ設定ファイルを統合管理
+const { getGuildConfig } = require('./gcsConfigManager');
 const { readJSON, saveJSON } = require('../gcs');
 const path = require('path');
 
@@ -66,6 +67,7 @@ async function updateLink(guildId, key, target, roleIds) {
 }
 
 module.exports = {
+  getGuildConfig, // re-export for convenience
   loadStoreRoleConfig,
   saveStoreRoleConfig,
   updateList,

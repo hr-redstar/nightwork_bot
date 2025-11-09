@@ -9,6 +9,7 @@ const {
 } = require('discord.js');
 const logger = require('../../utils/logger'); // loggerをインポート
 const { loadKeihiConfig, readKeihiDaily } = require('../../utils/keihi/keihiConfigManager');
+const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 
 /**
  * 経費CSV出力ボタン押下 → 年月選択メニュー表示
@@ -126,8 +127,9 @@ async function handleKeihiCsvSelect(interaction) {
     }
 
     // ✅ 管理者ログにも出力
-    if (config.logChannelId) {
-      const logCh = guild.channels.cache.get(config.logChannelId);
+    const globalConfig = await getGuildConfig(guildId);
+    if (globalConfig.adminLogChannel) {
+      const logCh = guild.channels.cache.get(globalConfig.adminLogChannel);
       if (logCh && logCh.isTextBased()) {
         await logCh.send({ content: `📄 ${year}年${month}月の経費CSVが出力されました。`, embeds: resultEmbeds, files: attachments });
       }

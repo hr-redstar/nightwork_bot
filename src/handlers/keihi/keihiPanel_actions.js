@@ -11,7 +11,6 @@ const dayjs = require('dayjs');
 const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
 const { sendConfigPanel } = require('./keihiPanel_Config');
 const { postStoreKeihiPanel } = require('./keihiPanel_storePanel');
-const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 
 /**

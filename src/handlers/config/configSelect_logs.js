@@ -11,6 +11,23 @@ const { sendSettingLog } = require('./configLogger');
 const { postConfigPanel } = require('./configPanel');
 
 /**
+ * ログ設定ボタンのインタラクションを処理するエントリーポイント
+ * @param {import('discord.js').ButtonInteraction} interaction
+ */
+async function handleLogButtons(interaction) {
+  const customId = interaction.customId;
+  if (customId === 'config_global_log') {
+    await showLogChannelSelect(interaction, 'global');
+  } else if (customId === 'config_admin_log') {
+    await showLogChannelSelect(interaction, 'admin');
+  } else if (customId === 'config_command_thread') {
+    await createLogThread(interaction, 'command');
+  } else if (customId === 'config_setting_thread') {
+    await createLogThread(interaction, 'setting');
+  }
+}
+
+/**
  * グローバル・管理者ログ用チャンネル選択メニューを表示
  */
 async function showLogChannelSelect(interaction, type) {
@@ -129,6 +146,7 @@ async function createLogThread(interaction, type) {
 }
 
 module.exports = {
+  handleLogButtons,
   showLogChannelSelect,
   handleLogChannelSelect,
   createLogThread,

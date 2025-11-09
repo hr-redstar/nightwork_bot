@@ -1,5 +1,5 @@
 // src/utils/config/configUtils.js
-const buildConfigPanel = require('../../handlers/config/configPanel');
+const { postConfigPanel } = require('../../handlers/config/configPanel');
 const logger = require('../logger');
 
 /**
@@ -14,11 +14,8 @@ async function updateConfigPanelAndLog(interaction, config, logMessage) {
     if (config.panel?.channelId && config.panel?.messageId) {
       const channel = await interaction.guild.channels.fetch(config.panel.channelId).catch(() => null);
       if (channel?.isTextBased()) {
-        const message = await channel.messages.fetch(config.panel.messageId).catch(() => null);
-        if (message) {
-          const panelData = await buildConfigPanel(interaction.guildId);
-          await message.edit(panelData).catch(err => logger.warn('[configUtils] パネル更新失敗', err));
-        }
+        // 既存のパネルを自動検索して更新する高機能版を使用
+        await postConfigPanel(channel);
       }
     }
 

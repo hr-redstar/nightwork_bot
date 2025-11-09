@@ -1,12 +1,12 @@
 // src/handlers/keihi/keihiPanel_Config.js
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { loadKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
+const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
+const logger = require('../../utils/logger');
 
 async function sendConfigPanel(channel, guildId) {
   try {
-    const config = await loadKeihiConfig(guildId);
-    const storeRoleConfig = await loadStoreRoleConfig(guildId);
+    const [config, storeRoleConfig] = await Promise.all([loadKeihiConfig(guildId), loadStoreRoleConfig(guildId)]);
 
     const approvalRole = config?.roles?.approval || '未設定';
     const viewRole = config?.roles?.view || '未設定';
@@ -39,19 +39,31 @@ async function sendConfigPanel(channel, guildId) {
       new ButtonBuilder().setCustomId('keihi_export_csv').setLabel('📄 経費CSV出力').setStyle(ButtonStyle.Success)
     );
 
-    // 既存のパネルを探して更新、なければ新規送信
-    const messages = await channel.messages.fetch({ limit: 10 });
-    const existingPanel = messages.find(
-      m => m.author.bot && m.embeds[0]?.title === '📋 経費設定パネル'
-    );
-
-    if (existingPanel) {
-      await existingPanel.edit({ embeds: [embed], components: [row1, row2] });
-    } else {
-      await channel.send({ embeds: [embed], components: [row1, row2] });
+    let panelMessage;
+    // 1. 設定ファイルからIDを特定
+    if (config.panel?.messageId) {
+      panelMessage = await channel.messages.fetch(config.panel.messageId).catch(() => null);
     }
+
+    // 2. IDで見つからなければタイトルで検索（後方互換性のため）
+    if (!panelMessage) {
+      const messages = await channel.messages.fetch({ limit: 10 });
+      panelMessage = messages.find(m => m.author.bot && m.embeds[0]?.title === '📋 経費設定パネル');
+    }
+
+    if (panelMessage) {
+      await panelMessage.edit({ embeds: [embed], components: [row1, row2] });
+    } else {
+      panelMessage = await channel.send({ embeds: [embed], components: [row1, row2] });
+    }
+
+    // 送信/更新したパネルのIDを設定に保存
+    config.panel = config.panel || {};
+    config.panel.messageId = panelMessage.id;
+    config.panel.channelId = channel.id;
+    await saveKeihiConfig(guildId, config);
   } catch (err) {
-    console.error('経費設定パネル送信エラー:', err);
+    logger.error('❌ 経費設定パネル送信エラー:', err);
   }
 }
 

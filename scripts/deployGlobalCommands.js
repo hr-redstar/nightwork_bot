@@ -13,55 +13,36 @@
  * コマンドは src/commands ディレクトリから自動的に読み込みます。
  */
 
-const fs = require("fs");
-const path = require("path");
-const { REST, Routes } = require("discord.js");
-require("dotenv").config();
-
-// const __dirname = path.resolve(); // require を使う場合、__dirname はデフォルトで利用可能
+const fs = require('fs');
+const path = require('path');
+const { REST, Routes } = require('discord.js');
+require('dotenv').config();
+const logger = require('../src/utils/logger');
+const { loadCommands } = require('./commandLoader');
 
 // ====== 環境変数の確認 ======
 const { DISCORD_TOKEN, CLIENT_ID } = process.env;
 
 if (!DISCORD_TOKEN || !CLIENT_ID) {
-  console.error("❌ 環境変数が不足しています。DISCORD_TOKEN と CLIENT_ID を設定してください。");
+  logger.error('❌ 環境変数が不足しています。DISCORD_TOKEN と CLIENT_ID を設定してください。');
   process.exit(1);
 }
 
 // ====== コマンドフォルダを探索 ======
-const commandsDir = path.join(__dirname, "src", "commands");
-const commandFiles = fs.readdirSync(commandsDir).filter((file) => file.endsWith(".js"));
-
-// ====== コマンドデータを読み込み ======
-const commands = [];
-for (const file of commandFiles) {
-  const filePath = path.join(commandsDir, file);
-  const command = require(filePath);
-
-  if ("data" in command && "execute" in command) {
-    commands.push(command.data.toJSON());
-    console.log(`🟢 コマンドを登録準備: ${command.data.name}`);
-  } else {
-    console.warn(`⚠️ 無効なコマンド構造: ${file}`);
-  }
-}
+const commands = loadCommands(__dirname, logger, '[DeployGlobal]');
 
 // ====== Discord REST クライアント初期化 ======
-const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
+const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
 // ====== 登録処理 ======
 (async () => {
   try {
-    console.log("📡 Discord API へコマンドを登録しています...");
-    const data = await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands }
-    );
+    logger.info(`📡 ${commands.length}個のグローバルコマンドをDiscord APIへ登録します...`);
+    const data = await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 
-    console.log(`✅ 登録完了: ${data.length} 件のグローバルコマンドを更新しました。`);
-    data.forEach((cmd) => console.log(`   - ${cmd.name}`));
+    logger.info(`✅ 登録完了: ${data.length} 件のグローバルコマンドを更新しました。`);
   } catch (error) {
-    console.error("❌ 登録エラー:", error);
+    logger.error('❌ グローバルコマンドの登録エラー:', error);
     process.exit(1);
   }
 })();

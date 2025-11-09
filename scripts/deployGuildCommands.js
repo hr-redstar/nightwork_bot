@@ -11,6 +11,7 @@ const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../src/utils/logger');
+const { loadCommands } = require('./commandLoader');
 
 const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
 
@@ -19,25 +20,7 @@ if (!DISCORD_TOKEN || !CLIENT_ID || !GUILD_ID) {
   process.exit(1);
 }
 
-const commands = [];
-const commandsPath = path.join(__dirname, '../src/commands');
-
-const loadCommandsRecursively = (dir) => {
-  const files = fs.readdirSync(dir, { withFileTypes: true });
-  for (const file of files) {
-    const filePath = path.join(dir, file.name);
-    if (file.isDirectory()) {
-      loadCommandsRecursively(filePath);
-    } else if (file.name.endsWith('.js')) {
-      const command = require(filePath);
-      if (command.data) {
-        commands.push(command.data.toJSON());
-      }
-    }
-  }
-};
-
-loadCommandsRecursively(commandsPath);
+const commands = loadCommands(__dirname, logger, '[DeployGuild]');
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
@@ -62,4 +45,4 @@ async function deployCommands() {
   }
 }
 
-module.exports = { deployCommands };
+deployCommands();
