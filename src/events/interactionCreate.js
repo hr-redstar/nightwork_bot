@@ -11,8 +11,8 @@ const { updateStorePanel } = require('../handlers/tennai_hikkake/tennaiPanel');
 const configBotHandlers = require('../handlers/configBotHandlers'); // ✅ 正しくは複数形の "s" が付きます
 const configModalHandler = require('../handlers/config/configModalHandler');
 const uriageBotHandler = require('../handlers/uriageBotHandler');
-const KPIBotHandler = require('../handlers/KPIBotHandler');
-const kuzibikiBotHandler = require('../handlers/kuzibikiBotHandler');
+const KPIBotHandler = require('../handlers/KPIBotHandler'); // This seems to be a single function handler
+const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 
 
 module.exports = {
@@ -94,8 +94,8 @@ module.exports = {
         }
 
         // --- くじ引き ---
-        if (customId.startsWith('kuji_')) {
-          await kuzibikiBotHandler(interaction);
+        if (customId.startsWith('kuzibiki_')) {
+          await handleKuzibikiInteraction(interaction);
           return;
         }
 
@@ -159,8 +159,8 @@ module.exports = {
           return;
         }
 
-        if (customId.startsWith('kuji_')) {
-          await kuzibikiBotHandler(interaction);
+        if (customId.startsWith('kuzibiki_') || customId === 'select_kuzibiki_count') {
+          await handleKuzibikiInteraction(interaction);
           return;
         }
 
@@ -186,7 +186,7 @@ module.exports = {
 
         // --- 各機能モーダル ---
        if (customId.startsWith('kpi_')) return await KPIBotHandler(interaction);
-        if (customId.startsWith('kuji_')) return await kuzibikiBotHandler(interaction);
+        if (customId.startsWith('modal_kuzibiki_')) return await handleKuzibikiInteraction(interaction);
         if (customId.startsWith('keihi_')) return await keihiBotHandlers.handleInteraction(interaction);
         if (customId.startsWith('uriage_')) return await uriageBotHandler.handleInteraction(interaction);
 

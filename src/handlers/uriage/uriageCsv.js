@@ -1,158 +1,129 @@
-const { AttachmentBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
-const { readFileFromGCS, listFilesInDirectory } = require('../../utils/gcs');
-const { getStoreList } = require('../../utils/config/configAccessor');
+/**
+ * src/handlers/uriage/uriageCsv.js
+ * 売上報告のCSV生成・保存を処理
+ */
+const fs = require('fs');
 const path = require('path');
+const dayjs = require('dayjs');
+const quarterOfYear = require('dayjs/plugin/quarterOfYear');
+const { safeSaveFile, listLocalFiles } = require('../../utils/fileUtils');
+dayjs.extend(quarterOfYear);
+
+const baseDir = path.join(__dirname, '../../../local_data/GCS');
 
 /**
- * CSV発行ワークフロー開始（店舗選択）
+ * 売上報告データをCSVとしてGCSに保存する
+ * @param {string} guildId
+ * @param {string} storeName
+ * @param {object} reportData - Embedから抽出したレポートデータ
+ * @returns {Promise<string>} 保存したGCSファイルのパス
  */
-async function handleCsvStart(interaction) {
-  const guildId = interaction.guild.id;
-  const stores = await getStoreList(guildId);
-  if (stores.length === 0) {
-    return interaction.reply({ content: '⚠️ 店舗が登録されていません。', ephemeral: true });
-  }
+function saveReportToCsv(guildId, storeName, reportData) {
+  const { date, totalSales, cash, card, expenses, balance, submitter, approver } = reportData;
+  const dateForPath = dayjs(date, 'YYYY/MM/DD').format('YYYY-MM-DD');
+  const filePath = path.join(baseDir, guildId, 'uriage', storeName, `売上報告_${dateForPath}.csv`);
 
-  const select = new StringSelectMenuBuilder()
-    .setCustomId('uriage_csv_store_select')
-    .setPlaceholder('店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s, value: s })));
+  // CSVヘッダーとデータ行を作成
+  const header = '日付,総売上,現金,カード,諸経費,残金,入力者,承認者\n';
+  const dataRow = [
+    date,
+    totalSales,
+    cash,
+    card,
+    expenses,
+    balance,
+    submitter,
+    approver,
+  ].join(',');
 
-  await interaction.reply({
-    content: '📊 CSVを発行する店舗を選択してください。',
-    components: [new ActionRowBuilder().addComponents(select)],
-    ephemeral: true,
-  });
+  safeSaveFile(filePath, header + dataRow);
+
+  return filePath;
 }
 
 /**
- * 店舗選択後：期間タイプ選択
+ * 指定された店舗のGCS上のCSVファイルから、利用可能な期間のリストを生成する
+ * @param {string} guildId
+ * @param {string} storeName
+ * @returns {Promise<{byDay: string[], byMonth: string[], byQuarter: string[]}>}
  */
-async function handleCsvTypeSelect(interaction, storeName) {
-  const select = new StringSelectMenuBuilder()
-    .setCustomId(`uriage_csv_type_${storeName}`)
-    .setPlaceholder('期間タイプを選択')
-    .addOptions([
-      { label: '年月日（1日分）', value: 'day' },
-      { label: '年月（月別）', value: 'month' },
-      { label: '四半期（3ヶ月分）', value: 'quarter' },
-    ]);
+function getAvailableCsvPeriods(guildId, storeName) {
+  const dirPath = path.join(baseDir, guildId, 'uriage', storeName);
+  const files = listLocalFiles(dirPath);
 
-  await interaction.update({
-    content: `🏪 店舗：${storeName}\n期間タイプを選択してください。`,
-    components: [new ActionRowBuilder().addComponents(select)],
-  });
-}
+  const dates = new Set();
+  const months = new Set();
+  const quarters = new Set();
 
-/**
- * CSV一覧選択
- */
-async function handleCsvFileSelect(interaction, storeName, type) {
-  const guildId = interaction.guild.id;
-  const basePath = `GCS/${guildId}/uriage/${storeName}/`;
-  const files = await listFilesInDirectory(basePath);
-
-  if (!files || files.length === 0)
-    return interaction.update({
-      content: '⚠️ CSVファイルが見つかりません。',
-      components: [],
-    });
-
-  // ファイル名の中から対象タイプのものだけ抽出
-  let filtered = [];
-  if (type === 'day') {
-    filtered = files.filter((f) => f.includes('売上報告_20'));
-  } else if (type === 'month') {
-    filtered = Array.from(
-      new Set(
-        files
-          .filter((f) => f.includes('売上報告_'))
-          .map((f) => f.match(/売上報告_(\d{4}-\d{2})/)[1])
-      )
-    );
-  } else if (type === 'quarter') {
-    const monthsToQuarter = (m) => Math.floor((parseInt(m) - 1) / 3) + 1;
-    const quarters = new Set();
-    for (const f of files.filter((f) => f.includes('売上報告_'))) {
-      const m = f.match(/売上報告_(\d{4})-(\d{2})/);
-      if (m) quarters.add(`${m[1]}-Q${monthsToQuarter(m[2])}`);
-    }
-    filtered = Array.from(quarters);
-  }
-
-  if (filtered.length === 0)
-    return interaction.update({ content: '⚠️ 該当する期間のCSVがありません。', components: [] });
-
-  const select = new StringSelectMenuBuilder()
-    .setCustomId(`uriage_csv_file_${storeName}_${type}`)
-    .setPlaceholder('CSV期間を選択')
-    .addOptions(filtered.slice(0, 25).map((label) => ({ label, value: label })));
-
-  await interaction.update({
-    content: `🏪 店舗：${storeName}\n期間タイプ：${type}\n発行対象を選択してください。`,
-    components: [new ActionRowBuilder().addComponents(select)],
-  });
-}
-
-/**
- * CSV出力・添付送信
- */
-async function handleCsvOutput(interaction, storeName, type, value) {
-  const guildId = interaction.guild.id;
-  const basePath = `GCS/${guildId}/uriage/${storeName}/`;
-  let filePath = '';
-
-  if (type === 'day') {
-    filePath = `${basePath}売上報告_${value}.csv`;
-  } else if (type === 'month') {
-    filePath = `${basePath}${value}/売上報告_${value}.csv`;
-  } else if (type === 'quarter') {
-    // 四半期：対象3ヶ月分をマージして1ファイルにまとめる
-    const [year, quarterStr] = value.split('-Q');
-    const quarter = parseInt(quarterStr);
-    const months = [(quarter - 1) * 3 + 1, (quarter - 1) * 3 + 2, (quarter - 1) * 3 + 3].map((m) =>
-      String(m).padStart(2, '0')
-    );
-    let mergedData = 'date,store,user,approver,status\n';
-    for (const m of months) {
-      const files = await listFilesInDirectory(`${basePath}${year}/${m}/`);
-      const match = files.find((f) => f.includes('売上報告_'));
-      if (match) {
-        const data = await readFileFromGCS(`${basePath}${year}/${m}/${match}`);
-        if (data) mergedData += data + '\n';
+  for (const file of files) {
+    const match = path.basename(file).match(/売上報告_(\d{4}-\d{2}-\d{2})\.csv$/);
+    if (match) {
+      const dateStr = match[1];
+      const dateObj = dayjs(dateStr);
+      if (dateObj.isValid()) {
+        dates.add(dateObj.format('YYYY/MM/DD'));
+        months.add(dateObj.format('YYYY年MM月'));
+        quarters.add(`${dateObj.format('YYYY年')}-Q${dateObj.quarter()}`);
       }
     }
-    const attachment = new AttachmentBuilder(Buffer.from(mergedData, 'utf8')).setName(
-      `売上報告_${value}.csv`
-    );
-    return interaction.update({
-      content: `📎 **${storeName}** の **${value}** 四半期CSVを出力しました。`,
-      files: [attachment],
-      components: [],
+  }
+
+  return {
+    byDay: Array.from(dates).sort().reverse(),
+    byMonth: Array.from(months).sort().reverse(),
+    byQuarter: Array.from(quarters).sort().reverse(),
+  };
+}
+
+/**
+ * 指定された期間の売上報告CSVを結合して生成する
+ * @param {string} guildId
+ * @param {string} storeName
+ * @param {string} periodType - 'day', 'month', 'quarter'
+ * @param {string} periodValue - e.g., '2025/11/10', '2025年11月', '2025年-Q4'
+ * @returns {Promise<{content: Buffer, filename: string} | null>}
+ */
+function generateCsvForPeriod(guildId, storeName, periodType, periodValue) {
+  const dirPath = path.join(baseDir, guildId, 'uriage', storeName);
+  const allFiles = listLocalFiles(dirPath);
+  let targetFiles = [];
+  let filename = `売上報告_${storeName}_${periodValue.replace(/\//g, '-')}.csv`;
+
+  if (periodType === 'day') {
+    const dateStr = dayjs(periodValue, 'YYYY/MM/DD').format('YYYY-MM-DD');
+    targetFiles = allFiles.filter(f => path.basename(f).includes(`売上報告_${dateStr}.csv`));
+  } else if (periodType === 'month') {
+    const monthStr = dayjs(periodValue, 'YYYY年MM月').format('YYYY-MM');
+    targetFiles = allFiles.filter(f => path.basename(f).includes(`売上報告_${monthStr}`));
+  } else if (periodType === 'quarter') {
+    const [year, quarterNum] = periodValue.split('-Q');
+    const yearStr = year.replace('年', '');
+    const startMonth = (parseInt(quarterNum, 10) - 1) * 3;
+    const startDate = dayjs(`${yearStr}-01-01`).month(startMonth).startOf('month');
+    const endDate = startDate.add(2, 'month').endOf('month');
+    targetFiles = allFiles.filter(f => {
+      const match = path.basename(f).match(/売上報告_(\d{4}-\d{2}-\d{2})\.csv$/);
+      if (!match) return false;
+      const fileDate = dayjs(match[1]);
+      return fileDate.isAfter(startDate.subtract(1, 'day')) && fileDate.isBefore(endDate.add(1, 'day'));
     });
   }
 
-  const data = await readFileFromGCS(filePath);
-  if (!data)
-    return interaction.update({
-      content: '⚠️ CSVファイルが見つかりません。',
-      components: [],
-    });
+  if (targetFiles.length === 0) return null;
 
-  const attachment = new AttachmentBuilder(Buffer.from(data, 'utf8')).setName(
-    path.basename(filePath)
-  );
+  const header = '日付,総売上,現金,カード,諸経費,残金,入力者,承認者\n';
+  let combinedData = '';
 
-  await interaction.update({
-    content: `📎 **${storeName}** のCSVを出力しました。\nURL: \`${filePath}\``,
-    files: [attachment],
-    components: [],
-  });
+  for (const filePath of targetFiles) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    // ヘッダー行を除いて結合
+    combinedData += content.toString().split('\n').slice(1).join('\n');
+  }
+
+  return {
+    content: Buffer.from(header + combinedData),
+    filename: filename,
+  };
 }
 
-module.exports = {
-  handleCsvStart,
-  handleCsvTypeSelect,
-  handleCsvFileSelect,
-  handleCsvOutput,
-};
+module.exports = { saveReportToCsv, getAvailableCsvPeriods, generateCsvForPeriod };

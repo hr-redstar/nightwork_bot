@@ -1,4 +1,4 @@
-﻿﻿﻿/**
+/**
  * src/handlers/uriageBotHandler.js
  * 売上関連のインタラクションを処理する
  */
@@ -15,15 +15,12 @@ const {
   ModalBuilder,
   TextInputBuilder,
   RoleSelectMenuBuilder,
-  AttachmentBuilder,
 } = require('discord.js');
 const { getStoreList } = require('../utils/config/configAccessor');
 const { getUriageConfig, saveUriageConfig } = require('./uriage/uriageConfigManager');
 const dayjs = require('dayjs');
 const { postUriagePanel } = require('./uriage/uriagePanel');
-const { saveReportToCsv } = require('./uriage/uriageCsv');
 const { sendSettingLog } = require('./config/configLogger');
-const { generateCsvForPeriod } = require('./uriage/uriageCsv');
 
 /**
  * 売上関連のインタラクションを統括して処理する
@@ -57,14 +54,8 @@ async function handleInteraction(interaction) {
  * @param {import('discord.js').ButtonInteraction} interaction
  */
 async function handleButtonInteraction(interaction) {
-  const { customId, guild, user, member } = interaction;
+  const { customId, guild } = interaction;
   logger.info(`[uriageBotHandler] Button: ${customId}`);
-
-  // --- 管理者権限が必要なボタンの権限チェック ---
-  const adminButtons = ['uriage_panel_setup', 'uriage_set_request', 'uriage_set_approval', 'uriage_set_view', 'uriage_csv_export'];
-  if (adminButtons.includes(customId) && !member.permissions.has('Administrator')) {
-    return interaction.reply({ content: '⚠️ この操作は管理者のみが実行できます。', flags: MessageFlags.Ephemeral });
-  }
 
   // --- 売上報告パネル設置 ---
   if (customId === 'uriage_panel_setup') {
@@ -156,13 +147,7 @@ async function handleButtonInteraction(interaction) {
  * @param {import('discord.js').StringSelectMenuInteraction} interaction
  */
 async function handleStringSelectMenuInteraction(interaction) {
-  const { customId, member } = interaction;
-
-  // --- 管理者権限が必要なメニューの権限チェック ---
-  const adminMenus = ['uriage_select_store_for_panel', 'uriage_csv_select_store', 'uriage_csv_select_period_'];
-  if (adminMenus.some(prefix => customId.startsWith(prefix)) && !member.permissions.has('Administrator')) {
-    return interaction.reply({ content: '⚠️ この操作は管理者のみが実行できます。', flags: MessageFlags.Ephemeral });
-  }
+  const { customId } = interaction;
 
   // --- 店舗選択後 → チャンネル選択へ ---
   if (customId === 'uriage_select_store_for_panel') {
@@ -176,62 +161,6 @@ async function handleStringSelectMenuInteraction(interaction) {
       content: `**${storeName}** のパネルをどのチャンネルに設置しますか？`,
       components: [new ActionRowBuilder().addComponents(channelSelect)],
     });
-    return;
-  }
-
-  // --- CSV発行店舗選択後 → 期間選択へ ---
-  if (customId === 'uriage_csv_select_store') {
-    await interaction.deferUpdate();
-    const storeName = interaction.values[0];
-    const { byDay, byMonth, byQuarter } = await getAvailableCsvPeriods(interaction.guild.id, storeName);
-
-    if (byDay.length === 0) {
-      return interaction.editReply({
-        content: `⚠️ **${storeName}** にはエクスポート可能なCSVデータがありません。`,
-        components: [],
-      });
-    }
-
-    const periodSelect = new StringSelectMenuBuilder()
-      .setCustomId(`uriage_csv_select_period_${storeName}`)
-      .setPlaceholder('エクスポートする期間を選択');
-
-    if (byDay.length > 0) periodSelect.addOptions(byDay.slice(0, 25).map(d => ({ label: `日次: ${d}`, value: `day_${d}` })));
-    if (byMonth.length > 0) periodSelect.addOptions(byMonth.slice(0, 25).map(m => ({ label: `月次: ${m}`, value: `month_${m}` })));
-    if (byQuarter.length > 0) periodSelect.addOptions(byQuarter.slice(0, 25).map(q => ({ label: `四半期: ${q}`, value: `quarter_${q}` })));
-
-    await interaction.update({
-      content: `**${storeName}** のCSVを発行します。期間を選択してください。`,
-      components: [new ActionRowBuilder().addComponents(periodSelect)],
-    });
-    return;
-  }
-
-  // --- CSV発行期間選択後 → CSV送信 ---
-  if (customId.startsWith('uriage_csv_select_period_')) {
-    await interaction.deferUpdate();
-    const storeName = customId.replace('uriage_csv_select_period_', '');
-    const [periodType, periodValue] = interaction.values[0].split('_');
-
-    const result = await generateCsvForPeriod(interaction.guild.id, storeName, periodType, periodValue);
-
-    if (!result) {
-      return interaction.editReply({ content: '⚠️ CSVの生成に失敗しました。対象のデータが見つからない可能性があります。', components: [] });
-    }
-
-    const attachment = new AttachmentBuilder(result.content, { name: result.filename });
-
-    await interaction.editReply({
-      content: `✅ **${storeName}** の売上CSV（期間: ${periodValue}）を発行しました。`,
-      files: [attachment],
-      components: [],
-    });
-
-    await sendSettingLog(interaction.guild, {
-      user: interaction.user,
-      type: '売上CSV発行',
-      message: `**${storeName}** の売上CSV（期間: ${periodValue}）が発行されました。`,
-    });
   }
 }
 
@@ -240,12 +169,7 @@ async function handleStringSelectMenuInteraction(interaction) {
  * @param {import('discord.js').ChannelSelectMenuInteraction} interaction
  */
 async function handleChannelSelectMenuInteraction(interaction) {
-  const { customId, guild, user, member } = interaction;
-
-  // --- 管理者権限が必要なメニューの権限チェック ---
-  if (customId.startsWith('uriage_select_channel_for_panel_') && !member.permissions.has('Administrator')) {
-    return interaction.reply({ content: '⚠️ この操作は管理者のみが実行できます。', flags: MessageFlags.Ephemeral });
-  }
+  const { customId, guild, user } = interaction;
 
   // --- チャンネル選択後 → パネル設置 ---
   if (customId.startsWith('uriage_select_channel_for_panel_')) {
@@ -280,12 +204,7 @@ async function handleChannelSelectMenuInteraction(interaction) {
  * @param {import('discord.js').RoleSelectMenuInteraction} interaction
  */
 async function handleRoleSelectMenuInteraction(interaction) {
-  const { customId, guild, user, member } = interaction;
-
-  // --- 管理者権限が必要なメニューの権限チェック ---
-  if (customId.startsWith('uriage_select_role_') && !member.permissions.has('Administrator')) {
-    return interaction.reply({ content: '⚠️ この操作は管理者のみが実行できます。', flags: MessageFlags.Ephemeral });
-  }
+  const { customId, guild, user } = interaction;
   await interaction.deferUpdate();
   const selectedRoleIds = interaction.values;
   const config = await getUriageConfig(guild.id);
@@ -364,7 +283,7 @@ async function handleModalSubmitInteraction(interaction) {
         const balance = totalSales - (card + expenses);
 
     // スレッドを探すか作成
-    const thread = await findOrCreateReportThread(interaction, storeName, date);
+    const thread = await findOrCreateReportThread(interaction.channel, storeName, date);
 
     // スレッドに投稿するEmbedを作成
     const reportEmbed = new EmbedBuilder().setTitle(`売上報告 - ${date}`).setColor(0x3498db)
@@ -391,65 +310,16 @@ async function handleModalSubmitInteraction(interaction) {
 
     await interaction.editReply({ content: '✅ 売上報告をスレッドに投稿しました。' });
   }
-
-  // --- 売上修正モーダル送信 ---
-  if (customId.startsWith('uriage_modify_modal_')) {
-    await interaction.deferUpdate();
-    const messageId = customId.replace('uriage_modify_modal_', '');
-    const message = await interaction.channel.messages.fetch(messageId);
-    const originalEmbed = message.embeds[0];
-
-    // モーダルから値を取得
-    const date = interaction.fields.getTextInputValue('date');
-    const totalSales = parseInt(interaction.fields.getTextInputValue('total_sales').replace(/,/g, ''), 10);
-    const cash = parseInt(interaction.fields.getTextInputValue('cash').replace(/,/g, ''), 10);
-    const card = parseInt(interaction.fields.getTextInputValue('card').replace(/,/g, ''), 10);
-    const expenses = parseInt(interaction.fields.getTextInputValue('expenses').replace(/,/g, ''), 10);
-
-    // バリデーション
-    if (!dayjs(date, 'YYYY/MM/DD', true).isValid() || isNaN(totalSales) || isNaN(cash) || isNaN(card) || isNaN(expenses)) {
-      await interaction.followUp({ content: '⚠️ 入力された値の形式が正しくありません。', flags: MessageFlags.Ephemeral });
-      return;
-    }
-
-    const balance = totalSales - (card + expenses);
-
-    // Embedを更新
-    const updatedEmbed = EmbedBuilder.from(originalEmbed)
-      .setTitle(`売上報告 - ${date}`) // 日付が変更される可能性を考慮
-      .setFields(
-        { name: '総売上', value: `${totalSales.toLocaleString()}円`, inline: true },
-        { name: '現金', value: `${cash.toLocaleString()}円`, inline: true },
-        { name: 'カード', value: `${card.toLocaleString()}円`, inline: true },
-        { name: '諸経費', value: `${expenses.toLocaleString()}円`, inline: true },
-        { name: '残金', value: `**${balance.toLocaleString()}円**`, inline: true },
-        originalEmbed.fields.find(f => f.name === '入力者'), // 入力者はそのまま
-        originalEmbed.fields.find(f => f.name === '入力時間'), // 入力時間はそのまま
-        { name: '修正者', value: `<@${user.id}>`, inline: false },
-        { name: '修正日時', value: dayjs().format('YYYY/MM/DD HH:mm'), inline: true }
-      );
-
-    await message.edit({ embeds: [updatedEmbed] });
-
-    // ログ送信
-    const storeName = originalEmbed.footer.text.replace('店舗: ', '');
-    await sendSettingLog(guild, {
-      user,
-      type: '売上修正',
-      message: `**${storeName}** の売上報告（${date}）が修正されました。`,
-    });
-  }
 }
 
 /**
  * 指定された年月のレポート用スレッドを検索または作成する
- * @param {import('discord.js').ModalSubmitInteraction} interaction
+ * @param {import('discord.js').TextChannel} channel
  * @param {string} storeName
  * @param {string} dateString (YYYY/MM/DD)
  * @returns {Promise<import('discord.js').ThreadChannel>}
  */
-async function findOrCreateReportThread(interaction, storeName, dateString) {
-  const { channel, guild, user } = interaction;
+async function findOrCreateReportThread(channel, storeName, dateString) {
   const threadName = `${dayjs(dateString).format('YYYY年MM月')}-${storeName}-売上報告`;
 
   // まずアクティブなスreadを検索
@@ -468,57 +338,12 @@ async function findOrCreateReportThread(interaction, storeName, dateString) {
     logger.warn(`[uriageBotHandler] Archived threads could not be fetched for channel ${channel.id}:`, err.message);
   }
 
-  const config = await getUriageConfig(guild.id);
-  const approvalRoles = config.uriageApprovalRoles || [];
-  const viewRoles = config.uriageViewRoles || [];
-  const allRoleIds = [...new Set([...approvalRoles, ...viewRoles])];
-
   // それでも見つからなければ新規作成
-  const newThread = await channel.threads.create({
+  return await channel.threads.create({
     name: threadName,
-    type: ChannelType.PrivateThread,
     autoArchiveDuration: 10080, // 7 days
     reason: `${storeName} の ${dayjs(dateString).format('YYYY年MM月')} の売上報告スレッド`,
   });
-
-  // スレッドにメンバーを追加
-  // 1. 報告者本人
-  await newThread.members.add(user.id).catch(e => logger.error(`Failed to add submitter to thread: ${e.message}`));
-
-  // 2. 権限を持つロールのメンバー
-  for (const roleId of allRoleIds) {
-    const role = await guild.roles.fetch(roleId).catch(() => null);
-    if (role) {
-      for (const member of role.members.values()) {
-        await newThread.members.add(member.id).catch(e => logger.warn(`Failed to add member ${member.id} to thread: ${e.message}`));
-      }
-    }
-  }
-
-  return newThread;
-}
-
-/**
- * 承認済みEmbedからCSV保存用のデータを抽出する
- * @param {EmbedBuilder} embed
- * @param {string} approverTag
- * @returns {object}
- */
-function parseEmbedToData(embed, approverTag = '') {
-  const fields = embed.data.fields;
-  const getFieldValue = (name) => fields.find(f => f.name === name)?.value.replace(/,|\*|円/g, '') || '';
-
-  return {
-    date: embed.data.title.replace('売上報告 - ', ''),
-    totalSales: getFieldValue('総売上'),
-    cash: getFieldValue('現金'),
-    card: getFieldValue('カード'),
-    expenses: getFieldValue('諸経費'),
-    balance: getFieldValue('残金'),
-    submitter: fields.find(f => f.name === '入力者')?.value.replace(/<|@|>/g, '') || '',
-    approver: approverTag,
-    storeName: embed.data.footer.text.replace('店舗: ', ''),
-  };
 }
 
 module.exports = { handleInteraction };

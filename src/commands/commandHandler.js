@@ -1,3 +1,6 @@
+// src/commands/commandHandler.js
+
+const { MessageFlags } = require('discord.js');
 const { getSubscription, isActive } = require('../utils/gcsSubscription');
 const logger = require('../utils/logger');
 

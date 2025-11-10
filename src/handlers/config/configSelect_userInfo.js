@@ -7,10 +7,12 @@ const {
   TextInputBuilder,
   TextInputStyle,
 } = require('discord.js');
-const logger = require('../../utils/logger');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('./configLogger');
 const { postConfigPanel } = require('./configPanel');
+
+const encodeToken = (value) => Buffer.from(String(value), 'utf8').toString('base64');
+const decodeToken = (token) => Buffer.from(String(token), 'base64').toString('utf8');
 
 /**
  * ユーザー情報登録メニューを表示
@@ -49,23 +51,98 @@ async function showStoreRoleSelect(interaction, userId) {
   const stores = config.stores || [];
   const roles = config.roles || [];
 
+  if (stores.length === 0) {
+    await interaction.update({
+      content: '⚠️ 店舗がまだ登録されていません。設定パネルから店舗名を登録してください。',
+      components: [],
+    });
+    return;
+  }
+
+  if (roles.length === 0) {
+    await interaction.update({
+      content: '⚠️ 役職がまだ登録されていません。先に役職編集を実行してください。',
+      components: [],
+    });
+    return;
+  }
+
   // 店舗選択
   const storeSelect = new StringSelectMenuBuilder()
     .setCustomId(`select_store_for_user_${userId}`)
     .setPlaceholder('所属店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s, value: s })));
+    .addOptions(stores.slice(0, 25).map((s) => ({ label: s, value: s })));
 
   // 役職選択
   const roleSelect = new StringSelectMenuBuilder()
     .setCustomId(`select_role_for_user_${userId}`)
-    .setPlaceholder('役職を選択')
-    .addOptions(roles.map((r) => ({ label: r, value: r })));
+    .setPlaceholder('先に店舗を選択してください')
+    .setDisabled(true)
+    .addOptions(roles.slice(0, 25).map((r) => ({ label: r, value: encodeToken(r) })));
 
   await interaction.update({
     content: `🏢 **${member.user.tag}** さんの所属店舗と役職を選択してください。`,
     components: [new ActionRowBuilder().addComponents(storeSelect), new ActionRowBuilder().addComponents(roleSelect)],
   });
   return;
+}
+
+/**
+ * 店舗選択後に役職セレクトを有効化
+ */
+async function handleStoreRoleSelect(interaction, userId) {
+  const selectedStore = interaction.values?.[0];
+  if (!selectedStore) {
+    await interaction.reply({
+      content: '⚠️ 店舗が選択されていません。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const config = await getGuildConfig(interaction.guild.id);
+  const stores = config.stores || [];
+  const roles = config.roles || [];
+  const targetMember = await interaction.guild.members.fetch(userId);
+
+  if (stores.length === 0) {
+    await interaction.update({
+      content: '⚠️ 店舗がまだ登録されていません。設定パネルから店舗名を登録してください。',
+      components: [],
+    });
+    return;
+  }
+
+  if (roles.length === 0) {
+    await interaction.update({
+      content: '⚠️ 役職がまだ登録されていません。先に役職編集を実行してください。',
+      components: [],
+    });
+    return;
+  }
+
+  const storeSelect = new StringSelectMenuBuilder()
+    .setCustomId(`select_store_for_user_${userId}`)
+    .setPlaceholder('所属店舗を選択')
+    .addOptions(
+      stores.slice(0, 25).map((s) => ({
+        label: s,
+        value: s,
+        default: s === selectedStore,
+      })),
+    );
+
+  const storeToken = encodeToken(selectedStore);
+  const roleSelect = new StringSelectMenuBuilder()
+    .setCustomId(`select_role_for_user_${userId}_${storeToken}`)
+    .setPlaceholder('役職を選択')
+    .setDisabled(false)
+    .addOptions(roles.slice(0, 25).map((r) => ({ label: r, value: encodeToken(r) })));
+
+  await interaction.update({
+    content: `🏢 **${targetMember.user.tag}** さんの店舗を **${selectedStore}** に設定しました。役職を選択してください。`,
+    components: [new ActionRowBuilder().addComponents(storeSelect), new ActionRowBuilder().addComponents(roleSelect)],
+  });
 }
 
 /**
@@ -79,8 +156,10 @@ async function showBirthYearSelect(interaction, userId, storeName, roleName) {
     years.push({ label: `${i}年`, value: String(i) });
   }
 
+  const storeToken = encodeToken(storeName);
+  const roleToken = encodeToken(roleName);
   const yearSelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_year_${userId}_${storeName}_${roleName}`)
+    .setCustomId(`select_birth_year_${userId}_${storeToken}_${roleToken}`)
     .setPlaceholder('誕生年を選択してください')
     .addOptions(years);
 
@@ -102,8 +181,10 @@ async function showBirthMonthSelect(interaction, userId, storeName, roleName, bi
     months.push({ label: `${i}月`, value: String(i).padStart(2, '0') });
   }
 
+  const storeToken = encodeToken(storeName);
+  const roleToken = encodeToken(roleName);
   const monthSelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_month_${userId}_${storeName}_${roleName}_${birthYear}`)
+    .setCustomId(`select_birth_month_${userId}_${storeToken}_${roleToken}_${birthYear}`)
     .setPlaceholder('誕生月を選択してください')
     .addOptions(months);
 
@@ -126,8 +207,10 @@ async function showBirthDaySelect(interaction, userId, storeName, roleName, birt
     days.push({ label: `${i}日`, value: String(i).padStart(2, '0') });
   }
 
+  const storeToken = encodeToken(storeName);
+  const roleToken = encodeToken(roleName);
   const daySelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_day_${userId}_${storeName}_${roleName}_${birthYear}_${birthMonth}`)
+    .setCustomId(`select_birth_day_${userId}_${storeToken}_${roleToken}_${birthYear}_${birthMonth}`)
     .setPlaceholder('誕生日を選択してください')
     .addOptions(days);
 
@@ -144,8 +227,10 @@ async function showBirthDaySelect(interaction, userId, storeName, roleName, birt
  */
 async function showUserInfoModal(interaction, userId, storeName, roleName, birthYear, birthMonth, birthDay) {
   const dob = `${birthYear}-${birthMonth}-${birthDay}`;
+  const storeToken = encodeToken(storeName);
+  const roleToken = encodeToken(roleName);
   const modal = new ModalBuilder()
-    .setCustomId(`modal_user_info_${userId}_${storeName}_${roleName}_${dob}`)
+    .setCustomId(`modal_user_info_${userId}_${storeToken}_${roleToken}_${dob}`)
     .setTitle('🗒️ ユーザー詳細情報登録');
 
   // 既存のユーザー情報を取得してモーダルに初期値として設定
@@ -194,7 +279,9 @@ async function showUserInfoModal(interaction, userId, storeName, roleName, birth
  */
 async function handleUserInfoSubmit(interaction) {
   // customIdからuserId, storeName, roleName, dobを取得
-  const [, , userId, storeName, roleName, dob] = interaction.customId.split('_');
+  const [, , userId, storeToken, roleToken, dob] = interaction.customId.split('_');
+  const storeName = decodeToken(storeToken);
+  const roleName = decodeToken(roleToken);
 
   const nickname = interaction.fields.getTextInputValue('user_nickname');
   const sns = interaction.fields.getTextInputValue('sns');
@@ -215,8 +302,6 @@ async function handleUserInfoSubmit(interaction) {
     dob, // 生年月日を追加
     updatedAt: new Date().toISOString(),
   };
-
-
   await setGuildConfig(guildId, config);
 
   const member = await interaction.guild.members.fetch(userId);
@@ -244,4 +329,6 @@ module.exports = {
   showBirthMonthSelect,
   showBirthDaySelect,
   handleUserInfoSubmit,
+  handleStoreRoleSelect,
+  decodeToken,
 };

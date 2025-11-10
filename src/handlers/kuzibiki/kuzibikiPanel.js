@@ -1,48 +1,79 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const { getKujiSettings, getPanelMessageId, savePanelMessageId } = require('./kujiStorage');
+// src/handlers/kuzibiki/kuzibikiPanel.js
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+} = require('discord.js');
 const dayjs = require('dayjs');
+const { readKujiConfig, saveKujiConfig } = require('../../utils/kuzibiki/kuzibikiStorage');
 
-async function updatePanel(channel, guildId) {
-    // 現在のくじ設定を取得
-    const kujiList = await getKujiSettings(guildId);
-    const kujiText = kujiList.length > 0 ? kujiList.join('\n') : '設定されていません';
+/**
+ * Embed + ボタンを生成
+ */
+function buildPanelEmbed(config) {
+  const updatedTime = config.updatedAt
+    ? dayjs(config.updatedAt).format('YYYY/MM/DD HH:mm')
+    : '未設定';
 
-    // Embed作成
-    const embed = new EmbedBuilder()
-        .setTitle('🎲 くじ引き設定一覧')
-        .setDescription(kujiText)
-        .setColor(0x5865F2) // Discord Blurple
-        .setFooter({ text: `最終更新` })
-        .setTimestamp();
-
-    // ボタン作成
-    const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('kuji_setting').setLabel('くじ引き設定').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('kuji_run').setLabel('くじ引き実行').setStyle(ButtonStyle.Success)
-    );
-
-    const messagePayload = { embeds: [embed], components: [row] };
-
-    // 既存パネルメッセージを取得
-    const panelMessageId = await getPanelMessageId(guildId);
-    let message;
-
-    if (panelMessageId) {
-        try {
-            message = await channel.messages.fetch(panelMessageId);
-            await message.edit(messagePayload);
-        } catch (err) {
-            // メッセージが削除されていた場合、新規作成
-            message = await channel.send(messagePayload);
-            await savePanelMessageId(guildId, message.id);
-        }
-    } else {
-        // 新規作成
-        message = await channel.send(messagePayload);
-        await savePanelMessageId(guildId, message.id);
-    }
-
-    return message;
+  return new EmbedBuilder()
+    .setColor(0x00bfff)
+    .setTitle('🎲 くじ引き設定一覧')
+    .setDescription(
+      `くじ引き設定　更新時間：${updatedTime}\n\n${
+        config.settings?.length
+          ? config.settings.join('\n')
+          : '（設定が登録されていません）'
+      }\n\nくじ引き設定内容は上記からコピーできます。`
+    )
+    .setFooter({ text: '設定くじ引きパネル' });
 }
 
-module.exports = { updatePanel };
+function buildPanelComponents() {
+  return [
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('kuzibiki_config')
+        .setLabel('くじ引き設定')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId('kuzibiki_execute')
+        .setLabel('くじ引き実行')
+        .setStyle(ButtonStyle.Success)
+    ),
+  ];
+}
+
+/**
+ * 既存パネルがあれば更新、なければ新規投稿
+ */
+async function upsertKuzibikiPanel(channel) {
+  const guildId = channel.guild.id;
+  const config = readKujiConfig(guildId);
+
+  const embed = buildPanelEmbed(config);
+  const components = buildPanelComponents();
+
+  // 既に panelMessageId が保存されていれば更新を試みる
+  if (config.panelMessageId) {
+    try {
+      const msg = await channel.messages.fetch(config.panelMessageId);
+      await msg.edit({ embeds: [embed], components });
+      return msg;
+    } catch (e) {
+      // 取得できなければ新規投下にフォールバック
+    }
+  }
+
+  const panelMsg = await channel.send({ embeds: [embed], components });
+  // panelMessageId を保存（設定は保持）
+  const next = {
+    settings: config.settings || [],
+    updatedAt: config.updatedAt || null,
+    panelMessageId: panelMsg.id,
+  };
+  saveKujiConfig(guildId, next);
+  return panelMsg;
+}
+
+module.exports = { upsertKuzibikiPanel };

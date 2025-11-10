@@ -1,4 +1,4 @@
-﻿// src/index.js
+﻿﻿// src/index.js
 
 require('events').EventEmitter.defaultMaxListeners = 20;
 require('dotenv').config();
@@ -8,7 +8,7 @@ const client = require('./botClient');
 const logger = require('./utils/logger');
 const tennaiHikkakeBotHandler = require('./handlers/tennai_hikkakeBotHandler');
 const { deployCommands } = require('../scripts/deployGuildCommands');
-
+console.log("Loading env variables")
 const {
   DISCORD_TOKEN,
   GCS_BUCKET_NAME,
