@@ -4,12 +4,64 @@ const {
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
-  PermissionFlagsBits,
+  EmbedBuilder,
 } = require('discord.js');
-
+const dayjs = require('dayjs');
 const { readKujiConfig, saveKujiConfig } = require('../../utils/kuzibiki/kuzibikiStorage');
 const { upsertKuzibikiPanel } = require('./kuzibikiPanel');
 const { handleKuzibikiExecute } = require('./kuzibikiExecute');
+const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
+const path = require('path');
+
+/**
+ * 設定ログスレッドを取得
+ */
+async function getSettingLogThread(interaction) {
+  try {
+    const guildId = interaction.guild.id;
+    const config = await getGuildConfig(guildId);
+    const settingThreadId = config?.settingLogThread;
+
+    if (settingThreadId) {
+      const thread = await interaction.guild.channels.fetch(settingThreadId).catch(() => null);
+      return thread;
+    }
+  } catch (err) {
+    console.warn('⚠️ [kuzibiki] 設定ログスレッド取得失敗', err);
+  }
+  return null;
+}
+
+/**
+ * ログ出力
+ */
+async function logToSettingThread(interaction, before, after) {
+  const thread = await getSettingLogThread(interaction);
+  if (!thread) return;
+
+  const now = dayjs().format('YYYY/MM/DD HH:mm');
+  const embed = new EmbedBuilder()
+    .setColor(0xffcc00)
+    .setTitle('🪄 くじ引き設定が変更されました')
+    .addFields(
+      { name: '実行者', value: `<@${interaction.user.id}>`, inline: true },
+      { name: 'チャンネル', value: `<#${interaction.channel.id}>`, inline: true },
+      { name: '日時', value: now, inline: false },
+      {
+        name: '変更前',
+        value: before.settings?.length ? before.settings.join('\n') : '(なし)',
+        inline: false,
+      },
+      {
+        name: '変更後',
+        value: after.settings?.length ? after.settings.join('\n') : '(なし)',
+        inline: false,
+      }
+    )
+    .setFooter({ text: `${interaction.client.user.username} ｜ ${now}` });
+
+  await thread.send({ embeds: [embed] });
+}
 
 /**
  * 「くじ引き設定」モーダルを開く
@@ -58,6 +110,9 @@ async function submitConfigModal(interaction) {
   // パネル更新（既存があれば上書き）
   await upsertKuzibikiPanel(interaction.channel);
 
+  // ✅ 設定ログスレッド出力
+  await logToSettingThread(interaction, before, next);
+
   await interaction.reply({
     content: `✅ くじ引き設定を更新しました（${lines.length} 件）。`,
     ephemeral: true,
@@ -68,11 +123,6 @@ async function submitConfigModal(interaction) {
  * エントリ：/設定くじ引き パネルのボタン・モーダル・セレクト処理
  */
 async function handleKuzibikiInteraction(interaction) {
-  // すべてのくじ引き操作で管理者権限をチェック
-  if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-    return interaction.reply({ content: '⚠️ この操作は管理者のみが実行できます。', ephemeral: true });
-  }
-
   if (interaction.isButton()) {
     if (interaction.customId === 'kuzibiki_config') {
       return openConfigModal(interaction);

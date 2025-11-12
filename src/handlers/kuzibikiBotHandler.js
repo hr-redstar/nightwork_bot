@@ -4,7 +4,6 @@
  */
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, MessageFlags, StringSelectMenuBuilder } = require('discord.js');
 const { readKujiConfig, saveKujiConfig, saveKujiResult } = require('../utils/kuzibiki/kuzibikiStorage');
-const { postKuzibikiPanel } = require('./kuzibikiPanel');
 const { postKuzibikiPanel } = require('./kuzibiki/kuzibikiPanel');
 const { sendSettingLog } = require('./config/configLogger');
 const logger = require('../utils/logger');

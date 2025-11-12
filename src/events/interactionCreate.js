@@ -13,6 +13,7 @@ const configModalHandler = require('../handlers/config/configModalHandler');
 const uriageBotHandler = require('../handlers/uriageBotHandler');
 const KPIBotHandler = require('../handlers/KPIBotHandler'); // This seems to be a single function handler
 const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
+const { handleInteractionError } = require('../handlers/errorHandlers');
 
 
 module.exports = {
@@ -57,6 +58,15 @@ module.exports = {
         return;
       }
 
+      const buttonHandlers = {
+        config_: configBotHandlers.handleInteraction,
+        uriage_: uriageBotHandler.handleInteraction, // 念のため確認・統一
+        keihi_: keihiBotHandlers.handleInteraction,
+        kpi_: KPIBotHandler,
+        kuzibiki_: handleKuzibikiInteraction,
+      };
+
+
       // ============================================================
       // ボタン押下
       // ============================================================
@@ -69,34 +79,12 @@ module.exports = {
           return;
         }
 
-        // --- 設定ボットのボタン ---
-        if (customId.startsWith('config_')) {
-          await configBotHandlers.handleInteraction(interaction);
-          return;
-        }
-
-        // --- 売上 ---
-        if (customId.startsWith('uriage_')) {
-          await uriageBotHandler.handleInteraction(interaction);
-          return;
-        }
-
-        // --- 経費 ---
-        if (customId.startsWith('keihi_')) {
-          await keihiBotHandlers.handleInteraction(interaction);
-          return;
-        }
-
-        // --- KPI ---
-        if (customId.startsWith('kpi_')) {
-          await KPIBotHandler(interaction);
-          return;
-        }
-
-        // --- くじ引き ---
-        if (customId.startsWith('kuzibiki_')) {
-          await handleKuzibikiInteraction(interaction);
-          return;
+        // customId のプレフィックスに基づいて適切なハンドラを呼び出す
+        for (const prefix in buttonHandlers) {
+          if (customId.startsWith(prefix)) {
+            await buttonHandlers[prefix](interaction);
+            return;
+          }
         }
 
         // --- 店内状況パネル更新 ---
@@ -111,10 +99,7 @@ module.exports = {
           const embedTitle = interaction.message.embeds[0]?.title;
           const storeName = embedTitle?.replace('🏬 店舗: ', '');
           if (!storeName) {
-            await interaction.reply({
-              content: '⚠️ 店舗名が特定できませんでした。',
-              flags: MessageFlags.Ephemeral,
-            });
+            await handleInteractionError(interaction, '⚠️ 店舗名が特定できませんでした。');
             return;
           }
 
@@ -208,14 +193,7 @@ module.exports = {
       }
     } catch (err) {
       logger.error('[interactionCreate] エラー:', err);
-      if (interaction && interaction.isRepliable()) {
-        const replyOptions = { content: '⚠️ エラーが発生しました', flags: MessageFlags.Ephemeral };
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp(replyOptions).catch(e => logger.error('❌ interactionCreate followUp error:', e));
-        } else {
-          await interaction.reply(replyOptions).catch(e => logger.error('❌ interactionCreate reply error:', e));
-        }
-      }
+      await handleInteractionError(interaction, '⚠️ 不明なエラーが発生しました。');
     }
   },
 };

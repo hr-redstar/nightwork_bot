@@ -9,7 +9,7 @@ const logger = require('./utils/logger');
 const tennaiHikkakeBotHandler = require('./handlers/tennai_hikkakeBotHandler');
 const { deployCommands } = require('../scripts/deployGuildCommands');
 console.log("Loading env variables")
-const {
+const { 
   DISCORD_TOKEN,
   GCS_BUCKET_NAME,
   NODE_ENV,
@@ -25,16 +25,19 @@ async function initGCS() {
   }
 }
 
+
 // イベントロード
 function loadEvents(dir) {
   const files = fs.readdirSync(dir);
   for (const file of files) {
     if (file.endsWith('.js')) {
       const event = require(path.join(dir, file));
-      if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
-      else client.on(event.name, (...args) => event.execute(...args, client));
-      logger.info(`📡 イベント登録: ${event.name}`);
+      if (event && event.name && event.execute) {
+        if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
+        else client.on(event.name, (...args) => event.execute(...args, client));
+        logger.info(`📡 イベント登録: ${event.name}`);
     }
+  }
   }
 }
 
@@ -54,7 +57,7 @@ function loadEvents(dir) {
   // --- コマンドデプロイ（開発用） ---
   if (NODE_ENV !== 'production' && GUILD_ID) {
     try {
-      await deployCommands();
+      await deployCommands()
     } catch (e) {
       logger.warn('スラッシュコマンドのデプロイに失敗しました:', e);
     }

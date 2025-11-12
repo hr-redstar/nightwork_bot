@@ -359,6 +359,10 @@ async function handleModalSubmitInteraction(interaction) {
         if (isNaN(totalSales) || isNaN(cash) || isNaN(card) || isNaN(expenses)) {
           return interaction.editReply({ content: '⚠️ 金額には半角数字を入力してください。' });
         }
+        // 会計的な整合性チェック
+        if (totalSales !== cash + card) {
+          return interaction.editReply({ content: `⚠️ 金額が一致しません。総売上 (${totalSales.toLocaleString()}円) は、現金 (${cash.toLocaleString()}円) とカード (${card.toLocaleString()}円) の合計と一致する必要があります。` });
+        }
 
         // 残金を計算
         const balance = totalSales - (card + expenses);

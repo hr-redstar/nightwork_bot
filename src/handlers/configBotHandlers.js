@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿﻿﻿﻿/**
  * src/handlers/configBotHandlers.js
  * 設定パネルのボタン・セレクトメニューハンドラー
  */
@@ -211,8 +211,8 @@ async function handleInteraction(interaction) {
         await keihiBotHandlers.handleInteraction(interaction);
         return true;
       }
-      if (customId.startsWith('sales_')) {
-        await uriageBotHandler(interaction);
+      if (customId.startsWith('uriage_')) {
+        await uriageBotHandler.handleInteraction(interaction);
         return true;
       }
 
