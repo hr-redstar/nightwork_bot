@@ -1,162 +1,277 @@
+// src/handlers/uriage/uriagePanel_config.js
+
 const {
-  StringSelectMenuBuilder,
+  EmbedBuilder,
   ActionRowBuilder,
-  ChannelType,
+  ButtonBuilder,
+  ButtonStyle,
 } = require('discord.js');
-const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
-const { getStoreList } = require('../../utils/config/configAccessor');
-const { postUriagePanel } = require('./uriagePanel');
-const { sendSettingLog } = require('../config/configLogger');
+const { getUriageConfig, getUriagePanelList, saveUriageConfig } = require('../../utils/uriage/gcsUriageManager');
+const { IDS } = require('./ids');
+const { readJson } = require('../../utils/gcs'); // 店舗情報参照に使用
 
 /**
- * 売上報告パネル設置ボタン
+ * すべての店舗用「売上報告パネル」を更新する（panelList の messageId を優先して編集）
+ * @param {import('discord.js').Interaction} interaction
  */
-async function handleUriagePanelSetup(interaction) {
-  const guildId = interaction.guild.id;
-  const stores = await getStoreList(guildId);
-  if (stores.length === 0)
-    return interaction.reply({ content: '⚠️ 店舗が登録されていません。', ephemeral: true });
+async function updateUriageStorePanels(interaction) {
+  try {
+    const guildId = interaction.guild.id;
+    const panelList = await getUriagePanelList(guildId);
 
-  const storeSelect = new StringSelectMenuBuilder()
-    .setCustomId('uriage_select_store')
-    .setPlaceholder('店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s, value: s })));
+    for (const p of panelList) {
+      try {
+        const { store, channel: channelId, messageId } = p;
+        const channel = await interaction.guild.channels.fetch(channelId).catch(() => null);
+        if (!channel || !channel.isTextBased?.()) continue;
 
-  const channels = interaction.guild.channels.cache
-    .filter((ch) => ch.type === ChannelType.GuildText)
-    .map((ch) => ({ label: ch.name, value: ch.id }));
+        const panelEmbed = new EmbedBuilder()
+          .setTitle(`💰 売上報告パネル (${store})`)
+          .setDescription('下のボタンを押して、本日の売上を報告してください。')
+          .setColor(0x5865f2);
 
-  const channelSelect = new StringSelectMenuBuilder()
-    .setCustomId('uriage_select_channel')
-    .setPlaceholder('売上報告チャンネルを選択')
-    .addOptions(channels.slice(0, 25));
+        const reportButton = new ButtonBuilder()
+          // include store identifier in the button customId so the modal and submit handlers
+          // can determine which店舗 the report targets
+          .setCustomId(`${IDS.BTN_REPORT_OPEN}:${store}`)
+          .setLabel('売上を報告する')
+          .setStyle(ButtonStyle.Primary);
 
-  await interaction.reply({
-    content: '🧾 店舗と売上報告チャンネルを選択してください。',
-    components: [
-      new ActionRowBuilder().addComponents(storeSelect),
-      new ActionRowBuilder().addComponents(channelSelect),
-    ],
-    ephemeral: true,
-  });
+        const components = [new ActionRowBuilder().addComponents(reportButton)];
+
+        if (messageId) {
+          const msg = await channel.messages.fetch(messageId).catch(() => null);
+          if (msg) {
+            await msg.edit({ embeds: [panelEmbed], components }).catch(() => null);
+            console.log(`🔄 売上報告パネルを更新しました（${store}）`);
+            continue;
+          }
+        }
+
+        // messageId がなく、もしくは取得に失敗した場合は最近のメッセージから探す
+        const msgs = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+        const found = msgs && msgs.find(m => m.embeds?.[0]?.title?.includes('売上報告パネル') && m.embeds[0].title.includes(store));
+        if (found) {
+          await found.edit({ embeds: [panelEmbed], components }).catch(() => null);
+          console.log(`🔄 売上報告パネルを更新しました（${store}）`);
+        } else {
+          // 見つからなければ再送信して messageId を更新
+          const sent = await channel.send({ embeds: [panelEmbed], components }).catch(() => null);
+          if (sent) console.log(`🆕 売上報告パネルを再生成しました（${store}）`);
+        }
+      } catch (e) {
+        console.error(`❌ 売上報告パネルの更新に失敗しました（${p.store}）:`, e);
+        continue;
+      }
+    }
+  } catch (err) {
+    console.error('❌ updateUriageStorePanels エラー:', err);
+  }
 }
 
 /**
- * 承認ロール設定
+ * 売上設定パネルを構築
+ * @param {string} guildId - ギルドID
+ * @returns {Promise<{embeds: EmbedBuilder[], components: ActionRowBuilder[]}>}
  */
-async function handleApprovalRole(interaction) {
-  const roles = interaction.guild.roles.cache
-    .filter((r) => !r.managed)
-    .map((r) => ({ label: r.name, value: r.id }));
+async function buildUriagePanelConfig(guildId) {
+  const config = await getUriageConfig(guildId);
+  const panelList = await getUriagePanelList(guildId);
 
-  const roleSelect = new StringSelectMenuBuilder()
-    .setCustomId('uriage_select_approval_roles')
-    .setPlaceholder('承認ロールを選択')
-    .setMinValues(1)
-    .setMaxValues(Math.min(roles.length, 10))
-    .addOptions(roles);
+  // パネルEmbed
+  const embed = new EmbedBuilder()
+    .setTitle('💰 売上設定パネル')
+    .setDescription('売上設定および報告パネル管理を行います。')
+    .setColor(0x00bfa5);
 
-  await interaction.reply({
-    content: '🧑‍💼 売上承認できるロールを選択してください。',
-    components: [new ActionRowBuilder().addComponents(roleSelect)],
-    ephemeral: true,
-  });
+  embed.addFields([
+    {
+      name: '📋 売上報告パネル一覧',
+      value: await buildPanelListDisplay(guildId),
+    },
+    {
+      name: '🛡️ 承認役職',
+      value: config.approverRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+      inline: true,
+    },
+    {
+      name: '👁️ 閲覧役職',
+      value: config.viewerRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+      inline: true,
+    },
+    {
+      name: '📝 申請役職',
+      value: config.applicantRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+      inline: true,
+    },
+    {
+      name: '🕒 更新日時',
+      value: config.updatedAt || '---',
+      inline: false,
+    },
+  ]);
+
+  // ボタン
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_PANEL_SETUP)
+      .setLabel('売上報告パネル設置')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_ROLE_APPROVER)
+      .setLabel('承認役職')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_ROLE_VIEWER)
+      .setLabel('閲覧役職')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_ROLE_APPLICANT)
+      .setLabel('申請役職')
+      .setStyle(ButtonStyle.Secondary),
+  );
+
+  const row2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_CSV_EXPORT)
+      .setLabel('売上CSV発行')
+      .setStyle(ButtonStyle.Success)
+  );
+
+  return { embeds: [embed], components: [row1, row2] };
 }
 
 /**
- * 閲覧ロール設定
+ * 📋 設置済み売上報告パネル一覧を生成
+ * 店舗名＋チャンネルリンク形式で全店舗を表示
  */
-async function handleViewRole(interaction) {
-  const roles = interaction.guild.roles.cache
-    .filter((r) => !r.managed)
-    .map((r) => ({ label: r.name, value: r.id }));
+async function buildPanelListDisplay(guildId) {
+  try {
+    // 店舗一覧
+    const storeData = await readJson(`GCS/${guildId}/config/店舗_役職_ロール.json`);
+    const stores = storeData?.stores || [];
 
-  const roleSelect = new StringSelectMenuBuilder()
-    .setCustomId('uriage_select_view_roles')
-    .setPlaceholder('閲覧ロールを選択')
-    .setMinValues(1)
-    .setMaxValues(Math.min(roles.length, 10))
-    .addOptions(roles);
+    // 設置済みパネル一覧
+    const panelList = await getUriagePanelList(guildId);
 
-  await interaction.reply({
-    content: '👀 売上報告スレッドを閲覧できるロールを選択してください。',
-    components: [new ActionRowBuilder().addComponents(roleSelect)],
-    ephemeral: true,
-  });
+    if (!stores.length) return '（店舗情報が登録されていません）';
+
+    const lines = stores.map((store) => {
+      // store は { id, name } だったり、単純な文字列だったりする可能性があるため柔軟に解釈する
+      let storeId = null;
+      let storeName = null;
+      if (!store) {
+        storeId = null;
+        storeName = '不明な店舗';
+      } else if (typeof store === 'string') {
+        storeId = store;
+        storeName = store;
+      } else if (typeof store === 'object') {
+        storeId = store.id ?? store.store ?? store.name ?? null;
+        storeName = store.name ?? store.store ?? store.id ?? String(storeId);
+      }
+
+      // panelList は過去データにより store または storeId を持つ可能性があるため両方を確認
+      const panel = panelList.find((p) => {
+        if (!p) return false;
+        return (p.storeId && storeId && String(p.storeId) === String(storeId)) ||
+               (p.store && storeId && String(p.store) === String(storeId)) ||
+               (p.store && storeName && String(p.store) === String(storeName));
+      });
+      const channelText = panel?.channel ? `<#${panel.channel}>` : '（未設置）';
+      return `・${storeName}：${channelText}`;
+    });
+
+    return lines.join('\n');
+  } catch (err) {
+    console.error('⚠️ 店舗一覧の取得に失敗:', err);
+    return '（読み込みエラー）';
+  }
 }
 
 /**
- * CSV発行
+ * 売上設定パネルを更新（既存メッセージを探して上書き）
+ * @param {import('discord.js').Interaction} interaction
  */
-async function handleCsvExport(interaction) {
-  const guildId = interaction.guild.id;
-  const stores = await getStoreList(guildId);
-  if (stores.length === 0)
-    return interaction.reply({ content: '⚠️ 店舗が登録されていません。', ephemeral: true });
+async function updateUriagePanel(interaction) {
+  try {
+    const guildId = interaction.guild.id;
+    const channel = interaction.channel;
+    const { embeds, components } = await buildUriagePanelConfig(guildId);
+    // まず操作チャネル内を検索して更新
+    try {
+      const messages = await channel.messages.fetch({ limit: 20 }).catch(() => null);
+      const existingPanel = messages && messages.find((m) => m.embeds?.[0]?.title === '💰 売上設定パネル');
+      if (existingPanel) {
+        await existingPanel.edit({ embeds, components }).catch(() => null);
+        console.log('🔄 売上設定パネルを更新しました。');
 
-  const storeSelect = new StringSelectMenuBuilder()
-    .setCustomId('uriage_select_csv_store')
-    .setPlaceholder('店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s, value: s })));
+        // 保存: 設定パネルの messageId を config に保持しておく
+        try {
+          const cfg = await getUriageConfig(guildId);
+          cfg.settingsPanel = cfg.settingsPanel || {};
+          cfg.settingsPanel.channel = channel.id;
+          cfg.settingsPanel.messageId = existingPanel.id;
+          await saveUriageConfig(guildId, cfg);
+        } catch (e) {
+          console.warn('⚠️ 設定パネル messageId の保存に失敗しました:', e.message);
+        }
 
-  await interaction.reply({
-    content: '📊 CSVを発行する店舗を選択してください。',
-    components: [new ActionRowBuilder().addComponents(storeSelect)],
-    ephemeral: true,
-  });
+        return;
+      }
+    } catch (e) {
+      // ignore and continue to guild-wide search
+    }
+
+    // 操作チャネルに見つからなければ、ギルド内のテキストチャンネルを探索して既存パネルを探す
+    const textChannels = interaction.guild.channels.cache.filter(c => c.isTextBased && c.type);
+    for (const [, ch] of textChannels) {
+      try {
+        if (!ch || !ch.isTextBased?.()) continue;
+        const msgs = await ch.messages.fetch({ limit: 20 }).catch(() => null);
+        const found = msgs && msgs.find((m) => m.embeds?.[0]?.title === '💰 売上設定パネル');
+        if (found) {
+          await found.edit({ embeds, components }).catch(() => null);
+          console.log(`🔄 売上設定パネルを更新しました（チャンネル: ${ch.id}）。`);
+          // 保存
+          try {
+            const cfg = await getUriageConfig(guildId);
+            cfg.settingsPanel = cfg.settingsPanel || {};
+            cfg.settingsPanel.channel = ch.id;
+            cfg.settingsPanel.messageId = found.id;
+            await saveUriageConfig(guildId, cfg);
+          } catch (e) {
+            console.warn('⚠️ 設定パネル messageId の保存に失敗しました:', e.message);
+          }
+          return;
+        }
+      } catch (e) {
+        // 個別チャンネルで失敗しても続行
+        continue;
+      }
+    }
+
+    // どこにも見つからなければ操作チャネルに新規設置
+    try {
+      const sent = await channel.send({ embeds, components }).catch(() => null);
+      if (sent) {
+        console.log('🆕 売上設定パネルを再生成しました。');
+        try {
+          const cfg = await getUriageConfig(guildId);
+          cfg.settingsPanel = cfg.settingsPanel || {};
+          cfg.settingsPanel.channel = channel.id;
+          cfg.settingsPanel.messageId = sent.id;
+          await saveUriageConfig(guildId, cfg);
+        } catch (e) {
+          console.warn('⚠️ 設定パネル messageId の保存に失敗しました:', e.message);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  } catch (err) {
+    console.error('❌ 売上設定パネル更新エラー:', err);
+  }
 }
 
-/**
- * 承認ロール保存
- */
-async function saveApprovalRoles(interaction) {
-  const guildId = interaction.guild.id;
-  const config = (await getGuildConfig(guildId)) || {};
-  config.uriageApprovalRoles = interaction.values;
-  await setGuildConfig(guildId, config);
-
-  await sendSettingLog(interaction.guild, {
-    user: interaction.user,
-    message: `🧑‍💼 承認ロールが更新されました：${interaction.values.map((r) => `<@&${r}>`).join(', ')}`,
-    type: '売上設定',
-  });
-
-  await interaction.update({
-    content: '✅ 承認ロールを更新しました。',
-    components: [],
-  });
-
-  await postUriagePanel(interaction.channel);
-}
-
-/**
- * 閲覧ロール保存
- */
-async function saveViewRoles(interaction) {
-  const guildId = interaction.guild.id;
-  const config = (await getGuildConfig(guildId)) || {};
-  config.uriageViewRoles = interaction.values;
-  await setGuildConfig(guildId, config);
-
-  await sendSettingLog(interaction.guild, {
-    user: interaction.user,
-    message: `👀 閲覧ロールが更新されました：${interaction.values.map((r) => `<@&${r}>`).join(', ')}`,
-    type: '売上設定',
-  });
-
-  await interaction.update({
-    content: '✅ 閲覧ロールを更新しました。',
-    components: [],
-  });
-
-  await postUriagePanel(interaction.channel);
-}
-
-module.exports = {
-  handleUriagePanelSetup,
-  handleApprovalRole,
-  handleViewRole,
-  handleCsvExport,
-  saveApprovalRoles,
-  saveViewRoles,
-};
+module.exports = { buildUriagePanelConfig, updateUriagePanel, updateUriageStorePanels };

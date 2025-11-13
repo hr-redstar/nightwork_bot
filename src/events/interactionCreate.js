@@ -10,7 +10,7 @@ const keihiBotHandlers = require('../handlers/keihiBotHandlers');
 const { updateStorePanel } = require('../handlers/tennai_hikkake/tennaiPanel');
 const configBotHandlers = require('../handlers/configBotHandlers'); // ✅ 正しくは複数形の "s" が付きます
 const configModalHandler = require('../handlers/config/configModalHandler');
-const uriageBotHandler = require('../handlers/uriageBotHandler');
+const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
 const KPIBotHandler = require('../handlers/KPIBotHandler'); // This seems to be a single function handler
 const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 const { handleInteractionError } = require('../handlers/errorHandlers');
@@ -58,13 +58,6 @@ module.exports = {
         return;
       }
 
-      const buttonHandlers = {
-        config_: configBotHandlers.handleInteraction,
-        uriage_: uriageBotHandler.handleInteraction, // 念のため確認・統一
-        keihi_: keihiBotHandlers.handleInteraction,
-        kpi_: KPIBotHandler,
-        kuzibiki_: handleKuzibikiInteraction,
-      };
 
 
       // ============================================================
@@ -79,12 +72,22 @@ module.exports = {
           return;
         }
 
+        // 新しい売上ハンドラを呼び出す
+        if (customId.startsWith('uriage:')) {
+          await handleUriageInteraction(interaction);
+          return;
+        }
+
+        // 新しい経費ハンドラを呼び出す
+        if (customId.startsWith('keihi:') || customId.startsWith('keihi_')) {
+          await keihiBotHandlers.handleInteraction(interaction);
+          return;
+        }
+
         // customId のプレフィックスに基づいて適切なハンドラを呼び出す
-        for (const prefix in buttonHandlers) {
-          if (customId.startsWith(prefix)) {
-            await buttonHandlers[prefix](interaction);
-            return;
-          }
+        if (customId.startsWith('config_')) {
+          await configBotHandlers.handleInteraction(interaction);
+          return;
         }
 
         // --- 店内状況パネル更新 ---
@@ -125,6 +128,18 @@ module.exports = {
       // ============================================================
       if (interaction.isAnySelectMenu()) {
         const { customId } = interaction;
+
+        // 新しい売上ハンドラを呼び出す
+        if (customId.startsWith('uriage:')) {
+          await handleUriageInteraction(interaction);
+          return;
+        }
+
+        // 新しい経費ハンドラを呼び出す
+        if (customId.startsWith('keihi:') || customId.startsWith('keihi_')) {
+          await keihiBotHandlers.handleInteraction(interaction);
+          return;
+        }
 
         // --- 設定ボットのセレクトメニュー ---
         // config_ で始まるもの、または configBotHandlers が処理する select_ で始まるものを優先的に処理
@@ -169,12 +184,23 @@ module.exports = {
           return;
         }
 
+        // 新しい売上ハンドラを呼び出す
+        if (customId.startsWith('uriage:')) {
+          await handleUriageInteraction(interaction);
+          return;
+        }
+
+        // 新しい経費ハンドラを呼び出す
+        if (customId.startsWith('keihi:') || customId.startsWith('keihi_')) {
+          await keihiBotHandlers.handleInteraction(interaction);
+          return;
+        }
+
         // --- 各機能モーダル ---
        if (customId.startsWith('kpi_')) return await KPIBotHandler(interaction);
         if (customId.startsWith('modal_kuzibiki_')) return await handleKuzibikiInteraction(interaction);
         if (customId.startsWith('keihi_')) return await keihiBotHandlers.handleInteraction(interaction);
-        if (customId.startsWith('uriage_')) return await uriageBotHandler.handleInteraction(interaction);
-
+        
         if (customId === 'select_store_modal') {
           const storeName = interaction.fields.getTextInputValue('store_name');
           await interaction.reply({

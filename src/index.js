@@ -7,7 +7,7 @@ const fs = require('fs');
 const client = require('./botClient');
 const logger = require('./utils/logger');
 const tennaiHikkakeBotHandler = require('./handlers/tennai_hikkakeBotHandler');
-const { deployCommands } = require('../scripts/deployGuildCommands');
+const { deployCommands } = require('../scripts/deployGuildCommands'); // この行が正しいことを確認
 console.log("Loading env variables")
 const { 
   DISCORD_TOKEN,
@@ -63,14 +63,11 @@ function loadEvents(dir) {
     }
   }
 
-  logger.info(
-    `環境: ${NODE_ENV || 'development'} | GCS: ${GCS_BUCKET_NAME ? 'enabled' : 'disabled'} | Guild: ${GUILD_ID || 'N/A'}`
-  );
-
+  // USE_GCS / GCS_ENABLED / GCS_BUCKET_NAME のいずれかで GCS の有効性を判定
+  const useGcsFlag = (process.env.USE_GCS === 'true') || (GCS_ENABLED !== 'false' && !!GCS_BUCKET_NAME);
+  logger.info(`環境: ${NODE_ENV || 'development'} | GCS: ${useGcsFlag ? 'enabled' : 'disabled'} | Guild: ${GUILD_ID || 'N/A'}`);
   // --- クライアント準備 ---
-  client.once('clientReady', () => {
-    logger.info(`✅ ログイン完了: ${client.user.tag}`);
-  });
+  // NOTE: ログイン完了ログは `src/events/ready.js` 側で出力するため、ここでは重複しないようにしている。
 
   // --- シャットダウン処理 ---
   const shutdown = async (signal) => {

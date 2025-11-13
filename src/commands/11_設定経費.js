@@ -1,26 +1,28 @@
-﻿/**
- * src/commands/設定経費.js
- * /設定経費 コマンド
- */
+﻿// src/commands/11_設定経費.js
+
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { sendConfigPanel } = require('../handlers/keihi/keihiPanel_Config.js');
+const { postKeihiPanel } = require('../handlers/keihi/keihiPanel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定経費')
-    .setDescription('経費設定パネルを表示します（管理者向け）')
+    .setDescription('経費関連の設定パネルを設置します。')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
+    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return interaction.reply({
+        content: '⚠️ このコマンドは管理者のみが実行できます。',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
     try {
-      // 処理のタイムアウトを防ぐため、応答を保留
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      // 経費設定パネルを投稿・更新する関数を呼び出し
-      await sendConfigPanel(interaction.channel, interaction.guild.id);
-      await interaction.editReply({ content: '✅ 経費設定パネルを設置しました。' });
+      await postKeihiPanel(interaction.channel);
+      await interaction.reply({ content: '✅ 経費設定パネルを設置しました。', flags: MessageFlags.Ephemeral });
     } catch (err) {
-      console.error('❌ /設定経費 コマンド実行エラー:', err);
-      await interaction.editReply({ content: '⚠️ 経費設定パネルの設置に失敗しました。' });
+      console.error('❌ /設定経費 コマンドエラー:', err);
+      await interaction.reply({ content: '⚠️ パネルの設置中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
     }
   },
 };

@@ -29,6 +29,13 @@ if (USE_GCS) {
   logger.info('💾 ローカル保存モード有効');
 }
 
+// 初回起動での local_data 自動生成
+if (!USE_GCS) {
+  fs.mkdirSync(LOCAL_BASE_PATH, { recursive: true });
+  logger.info(`📁 ローカルデータパス: ${LOCAL_BASE_PATH}`);
+}
+
+
 /**
  * ファイル読み込み（テキスト）
  */
@@ -70,6 +77,7 @@ async function writeFile(filePath, data) {
   }
 }
 
+
 /**
  * JSON読み込み
  */
@@ -96,6 +104,26 @@ async function writeJson(filePath, data) {
   }
 }
 
+/**
+ * ディレクトリ内のファイル一覧を取得
+ */
+async function listFiles(prefix) {
+  if (!USE_GCS || !storage) {
+    const localDir = path.join(LOCAL_BASE_PATH, prefix);
+    if (!fs.existsSync(localDir)) return [];
+    return fs.readdirSync(localDir);
+  }
+
+  try {
+    const bucketName = process.env.GCS_BUCKET;
+    const [files] = await storage.bucket(bucketName).getFiles({ prefix });
+    return files.map((f) => f.name);
+  } catch (err) {
+    logger.error(`❌ listFiles failed: ${prefix}`, err);
+    return [];
+  }
+}
+
 module.exports = {
   USE_GCS,
   readFile,
@@ -105,4 +133,5 @@ module.exports = {
   // 他のモジュールとの互換性のためのエイリアス
   readJSON: readJson,
   saveJSON: writeJson,
+  listFiles,
 };

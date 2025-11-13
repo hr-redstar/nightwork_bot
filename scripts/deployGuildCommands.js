@@ -22,11 +22,6 @@ if (!DISCORD_TOKEN || !CLIENT_ID || !GUILD_ID) {
 
 const commands = loadCommands(__dirname, logger, '[DeployGuild]');
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
-
-// 重複を除外するために Set を利用する
-const guildIds = [...new Set(GUILD_ID.split(',').map(id => id.trim()))];
-
 async function deployCommands() {
   if (commands.length === 0) {
     logger.warn('📜 登録するギルドコマンドが見つかりませんでした。');
@@ -34,6 +29,10 @@ async function deployCommands() {
   }
 
   logger.info(`📜 ${commands.length}個のギルドコマンドを登録します...`);
+
+  const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+  // 重複を除外するために Set を利用する
+  const guildIds = [...new Set(GUILD_ID.split(',').map(id => id.trim()))];
 
   for (const guildId of guildIds) {
     try {

@@ -1,88 +1,38 @@
-﻿﻿const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require('discord.js');
-const { getUriageConfig, saveUriageConfig } = require('./uriageConfigManager');
-const { getStoreList } = require('../../utils/config/configAccessor');
+﻿﻿// src/handlers/uriage/uriagePanel.js
+// 売上設定パネルをDiscordチャンネルに設置・更新する処理
+
+const { buildUriagePanelConfig } = require('./uriagePanel_config');
+const { getUriageConfig, saveUriageConfig } = require('../../utils/uriage/gcsUriageManager');
 
 /**
- * 売上設定パネルを投稿 or 更新
+ * 売上設定パネルを指定チャンネルに投稿
+ * @param {import('discord.js').TextChannel} channel - 投稿先チャンネル
  */
 async function postUriagePanel(channel) {
-  const guildId = channel.guild.id;
-  const config = await getUriageConfig(guildId);
+  try {
+    const guildId = channel.guild.id;
 
-  const embed = new EmbedBuilder()
-    .setTitle('💰 売上設定パネル')
-    .setDescription('売上報告・承認・CSV出力の設定を行います。')
-    .setColor(0xf1c40f)
-    .addFields([
-      { name: '📋 売上報告パネル一覧', value: formatStoreChannelList(config), inline: false },
-      { name: '✍️ 申請ロール・役職', value: formatRoles(config.uriageRequestRoles), inline: true },
-      { name: '🧑‍💼 承認ロール・役職', value: formatRoles(config.uriageApprovalRoles), inline: true },
-      { name: '👀 閲覧ロール・役職', value: formatRoles(config.uriageViewRoles), inline: true },
-    ]);
+    // Embed + Components の構成を取得
+    const panel = await buildUriagePanelConfig(guildId);
 
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('uriage_panel_setup')
-      .setLabel('🧾 売上報告パネル設置')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('uriage_set_request')
-      .setLabel('✍️ 申請ロール・役職')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('uriage_set_approval')
-      .setLabel('🧑‍💼 承認ロール・役職')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('uriage_set_view')
-      .setLabel('👀 閲覧ロール・役職')
-      .setStyle(ButtonStyle.Secondary)
-  );
+    // 投稿
+    const message = await channel.send({
+      embeds: panel.embeds,
+      components: panel.components,
+    });
 
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('uriage_csv_export')
-      .setLabel('📊 CSV発行')
-      .setStyle(ButtonStyle.Success)
-  );
+    // GCS に最新パネル情報を保存（メッセージID, チャンネルID）
+    await saveUriageConfig(guildId, {
+      lastPanelMessageId: message.id,
+      lastPanelChannelId: channel.id,
+      updatedAt: new Date().toLocaleString('ja-JP'),
+    });
 
-  const panelMessage = await findPanelMessage(channel);
-
-  if (panelMessage) {
-    await panelMessage.edit({ embeds: [embed], components: [row1, row2] });
-  } else {
-    await channel.send({ embeds: [embed], components: [row1, row2] });
+    console.log(`✅ 売上設定パネルを設置: guild=${guildId} channel=${channel.id}`);
+  } catch (err) {
+    console.error('❌ 売上設定パネル設置エラー:', err);
+    throw err;
   }
-}
-
-/**
- * チャンネル内の売上設定パネルメッセージを検索
- * @param {import('discord.js').TextChannel} channel
- * @returns {Promise<import('discord.js').Message|null>}
- */
-async function findPanelMessage(channel) {
-  const messages = await channel.messages.fetch({ limit: 50 });
-  return messages.find(
-    (m) => m.author.id === channel.client.user.id && m.embeds[0]?.title === '💰 売上設定パネル'
-  );
-}
-
-function formatStoreChannelList(config) {
-  if (!config.uriageChannels || Object.keys(config.uriageChannels).length === 0)
-    return '未設定';
-  return Object.entries(config.uriageChannels)
-    .map(([store, chId]) => `🏪 **${store}**：<#${chId}>`)
-    .join('\n');
-}
-
-function formatRoles(roleIds) {
-  if (!roleIds || roleIds.length === 0) return '未設定';
-  return roleIds.map((id) => `<@&${id}>`).join(', ');
 }
 
 module.exports = { postUriagePanel };

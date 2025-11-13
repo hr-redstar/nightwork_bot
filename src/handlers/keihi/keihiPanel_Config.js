@@ -1,70 +1,162 @@
-// src/handlers/keihi/keihiPanel_Config.js
+// src/handlers/keihi/keihiPanel_config.js
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
-const logger = require('../../utils/logger');
+const { getKeihiConfig, getKeihiPanelList } = require('../../utils/keihi/gcsKeihiManager');
+const { IDS } = require('./ids');
 
-async function sendConfigPanel(channel, guildId) {
+/**
+ * すべての店舗用「経費申請パネル」を更新する
+ * @param {import('discord.js').Interaction} interaction
+ */
+async function updateKeihiStorePanels(interaction) {
   try {
-    const [config, storeRoleConfig] = await Promise.all([loadKeihiConfig(guildId), loadStoreRoleConfig(guildId)]);
+    const guildId = interaction.guild.id;
+    const config = await getKeihiConfig(guildId);
+    const stores = config.stores || {};
+    const storeItems = config.storeItems || {};
 
-    const approvalRole = config?.roles?.approval || '未設定';
-    const viewRole = config?.roles?.view || '未設定';
-    const requestRole = config?.roles?.request || '未設定';
-    const stores = storeRoleConfig.stores || [];
-    const storeList = stores.length > 0
-      ? stores.map(name => `・${name}: ${config.stores?.[name] ? `<#${config.stores[name]}>` : '未設定'}`).join('\n')
-      : '店舗は未登録です。';
+    for (const [storeName, channelId] of Object.entries(stores)) {
+      try {
+        const channel = await interaction.guild.channels.fetch(channelId).catch(() => null);
+        if (!channel || !channel.isTextBased?.()) continue;
 
-    const embed = new EmbedBuilder()
-      .setColor('#2b6cb0')
-      .setTitle('📋 経費設定パネル')
-      .addFields(
-        { name: '🏪 店舗ごとの設置先', value: storeList },
-        { name: '承認役職', value: approvalRole, inline: true },
-        { name: '閲覧役職', value: viewRole, inline: true },
-        { name: '申請役職', value: requestRole, inline: true }
-      )
-      .setFooter({ text: '設定変更は下のボタンから行えます。' })
-      .setTimestamp();
+        const messages = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+        const existing = messages && messages.find(m => m.embeds?.[0]?.title?.includes('経費申請パネル') && m.embeds[0].title.includes(storeName));
 
-    const row1 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('keihi_set_panel').setLabel('経費パネル設置').setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId('keihi_set_approval').setLabel('承認役職').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('keihi_set_view').setLabel('閲覧役職').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('keihi_set_request').setLabel('申請役職').setStyle(ButtonStyle.Secondary),
-    );
+        const items = (storeItems[storeName] || []).map(i => `・${i}`).join('\n') || 'まだ設定されていません。';
 
-    const row2 = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('keihi_export_csv').setLabel('📄 経費CSV出力').setStyle(ButtonStyle.Success)
-    );
+        const embed = new EmbedBuilder()
+          .setColor(0x2b6cb0)
+          .setTitle(`📋 経費申請パネル（${storeName}）`)
+          .setDescription('経費申請する場合は、下のボタンを押してください。')
+          .addFields([{ name: '経費項目', value: items }]);
 
-    let panelMessage;
-    // 1. 設定ファイルからIDを特定
-    if (config.panel?.messageId) {
-      panelMessage = await channel.messages.fetch(config.panel.messageId).catch(() => null);
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`${IDS.BTN_ITEM_REGISTER}:${storeName}`)
+            .setLabel('経費項目登録')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId(`${IDS.BTN_REPORT_OPEN}:${storeName}`)
+            .setLabel('経費申請')
+            .setStyle(ButtonStyle.Primary),
+        );
+
+        if (existing) {
+          await existing.edit({ embeds: [embed], components: [row] }).catch(() => null);
+          console.log(`🔄 経費申請パネルを更新しました: ${storeName} (<#${channelId}>)`);
+        } else {
+          await channel.send({ embeds: [embed], components: [row] }).catch(() => null);
+          console.log(`🆕 経費申請パネルを再生成しました: ${storeName} (<#${channelId}>)`);
+        }
+      } catch (e) {
+        console.error(`❌ 店舗パネル更新失敗 (${storeName}):`, e);
+        continue;
+      }
     }
-
-    // 2. IDで見つからなければタイトルで検索（後方互換性のため）
-    if (!panelMessage) {
-      const messages = await channel.messages.fetch({ limit: 10 });
-      panelMessage = messages.find(m => m.author.bot && m.embeds[0]?.title === '📋 経費設定パネル');
-    }
-
-    if (panelMessage) {
-      await panelMessage.edit({ embeds: [embed], components: [row1, row2] });
-    } else {
-      panelMessage = await channel.send({ embeds: [embed], components: [row1, row2] });
-    }
-
-    // 送信/更新したパネルのIDを設定に保存
-    config.panel = config.panel || {};
-    config.panel.messageId = panelMessage.id;
-    config.panel.channelId = channel.id;
-    await saveKeihiConfig(guildId, config);
   } catch (err) {
-    logger.error('❌ 経費設定パネル送信エラー:', err);
+    console.error('❌ updateKeihiStorePanels エラー:', err);
   }
 }
 
-module.exports = { sendConfigPanel };
+/**
+ * 経費設定パネルを構築
+ * @param {string} guildId
+ * @returns {Promise<{embeds: EmbedBuilder[], components: ActionRowBuilder[]}>}
+ */
+async function buildKeihiPanelConfig(guildId) {
+  const config = await getKeihiConfig(guildId);
+  const panelList = await getKeihiPanelList(guildId);
+
+  // 経費設定パネル Embed
+  const embed = new EmbedBuilder()
+    .setTitle('💼 経費設定パネル')
+    .setDescription('経費申請・承認・閲覧の設定を行います。')
+    .setColor(0x0078ff)
+    .addFields([
+      {
+        name: '📋 経費パネル設置一覧',
+        value:
+          panelList.length > 0 ? panelList.map((p) => `${p.store}：<#${p.channel}>`).join('\n') : '（未設置）',
+      },
+      {
+        name: '🛡️ 承認役職',
+        value: config.approverRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+        inline: true,
+      },
+      {
+        name: '👁️ 閲覧役職',
+        value: config.viewerRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+        inline: true,
+      },
+      {
+        name: '📝 申請役職',
+        value: config.applicantRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
+        inline: true,
+      },
+      {
+        name: '🕒 更新日時',
+        value: config.updatedAt || '---',
+        inline: false,
+      },
+    ]);
+
+  // ボタン行
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_KEIHI_PANEL_SETUP)
+      .setLabel('経費パネル設置')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_KEIHI_ROLE_APPROVER)
+      .setLabel('承認役職')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_KEIHI_ROLE_VIEWER)
+      .setLabel('閲覧役職')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_KEIHI_ROLE_APPLICANT)
+      .setLabel('申請役職')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  const row2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_KEIHI_CSV_EXPORT)
+      .setLabel('経費CSV発行')
+      .setStyle(ButtonStyle.Success)
+  );
+
+  return { embeds: [embed], components: [row1, row2] };
+}
+
+/**
+ * 経費設定パネルを更新（既存メッセージを探して上書き）
+ * @param {import('discord.js').Interaction} interaction
+ */
+async function updateKeihiPanel(interaction) {
+  try {
+    const guildId = interaction.guild.id;
+    const channel = interaction.channel;
+    const { embeds, components } = await buildKeihiPanelConfig(guildId);
+
+    // チャンネル内の既存パネルメッセージを探索
+    const messages = await channel.messages.fetch({ limit: 20 });
+    const existingPanel = messages.find(
+      (m) => m.embeds?.[0]?.title === '💼 経費設定パネル'
+    );
+
+    if (existingPanel) {
+      await existingPanel.edit({ embeds, components });
+      console.log('🔄 経費設定パネルを更新しました。');
+    } else {
+      await channel.send({ embeds, components });
+      console.log('🆕 経費設定パネルを再生成しました。');
+    }
+  } catch (err) {
+    console.error('❌ 経費設定パネル更新エラー:', err);
+  }
+}
+
+module.exports = { buildKeihiPanelConfig, updateKeihiPanel, updateKeihiStorePanels };
+

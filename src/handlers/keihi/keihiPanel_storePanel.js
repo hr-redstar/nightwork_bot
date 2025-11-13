@@ -6,6 +6,7 @@ const {
   ButtonStyle,
 } = require('discord.js');
 const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
+const { IDS } = require('./ids'); // IDSをインポート
 
 async function postStoreKeihiPanel(channel, storeName, guildId) {
   const config = await loadKeihiConfig(guildId);
@@ -21,11 +22,11 @@ async function postStoreKeihiPanel(channel, storeName, guildId) {
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(`keihi_item_register_${storeName}`)
+      .setCustomId(`${IDS.BTN_ITEM_REGISTER}:${storeName}`)
       .setLabel('経費項目登録')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId(`keihi_request_${storeName}`)
+      .setCustomId(`${IDS.BTN_REPORT_OPEN}:${storeName}`)
       .setLabel('経費申請')
       .setStyle(ButtonStyle.Primary),
   );
