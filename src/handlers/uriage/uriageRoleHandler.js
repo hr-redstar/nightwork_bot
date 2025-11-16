@@ -80,7 +80,7 @@ async function handleRoleSelected(interaction) {
 
   // 更新後、設定パネルを再描画 (updateUriagePanel を呼び出すように変更)
   await updateUriagePanel(interaction);
-  // 併せて、店舗用の売上報告パネルも更新
+  // 併せて、店舗用の売上報告パネルも更新する
   try {
     const { updateUriageStorePanels } = require('./uriagePanel_config');
     await updateUriageStorePanels(interaction);

@@ -1,11 +1,11 @@
-// src/handlers/keihi/keihiPanel_storePanel.js
+﻿// src/handlers/keihi/経費設定/keihiPanel_storePanel.js
 const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
 } = require('discord.js');
-const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
+const { loadKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { IDS } = require('./ids'); // IDSをインポート
 
 async function postStoreKeihiPanel(channel, storeName, guildId) {

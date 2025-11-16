@@ -1,4 +1,4 @@
-// src/handlers/syut/syutCastPanel.js
+// src/handlers/syut/syutPanel_Kuro.js
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { getTodayAttendance } = require('../../utils/syut/gcsSyut');
@@ -37,9 +37,9 @@ function formatAttendanceList(attendanceData) {
 }
 
 /**
- * キャスト出退勤パネルを新規作成
+ * 黒服出退勤パネルを新規作成
  */
-async function createCastPanel(interaction, storeName, channelId) {
+async function createBlackPanel(interaction, storeName, channelId) {
   const ch = interaction.guild.channels.cache.get(channelId);
   if (!ch) return interaction.reply({ content: '⚠️ チャンネルが見つかりません。', ephemeral: true });
 
@@ -47,59 +47,58 @@ async function createCastPanel(interaction, storeName, channelId) {
   const message = await ch.send({ content: 'パネルを準備中...' });
 
   const cfg = (await getGuildConfig(interaction.guild.id)) || {};
-  if (!cfg.syutCastChannels) cfg.syutCastChannels = {};
-  cfg.syutCastChannels[storeName] = channelId;
-  cfg.syutCastPanelMessages = cfg.syutCastPanelMessages || {};
-  cfg.syutCastPanelMessages[storeName] = message.id; // パネルメッセージIDを保存
+  if (!cfg.syutBlackChannels) cfg.syutBlackChannels = {};
+  cfg.syutBlackChannels[storeName] = channelId;
+  cfg.syutBlackPanelMessages = cfg.syutBlackPanelMessages || {};
+  cfg.syutBlackPanelMessages[storeName] = message.id; // パネルメッセージIDを保存
   await setGuildConfig(interaction.guild.id, cfg);
 
-  await interaction.reply({ content: '✅ キャスト出退勤パネルを設置しました。', ephemeral: true });
+  await interaction.reply({ content: '✅ 黒服出退勤パネルを設置しました。', ephemeral: true });
 
   // パネルを更新して初期表示
-  await updateCastPanel(interaction.guild, storeName, channelId, message.id);
+  await updateBlackPanel(interaction.guild, storeName, channelId, message.id);
 }
 
 /**
- * キャスト出退勤パネルを更新
+ * 黒服出退勤パネルを更新
  */
-async function updateCastPanel(guild, storeName, channelId, messageId = null) {
+async function updateBlackPanel(guild, storeName, channelId, messageId = null) {
   const ch = guild.channels.cache.get(channelId);
   if (!ch) return;
 
   const config = (await getGuildConfig(guild.id)) || {};
-  const panelMessageId = messageId || config.syutCastPanelMessages?.[storeName];
+  const panelMessageId = messageId || config.syutBlackPanelMessages?.[storeName];
   if (!panelMessageId) return;
 
   const attendanceData = await getTodayAttendance(guild.id, storeName);
   const attendanceList = formatAttendanceList(attendanceData);
 
   const embed = new EmbedBuilder()
-    .setTitle(`👠 キャスト 出退勤パネル｜${storeName}`)
+    .setTitle(`🕴️ 黒服 出退勤パネル｜${storeName}`)
     .setDescription(
       [
-        'キャスト設定',
-        '役職： ロール： （未設定の場合は下のボタンから設定）',
+        '黒服設定',
+        '役職： ロール：',
         '',
-        `**本日のキャスト一覧 ${new Date().toLocaleDateString('ja-JP')}**\n${attendanceList}`,
+        `**本日の黒服一覧 ${new Date().toLocaleDateString('ja-JP')}**\n${attendanceList}`,
       ].join('\n')
     )
-    .setColor(0xe91e63);
+    .setColor(0x34495e);
 
   const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`cast_today_setup_${storeName}`).setLabel('🗓️ 本日のキャスト設置').setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId(`cast_role_link_${storeName}`).setLabel('🧩 役職/ロール設定').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`black_role_link_${storeName}`).setLabel('🧩 役職/ロール設定').setStyle(ButtonStyle.Secondary),
   );
   const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`cast_reg_${storeName}`).setLabel('🟢 出退勤登録').setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`cast_manual_${storeName}`).setLabel('✍️ 手入力出退勤登録').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId(`black_reg_${storeName}`).setLabel('🟢 出退勤登録').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`black_manual_${storeName}`).setLabel('✍️ 手入力出退勤登録').setStyle(ButtonStyle.Primary),
   );
 
   try {
     const message = await ch.messages.fetch(panelMessageId);
     await message.edit({ embeds: [embed], components: [row1, row2] });
   } catch (error) {
-    console.error(`❌ キャストパネルメッセージの更新に失敗しました: ${error}`);
+    console.error(`❌ 黒服パネルメッセージの更新に失敗しました: ${error}`);
   }
 }
 
-module.exports = { createCastPanel, updateCastPanel };
+module.exports = { createBlackPanel, updateBlackPanel };

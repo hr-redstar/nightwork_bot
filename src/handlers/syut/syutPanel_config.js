@@ -1,57 +1,63 @@
 // src/handlers/syut/syutPanel_config.js
-const { StringSelectMenuBuilder, ActionRowBuilder, ChannelType } = require('discord.js');
+const { StringSelectMenuBuilder, ActionRowBuilder, ChannelType, ChannelSelectMenuBuilder, MessageFlags } = require('discord.js');
 const { getStoreList } = require('../../utils/config/configAccessor');
 const { postSyutPanel } = require('./syutPanel');
-const { createCastPanel } = require('./syutCastPanel');
-const { createBlackPanel } = require('./syutBlackPanel');
+const { postCastPanel } = require('./syutPanel_Cast');
+const { createBlackPanel } = require('./syutPanel_Kuro');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('../config/configLogger');
 
+/**
+ * 店舗選択メニューを表示する
+ * @param {import('discord.js').Interaction} interaction
+ * @param {'cast' | 'black'} kind
+ */
 async function showSetupMenus(interaction, kind /* 'cast' | 'black' */) {
   const stores = await getStoreList(interaction.guild.id);
   if (!stores.length) {
-    return interaction.reply({ content: '⚠️ 店舗が未登録です。先に /設定 で登録してください。', ephemeral: true });
+    return interaction.reply({ content: '⚠️ 店舗が未登録です。先に /設定 で登録してください。', flags: MessageFlags.Ephemeral });
   }
   const storeSelect = new StringSelectMenuBuilder()
-    .setCustomId(`syut_select_store_${kind}`)
+    .setCustomId(`syut_select_store:${kind}`) // 新しいID体系に合わせる
     .setPlaceholder('店舗を選択')
     .addOptions(stores.map(s => ({ label: s, value: s })));
 
-  const channels = interaction.guild.channels.cache
-    .filter(ch => ch.type === ChannelType.GuildText)
-    .map(ch => ({ label: ch.name, value: ch.id }));
-
-  const channelSelect = new StringSelectMenuBuilder()
-    .setCustomId(`syut_select_channel_${kind}`)
-    .setPlaceholder('テキストチャンネルを選択')
-    .addOptions(channels.slice(0, 25));
-
   await interaction.reply({
-    content: kind === 'cast' ? '👠 キャスト出退勤パネル：店舗とチャンネルを選択' : '🕴️ 黒服出退勤パネル：店舗とチャンネルを選択',
-    components: [new ActionRowBuilder().addComponents(storeSelect), new ActionRowBuilder().addComponents(channelSelect)],
-    ephemeral: true,
+    content: `どの店舗のパネルを設置しますか？（${kind === 'cast' ? 'キャスト' : '黒服'}）`,
+    components: [new ActionRowBuilder().addComponents(storeSelect)],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+async function showChannelSelect(interaction, kind, storeName) {
+  const channelSelect = new ChannelSelectMenuBuilder()
+    .setCustomId(`syut_select_channel:${kind}:${storeName}`)
+    .setPlaceholder('パネルを設置するチャンネルを選択')
+    .addChannelTypes(ChannelType.GuildText);
+
+  await interaction.update({
+    content: `✅ 店舗「**${storeName}**」を選択しました。\n次に、パネルを設置するチャンネルを選択してください。`,
+    components: [new ActionRowBuilder().addComponents(channelSelect)],
   });
 }
 
 async function handleSetupSubmit(interaction, kind, storeName, channelId) {
+  const channel = interaction.guild.channels.cache.get(channelId);
+  if (!channel) return;
+
   if (kind === 'cast') {
-    await createCastPanel(interaction, storeName, channelId);
+    await postCastPanel(channel, storeName);
   } else {
     await createBlackPanel(interaction, storeName, channelId);
   }
-  // 保存（マッピングは各パネル作成内で行うが、ここでも冪等化のため再設定）
-  const cfg = (await getGuildConfig(interaction.guild.id)) || {};
-  const key = kind === 'cast' ? 'syutCastChannels' : 'syutBlackChannels';
-  if (!cfg[key]) cfg[key] = {};
-  cfg[key][storeName] = channelId;
-  await setGuildConfig(interaction.guild.id, cfg);
 
-  await sendSettingLog(interaction.guild, {
-    user: interaction.user,
-    message: `${kind === 'cast' ? '👠 キャスト' : '🕴️ 黒服'} 出退勤パネルを <#${channelId}> に設置（店舗：**${storeName}**）`,
-    type: '出退勤設定',
-  });
+  const config = await getSyutConfig(interaction.guild.id);
+  config.castPanelList ||= {};
+  config.castPanelList[storeName] ||= {};
+  config.castPanelList[storeName].panelChannelId = channel.id;
+  await saveSyutConfig(interaction.guild.id, config);
 
+  // メインの設定パネルを更新して、新しい設定を反映させる
   await postSyutPanel(interaction.channel);
 }
 
@@ -104,5 +110,6 @@ module.exports = {
   // 既存のエクスポートにこれを追加
   showSetupMenus,
   handleSetupSubmit,
+  showChannelSelect,
   reflectSelectedStore,
 };

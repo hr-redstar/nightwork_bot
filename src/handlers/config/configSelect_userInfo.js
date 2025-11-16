@@ -201,7 +201,7 @@ async function showBirthMonthSelect(interaction, userId, storeName, roleName, bi
  */
 async function showBirthDaySelect(interaction, userId, storeName, roleName, birthYear, birthMonth) {
   const member = await interaction.guild.members.fetch(userId);
-  const daysInMonth = new Date(birthYear, parseInt(birthMonth, 10), 0).getDate();
+  const daysInMonth = new Date(parseInt(birthYear, 10), parseInt(birthMonth, 10), 0).getDate();
   const days = [];
   for (let i = 1; i <= daysInMonth; i++) {
     days.push({ label: `${i}日`, value: String(i).padStart(2, '0') });
@@ -277,9 +277,9 @@ async function showUserInfoModal(interaction, userId, storeName, roleName, birth
 /**
  * モーダル送信後 → GCS保存処理
  */
-async function handleUserInfoSubmit(interaction) {
+ async function handleUserInfoSubmit(interaction) {
   // customIdからuserId, storeName, roleName, dobを取得
-  const [, , userId, storeToken, roleToken, dob] = interaction.customId.split('_');
+  const [, , , userId, storeToken, roleToken, dob] = interaction.customId.split('_');
   const storeName = decodeToken(storeToken);
   const roleName = decodeToken(roleToken);
 

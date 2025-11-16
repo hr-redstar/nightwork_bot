@@ -18,7 +18,7 @@ async function handleRoleSelectForStore(interaction) {
         const guildId = interaction.guild.id;
 
         // 新しいマネージャーを使って紐づけを更新
-        await updateLink(guildId, 'link_store_role', storeName, selectedRoles);
+        await updateLink(guildId, 'link_store_role', storeName, selectedRoles); // updateLink は storeRoleConfigManager のものを使用
 
         await interaction.update({
             content: `✅ 店舗 **${storeName}** に選択されたロールを紐づけました。`,

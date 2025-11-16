@@ -15,10 +15,10 @@ module.exports = {
       // postUriagePanel はチャンネルオブジェクトを引数に取る
       await postUriagePanel(interaction.channel);
       // 処理完了後、保留した応答を編集して成功を伝える
-      await interaction.editReply({ content: '✅ 売上設定パネルを設置しました。' });
+      await interaction.deleteReply();
     } catch (err) {
       console.error(err);
-      await interaction.editReply({ content: '⚠️ 売上設定パネルの表示に失敗しました。' });
+      await interaction.editReply({ content: '⚠️ 売上設定パネルの表示に失敗しました。' }).catch(() => {});
     }
   },
 };

@@ -1,4 +1,4 @@
-// src/handlers/keihi/keihiApproveHandler.js
+// src/handlers/keihi/経費申請/keihiApproveHandler.js
 const {
   EmbedBuilder,
   ModalBuilder,
@@ -10,9 +10,9 @@ const {
   MessageFlags,
 } = require('discord.js');
 const dayjs = require('dayjs');
-const logger = require('../../utils/logger'); // loggerをインポート
-const { loadKeihiConfig, saveKeihiDaily, readKeihiDaily } = require('../../utils/keihi/keihiConfigManager');
-const { getGuildConfig, loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
+const logger = require('../../../utils/logger'); // loggerをインポート
+const { loadKeihiConfig, saveKeihiDaily, readKeihiDaily } = require('../../../utils/keihi/keihiConfigManager');
+const { getGuildConfig, loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 
 /**
  * 修正・削除の権限があるかチェックする
@@ -27,10 +27,10 @@ function isAuthorized(interaction, embed, keihiConfig, storeRoleConfig) {
   const authorId = embed.fields?.find(f => f.name === '👤 入力者')?.value?.replace(/[<@>]/g, '');
   const isAuthor = user.id === authorId;
 
-  // 申請者である場合は常に許可
+  // 申請者である場合は常に許可する
   if (isAuthor) return true;
 
-  // 承認権限があるかチェック
+  // 承認権限があるかチェックする
   const hasPerm = hasApprovalPermission(interaction, keihiConfig, storeRoleConfig);
 
   return hasPerm;
@@ -61,7 +61,7 @@ function hasApprovalPermission(interaction, keihiConfig, storeRoleConfig) {
   // 3. サーバー設定から役職とロールの紐付け情報を取得
   const roleLinkMap = storeRoleConfig?.link_role_role;
   if (!roleLinkMap) {
-    // デバッグログを追加
+    // デバッグログを追加する
     logger.debug('[DEBUG keihiApproveHandler] roleLinkMap is missing.', {
       guildId,
       hasStoreRoleConfig: !!storeRoleConfig,
@@ -72,8 +72,8 @@ function hasApprovalPermission(interaction, keihiConfig, storeRoleConfig) {
     return false;
   }
 
-  // 4. 役職名に対応するDiscordロールIDリストを取得
-  // デバッグログを追加
+  // 4. 役職名に対応するDiscordロールIDリストを取得する
+  // デバッグログを追加する
   logger.debug('[DEBUG keihiApproveHandler]', {
     approvalRoleName: approvalPositionName,
     availableRoleKeys: Object.keys(roleLinkMap || {}),
@@ -81,7 +81,7 @@ function hasApprovalPermission(interaction, keihiConfig, storeRoleConfig) {
   const allowedRoleIds = roleLinkMap[approvalPositionName] || [];
   if (allowedRoleIds.length === 0) return false;
 
-  // 5. メンバーが持っているロールと照合
+  // 5. メンバーが持っているロールと照合する
   return member.roles.cache.some(r => allowedRoleIds.includes(r.id));
 }
 
@@ -102,7 +102,7 @@ async function updateChannelLog(interaction, fields, newStatusMessage) {
   const targetLogMessage = messages.find(m => m.content.includes(logIdentifier));
 
   if (targetLogMessage) {
-    // 元のメッセージから識別子と区切り線を削除
+    // 元のメッセージから識別子と区切り線を削除する
     const baseContent = targetLogMessage.content
       .replace(logIdentifier, '')
       .replace(/^-+\s*$/m, ''); // 区切り線を削除
@@ -123,7 +123,7 @@ async function handleKeihiApprove(interaction) {
   const user = interaction.user;
   const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
 
-  // 承認権限チェック
+  // 承認権限をチェックする
   if (!hasApprovalPermission(interaction, keihiConfig, storeRoleConfig)) {
     return interaction.editReply({
       content: '⚠️ 承認権限がありません。',
@@ -182,7 +182,7 @@ async function handleKeihiApprove(interaction) {
     }
   }
 
-  // ✅ データ保存
+  // ✅ データを保存する
   // 申請時のデータを更新する
   const date = fields['📅 日付'];
   const [y, m, d] = date.split('/');
@@ -198,7 +198,7 @@ async function handleKeihiApprove(interaction) {
     dailyData[targetIndex].status = 'approved';
     dailyData[targetIndex].approver = user.id;
     dailyData[targetIndex].approvedAt = now;
-    await saveKeihiDaily(guildId, storeName, dailyData, true); // 第4引数で上書きを指示
+    await saveKeihiDaily(guildId, storeName, dailyData, true); // 第4引数で上書きを指示する
   } else {
     logger.warn(`⚠️ 承認対象の経費データが見つかりませんでした。ギルドID: ${guildId}, 店舗: ${storeName}, 申請者: ${applicantId}, 申請時間: ${createdAt}`);
   }
@@ -218,13 +218,13 @@ async function handleKeihiEdit(interaction) {
   if (!embed)
     return interaction.reply({ content: '⚠️ 元メッセージを取得できません。', flags: MessageFlags.Ephemeral });
 
-  // 権限チェック
+  // 権限をチェックする
   const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
   if (!isAuthorized(interaction, embed, keihiConfig, storeRoleConfig)) {
     return interaction.reply({ content: '⚠️ 修正権限がありません。', flags: MessageFlags.Ephemeral });
   }
 
-  // 修正モーダル
+  // 修正モーダルを表示する
   const modal = new ModalBuilder()
     .setCustomId(`keihi_edit_modal_${message.id}`)
     .setTitle('📝 経費申請 修正');
@@ -234,7 +234,7 @@ async function handleKeihiEdit(interaction) {
     .setLabel('修正後の金額')
     .setStyle(TextInputStyle.Short)
     .setRequired(true)
-    // 現在の金額を初期値として設定
+    // 現在の金額を初期値として設定する
     .setValue(embed.fields.find(f => f.name === '💴 金額')?.value.replace(/\D/g, '') || '');
 
   const noteInput = new TextInputBuilder()
@@ -242,7 +242,7 @@ async function handleKeihiEdit(interaction) {
     .setLabel('修正後の備考')
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(false)
-    // 現在の備考を初期値として設定
+    // 現在の備考を初期値として設定する
     .setValue(embed.fields.find(f => f.name === '🗒️ 備考')?.value || '');
 
   modal.addComponents(
@@ -272,7 +272,7 @@ async function handleKeihiEditModal(interaction) {
 
   const edited = EmbedBuilder.from(embed)
     .setColor('#f1c40f')
-    .setTitle('🧾 経費申請') // タイトルは戻す
+    .setTitle('🧾 経費申請') // タイトルを戻す
     .setFooter({ text: `最終修正者: ${user.username} (${now})` })
     .spliceFields(
       embed.fields.findIndex(f => f.name === '💴 金額'),
@@ -295,11 +295,11 @@ async function handleKeihiEditModal(interaction) {
   const logChannelId = globalConfig.adminLogChannel;
   const storeName = interaction.channel.name.split('-')[1] || '不明店舗';
 
-  // ✅ 店舗チャンネルへ通知
+  // ✅ 店舗チャンネルへ通知する
   const editLogMessage = `✅経費申請が修正されました。\n修正時間：${now}\n入力者：${embed.fields.find(f => f.name === '👤 入力者')?.value}`;
   await updateChannelLog(interaction, getEmbedFields(embed), editLogMessage);
 
-  // 管理ログ出力
+  // 管理ログを出力する
   if (logChannelId) {
     const logChannel = interaction.guild.channels.cache.get(logChannelId);
     if (logChannel) {
@@ -323,7 +323,7 @@ async function handleKeihiEditModal(interaction) {
     }
   }
   
-  // データ更新
+  // データを更新する
   const applicantId = embed.fields.find(f => f.name === '👤 入力者')?.value?.replace(/[<@>]/g, '');
   const createdAt = embed.fields.find(f => f.name === '⏰ 入力時間')?.value;
   const date = embed.fields.find(f => f.name === '📅 日付')?.value;
@@ -361,7 +361,7 @@ async function handleKeihiDelete(interaction) {
   const embed = message.embeds[0];
   if (!embed) return interaction.editReply({ content: '⚠️ メッセージを読み取れませんでした。' });
   
-  // 権限チェック
+  // 権限をチェックする
   const [storeRoleConfig, keihiConfig] = await Promise.all([loadStoreRoleConfig(guildId), loadKeihiConfig(guildId)]);
   if (!isAuthorized(interaction, embed, keihiConfig, storeRoleConfig)) {
     return interaction.editReply({ content: '⚠️ 削除権限がありません。' });
@@ -369,7 +369,7 @@ async function handleKeihiDelete(interaction) {
 
   const now = dayjs().format('YYYY/MM/DD HH:mm');
 
-  // データ削除
+  // データを削除する
   const storeName = interaction.channel.name.split('-')[1] || '不明店舗';
   const authorId = embed.fields.find(f => f.name === '👤 入力者')?.value?.replace(/[<@>]/g, '');
   const date = embed.fields.find(f => f.name === '📅 日付')?.value;
@@ -392,7 +392,7 @@ async function handleKeihiDelete(interaction) {
     .setFooter({ text: `削除者: ${user.username} (${now})` })
     .setTimestamp(new Date());
 
-  // ボタンを無効化
+  // ボタンを無効化する
   const disabledComponents = message.components.map(row => {
     return new ActionRowBuilder().addComponents(
       row.components.map(button => ButtonBuilder.from(button).setDisabled(true))
@@ -405,7 +405,7 @@ async function handleKeihiDelete(interaction) {
     components: disabledComponents,
   });
 
-  // ログ出力
+  // ログを出力する
   const deleteLogMessage = `❌経費申請が削除されました。\n削除者：<@${user.id}>　削除時間：${now}`;
   await updateChannelLog(interaction, getEmbedFields(embed), deleteLogMessage);
 

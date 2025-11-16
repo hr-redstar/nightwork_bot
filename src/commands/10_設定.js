@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// src/commands/設定.js
+﻿﻿﻿﻿﻿﻿// src/commands/設定.js
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { postConfigPanel } = require('../handlers/config/configPanel');
 const { getGuildConfig } = require('../utils/config/gcsConfigManager');
@@ -19,12 +19,12 @@ module.exports = {
       // 設定パネルを投稿（既存メッセージがあれば更新予定）
       await postConfigPanel(channel);
 
-      // 処理完了後に応答を編集
-      await interaction.editReply({ content: '✅ 設定パネルを設置しました。' });
+      // 処理完了後の応答は不要なため削除
+      await interaction.deleteReply();
     } catch (err) {
       console.error('❌ /設定 コマンド実行エラー:', err);
       // deferReply後なのでeditReplyでエラーメッセージを送信
-      await interaction.editReply({ content: '❌ 設定パネル設置中にエラーが発生しました。' });
+      await interaction.editReply({ content: '❌ 設定パネル設置中にエラーが発生しました。' }).catch(() => {});
     }
   },
 };

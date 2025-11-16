@@ -18,7 +18,7 @@ async function kuzibikiBotHandler(interaction) {
     // ============================================================
     if (interaction.isButton()) {
       // --- くじ引き設定ボタン ---
-      if (customId === 'kuzibiki_config') { // This was kuji_settings before
+      if (customId === 'kuzibiki_config') { // 以前は kuji_settings でした
         const { settings } = readKujiConfig(guild.id);
         const currentItems = settings ? settings.join('\n') : '';
 
@@ -40,7 +40,7 @@ async function kuzibikiBotHandler(interaction) {
       }
 
       // --- くじ引き実行ボタン ---
-      if (customId === 'kuzibiki_execute') { // This was kuji_run before
+      if (customId === 'kuzibiki_execute') { // 以前は kuji_run でした
         const { settings } = readKujiConfig(guild.id);
         const items = settings || [];
 
@@ -112,7 +112,7 @@ async function kuzibikiBotHandler(interaction) {
         await sendSettingLog(guild, {
           user: user,
           type: 'くじ引き設定',
-          embed: logEmbed, // sendSettingLogでembedを直接使えるように要改修
+          embed: logEmbed, // sendSettingLogでembedを直接使えるように改修が必要
           message: 'くじ引き設定が変更されました。'
         });
 
@@ -141,24 +141,24 @@ async function executeLottery(interaction, count) {
   const { settings } = readKujiConfig(guild.id);
   const originalSettings = settings || [];
 
-  // Shuffle the original settings array
+  // 元の設定配列をシャッフルする
   const shuffled = [...originalSettings].sort(() => 0.5 - Math.random());
   const results = [];
 
-  // Draw without replacement
+  // 非復元抽出でくじを引く
   for (let i = 0; i < count && shuffled.length > 0; i++) {
-    results.push(shuffled.shift()); // Take the first element and remove it from shuffled
+    results.push(shuffled.shift()); // 最初の要素を取り出し、シャッフル済み配列から削除する
   }
 
 
-  // スレッドを探すか作成
+  // スレッドを探すか作成する
   const threadName = 'くじ引き-結果';
   let thread = channel.threads.cache.find(t => t.name === threadName);
   if (!thread) {
     thread = await channel.threads.create({ name: threadName, reason: 'くじ引き結果ログ' });
   }
 
-  // 結果をGCSに保存
+  // 結果をGCSに保存する
   saveKujiResult(guild.id, {
     timestamp: new Date().toISOString(),
     executedBy: { id: user.id, name: user.username },
@@ -169,7 +169,7 @@ async function executeLottery(interaction, count) {
     results,
   });
 
-  // スレッドに投稿
+  // スレッドに投稿する
   const threadEmbed = new EmbedBuilder()
     .setTitle('🎲 くじ引き結果')
     .setColor(0x9b59b6)
@@ -182,7 +182,7 @@ async function executeLottery(interaction, count) {
     );
   const threadMessage = await thread.send({ embeds: [threadEmbed] });
 
-  // 管理者ログにも出力
+  // 管理者ログにも出力する
   const adminLogEmbed = new EmbedBuilder()
     .setTitle('🎲 くじ引きが実行されました')
     .setColor(0x9b59b6)

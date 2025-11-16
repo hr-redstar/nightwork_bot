@@ -67,7 +67,7 @@ async function handlePositionRoleSelect(interaction, positionName) {
   const oldRoles = config.link_role_role?.[positionName] || [];
 
   // 新しいマネージャーで紐づけを更新
-  await updateLink(guildId, 'link_role_role', positionName, selectedRoles);
+  await updateLink(guildId, 'link_role_role', positionName, selectedRoles); // updateLink は storeRoleConfigManager のものを使用
 
   // 差分ログ作成
   const added = selectedRoles.filter((r) => !oldRoles.includes(r));

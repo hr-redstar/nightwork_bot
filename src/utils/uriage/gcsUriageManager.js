@@ -77,7 +77,7 @@ async function getStoreById(guildId, storeId) {
     if (!storeId) return null;
     const cfg = await loadStoreRoleConfig(guildId);
     const stores = cfg?.stores || [];
-    // store オブジェクトの構造が { id, name, ... } などを想定して柔軟に照合
+    // store オブジェクトの構造が { id, name, ... } などであることを想定して柔軟に照合する
     const found = stores.find(s => {
       if (!s) return false;
       const idMatch = s.id && String(s.id) === String(storeId);
@@ -117,17 +117,17 @@ async function saveUriageCsv(guildId, store, dateStr, data, status = 'ok') {
   const header = '日付,入力者,承認者,総売り,現金,カード,諸経費,残金,登録日時,ステータス\n';
   const line = `${data.date},${data.user},${data.approver || ''},${data.total},${data.cash},${data.card},${data.cost},${data.remain},${data.createdAt},${status}\n`;
 
-  // 既存ファイルの内容を読み込み
+  // 既存ファイルの内容を読み込む
   const existingContent = await readFile(filePath);
 
   if (!existingContent) {
-    // ファイルがなければ新ヘッダ + 行を作成
+    // ファイルがなければ新しいヘッダと行を作成
     const newContent = header + line;
     await writeFile(filePath, newContent);
     return;
   }
 
-  // 既存ファイルがある場合、ヘッダにステータス列が無ければ互換処理を行う
+  // 既存ファイルがある場合、ヘッダにステータス列がなければ互換処理を行う
   const lines = existingContent.split('\n');
   const existingHeader = lines[0] || '';
   let updatedContent = existingContent;
@@ -138,7 +138,7 @@ async function saveUriageCsv(guildId, store, dateStr, data, status = 'ok') {
     updatedContent = header + bodyLines.join('\n') + '\n';
   }
 
-  // 追記
+  // 追記する
   await writeFile(filePath, updatedContent + line);
 }
 

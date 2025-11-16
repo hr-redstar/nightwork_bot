@@ -1,5 +1,5 @@
-// src/handlers/keihi/keihiSaveHandler.js
-const fs = require('fs');
+// src/handlers/keihi/経費申請/keihiSaveHandler.js
+const fs = require('fs').promises; // fs/promises を使用
 const path = require('path');
 const dayjs = require('dayjs');
 
@@ -18,16 +18,19 @@ async function saveKeihiDailyLocal(guildId, storeName, data) {
     );
     const filePath = path.join(dirPath, `${date}.json`);
 
-    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+    await fs.mkdir(dirPath, { recursive: true });
 
     let fileData = [];
-    if (fs.existsSync(filePath)) {
-      fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      fileData = JSON.parse(content);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error; // ファイルが存在しない以外のエラーは再スロー
     }
 
     fileData.push(data);
 
-    fs.writeFileSync(filePath, JSON.stringify(fileData, null, 2), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(fileData, null, 2), 'utf8');
 
     console.log(`💾 経費データを保存しました: ${filePath}`);
   } catch (err) {

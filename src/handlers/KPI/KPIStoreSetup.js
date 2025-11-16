@@ -12,6 +12,7 @@ const {
   MessageFlags,
 } = require('discord.js');
 
+const { getStoreList } = require('../../utils/config/configAccessor');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { postOrUpdateKpiStorePanel } = require('./KPIPanel_Store');
 
@@ -19,27 +20,19 @@ const { postOrUpdateKpiStorePanel } = require('./KPIPanel_Store');
  * KPI設置ボタン押下時
  */
 async function handleKpiSetup(interaction) {
-  const { guildId } = interaction;
+  const stores = await getStoreList(interaction.guild.id);
 
-  // 1️⃣ 店舗リストを取得
-  const config = await getGuildConfig(guildId);
-  // 店舗名のソースは config.stores（なければKPIキー一覧を候補に）
-  const storeList = Array.isArray(config?.stores) && config.stores.length
-    ? config.stores
-    : Object.keys(config?.KPI || {});
-
-  if (!storeList.length) {
+  if (!stores || !stores.length) {
     return await interaction.reply({
       content: '⚠️ 店舗が登録されていません。「/設定」で店舗を登録してください。',
       flags: MessageFlags.Ephemeral
     });
   }
 
-  // 2️⃣ 店舗選択メニューを表示
   const storeMenu = new StringSelectMenuBuilder()
     .setCustomId('kpi_select_store')
     .setPlaceholder('店舗を選択してください')
-    .addOptions(storeList.map((store) => ({ label: store, value: store })));
+    .addOptions(stores.map((store) => ({ label: store, value: store })));
 
   const row = new ActionRowBuilder().addComponents(storeMenu);
 

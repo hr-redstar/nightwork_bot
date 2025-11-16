@@ -1,4 +1,4 @@
-// src/handlers/keihi/keihiRequestHandler.js
+// src/handlers/keihi/経費申請/keihiRequestHandler.js
 const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
@@ -12,43 +12,53 @@ const {
   MessageFlags,
 } = require('discord.js');
 const dayjs = require('dayjs');
-const { loadKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
-const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
-const { saveKeihiDaily } = require('../../utils/keihi/keihiConfigManager');
+const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
+const { getGuildConfig } = require('../../../utils/config/gcsConfigManager');
+const { saveKeihiDaily } = require('../../../utils/keihi/keihiConfigManager');
 
 /**
  * 経費申請ボタン押下 → 経費項目選択
  */
 async function handleKeihiRequest(interaction) {
-  const guildId = interaction.guild.id;
-  const config = await loadKeihiConfig(guildId);
+  try {
+    if (!interaction.deferred && !interaction.replied)
+      await interaction.deferReply({ ephemeral: false });
 
-  // 経費項目取得
-  const storeName = interaction.customId.replace('keihi_request_', '');
-  const items = config.storeItems?.[storeName] || [];
+    const guildId = interaction.guild.id;
+    const config = await loadKeihiConfig(guildId);
 
-  if (items.length === 0) {
-    return interaction.reply({
-      content: `⚠️ 店舗「${storeName}」には経費項目が設定されていません。`,
-      flags: MessageFlags.Ephemeral,
+    // 経費項目を取得
+    const storeName = interaction.customId.replace('keihi_request_', '');
+    const items = config.storeItems?.[storeName] || [];
+
+    if (items.length === 0) {
+      return interaction.editReply({
+        content: `⚠️ 店舗「${storeName}」には経費項目が設定されていません。`,
+      });
+    }
+
+    // 重複する項目を排除する
+    const uniqueItems = [...new Set(items)];
+
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(`keihi_request_select_${storeName}`)
+      .setPlaceholder('経費項目を選択してください')
+      .addOptions(uniqueItems.map(i => ({ label: i, value: i })));
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    await interaction.editReply({
+      content: `📦 経費項目を選択してください（店舗：${storeName}）`,
+      components: [row],
     });
+  } catch (err) {
+    console.error('❌ handleKeihiRequest エラー:', err);
+    try {
+      if (!interaction.deferred && !interaction.replied)
+        await interaction.reply({ content: '⚠️ 経費申請処理中にエラーが発生しました。' });
+      else await interaction.editReply({ content: '⚠️ 経費申請処理中にエラーが発生しました。' });
+    } catch {}
   }
-
-  // 重複する項目を排除
-  const uniqueItems = [...new Set(items)];
-
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId(`keihi_request_select_${storeName}`)
-    .setPlaceholder('経費項目を選択してください')
-    .addOptions(uniqueItems.map(i => ({ label: i, value: i })));
-
-  const row = new ActionRowBuilder().addComponents(menu);
-
-  await interaction.reply({
-    content: `📦 経費項目を選択してください（店舗：${storeName}）`,
-    components: [row],
-    flags: MessageFlags.Ephemeral,
-  });
 }
 
 /**
@@ -58,6 +68,7 @@ async function handleKeihiRequestSelect(interaction) {
   const storeName = interaction.customId.replace('keihi_request_select_', '');
   const selectedItem = interaction.values[0];
 
+  // deferReplyしない
   const modal = new ModalBuilder()
     .setCustomId(`keihi_request_modal_${storeName}_${selectedItem}`)
     .setTitle(`📋 経費申請 (${storeName})`);
@@ -117,7 +128,7 @@ async function handleKeihiRequestModal(interaction) {
   const note = interaction.fields.getTextInputValue('note') || '-';
   const now = dayjs().format('YYYY/MM/DD HH:mm');
 
-  // 日付形式のバリデーション
+  // 日付形式をバリデーションする
   if (!dayjs(date, 'YYYY/MM/DD', true).isValid()) {
     return interaction.editReply({
       content: '⚠️ 日付の形式が正しくありません。「YYYY/MM/DD」の形式で入力してください。',
@@ -127,7 +138,7 @@ async function handleKeihiRequestModal(interaction) {
 
   const channel = interaction.channel;
 
-  // ✅ スレッド作成または取得
+  // ✅ スレッドを作成または取得する
   const threadName = `${dayjs(date).format('YYYYMM')}-${storeName}-経費申請`;
   let thread = channel.threads.cache.find(t => t.name === threadName && !t.archived);
   if (!thread) {
@@ -143,7 +154,7 @@ async function handleKeihiRequestModal(interaction) {
     });
   }
 
-  // ✅ 経費申請Embed作成
+  // ✅ 経費申請のEmbedを作成する
   const embed = new EmbedBuilder()
     .setColor('#0984e3')
     .setTitle('🧾 経費申請')
@@ -182,13 +193,13 @@ async function handleKeihiRequestModal(interaction) {
       .setStyle(ButtonStyle.Primary),
   );
 
-  // ✅ チャンネルにログ出力
+  // ✅ チャンネルにログを出力する
   await channel.send({
     content: `---------------------------\n経費申請しました。\n入力者：<@${user.id}>　入力時間：${now}\n${threadMessage.url}\n<!-- keihi-log:${user.id}:${now} -->\n---------------------------`,
-    components: [logButtonRow], // 経費申請ボタンをログメッセージに添付
+    components: [logButtonRow], // 経費申請ボタンをログメッセージに添付する
   });
 
-  // 管理者ログ出力
+  // 管理者ログを出力する
   const globalConfig = await getGuildConfig(guildId);
   const logChannelId = globalConfig.adminLogChannel;
   if (logChannelId) {
@@ -206,13 +217,13 @@ async function handleKeihiRequestModal(interaction) {
           { name: '👤 入力者', value: `<@${user.id}>` },
           { name: '⏰ 入力時間', value: now },
         )
-        .setURL(threadMessage.url) // スレッド内のメッセージへのリンク
-        .setTimestamp(new Date()); // 現在時刻をログのタイムスタンプとして設定
+        .setURL(threadMessage.url) // スレッド内のメッセージへのリンクを設定
+        .setTimestamp(new Date()); // 現在時刻をログのタイムスタンプとして設定する
       await logCh.send({ embeds: [logEmbed] });
     }
   }
 
-  // ✅ データ保存
+  // ✅ データを保存する
   await saveKeihiDaily(guildId, storeName, {
     date,
     department,

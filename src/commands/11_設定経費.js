@@ -1,7 +1,8 @@
-﻿// src/commands/11_設定経費.js
+﻿﻿// src/commands/11_設定経費.js
 
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { postKeihiPanel } = require('../handlers/keihi/keihiPanel');
+const { postKeihiPanel } = require('../handlers/keihi/経費設定/keihiPanel');
+const { sendCommandLog } = require('../handlers/config/configLogger');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,16 +14,23 @@ module.exports = {
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({
         content: '⚠️ このコマンドは管理者のみが実行できます。',
-        flags: MessageFlags.Ephemeral,
       });
     }
 
     try {
+      // コマンドの応答を保留し、タイムアウトを防ぐ
+      await interaction.deferReply(); // ephemeral: false (public) by default
+
       await postKeihiPanel(interaction.channel);
-      await interaction.reply({ content: '✅ 経費設定パネルを設置しました。', flags: MessageFlags.Ephemeral });
+
+      // コマンドログ出力
+      await sendCommandLog(interaction);
+
+      // 実行結果をチャンネルに通知
+      await interaction.editReply({ content: '✅ 経費設定パネルを設置または更新しました。' });
     } catch (err) {
       console.error('❌ /設定経費 コマンドエラー:', err);
-      await interaction.reply({ content: '⚠️ パネルの設置中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: '⚠️ パネルの設置中にエラーが発生しました。' });
     }
   },
 };

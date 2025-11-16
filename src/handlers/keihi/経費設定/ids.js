@@ -1,4 +1,4 @@
-// src/handlers/keihi/ids.js
+// src/handlers/keihi/経費設定/ids.js
 const IDS = {
   BTN_KEIHI_PANEL_SETUP: 'keihi:panel:setup',
   BTN_KEIHI_ROLE_APPROVER: 'keihi:role:approver',

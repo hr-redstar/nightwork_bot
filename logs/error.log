@@ -1,0 +1,1258 @@
+[[31merror[39m 2025-11-14 13:02:59] [31m💥 未処理例外: Cannot find module '../syuttaikin/syutConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\postCast.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../syuttaikin/syutConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\postCast.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js:1:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:03:14] [31m💥 未処理例外: Cannot find module '../syutConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\postCast.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../syutConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\postCast.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\autoPost.js:1:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:14:05] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:14:05] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:16:07] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:16:07] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:17:57] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:17:57] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:18:05] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:18:05] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:18:22] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:18:22] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:18:32] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:18:32] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:21:00] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:21:00] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:21:06] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:21:06] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:22:54] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:22:54] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:27:19] [31m💥 未処理例外: Cannot find module './tennai_hikkake/hikkakeSetup'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module './tennai_hikkake/hikkakeSetup'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js:4:92)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:27:33] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:27:33] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:27:44] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:27:44] [31m⚠️ Promise未処理拒否: Error: Cannot find module './tennai_hikkake/hikkakeSetup'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:28:52] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:28:52] [31m⚠️ Promise未処理拒否: Error: Cannot find module './tennai_hikkake/hikkakeReport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:29:31] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:29:31] [31m⚠️ Promise未処理拒否: Error: Cannot find module './tennai_hikkake/hikkakeReport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\tennai_hikkakeBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:31:42] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:31:42] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:34:05] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:34:05] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:34:15] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:34:15] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:39:51] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:39:51] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:40:01] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:40:01] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:43:44] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:43:44] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:46:08] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:46:08] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:54:34] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:54:35] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:56:58] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:56:58] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:58:39] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:58:39] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 13:59:37] [31m[DeployGuild] ❌ コマンド読み込み失敗: commandHandler.js Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../utils/gcsSubscriptionManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\commandHandler.js:4:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 13:59:38] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 14:00:18] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 14:01:26] [31m⚠️ Promise未処理拒否: SyntaxError: Unexpected token '.'[39m
+[[31merror[39m 2025-11-14 14:01:40] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 14:03:08] [31m⚠️ Promise未処理拒否: SyntaxError: Identifier 'isActive' has already been declared[39m
+[[31merror[39m 2025-11-14 14:03:10] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 14:03:59] [31m[interactionCreate] エラー: handleKeihiInteraction is not a function[39m
+TypeError: handleKeihiInteraction is not a function
+    at Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:89:17)
+    at Client.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:45:55)
+    at Client.emit (node:events:508:28)
+    at InteractionCreateAction.handle (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\actions\InteractionCreate.js:101:12)
+    at module.exports [as INTERACTION_CREATE] (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\handlers\INTERACTION_CREATE.js:4:36)
+    at WebSocketManager.handlePacket (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:352:31)
+    at WebSocketManager.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:236:12)
+    at WebSocketManager.emit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@vladfrangu\async_event_emitter\dist\index.cjs:2504:31)
+    at WebSocketShard.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\ws\dist\index.js:1190:51)
+    at WebSocketShard.emit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@vladfrangu\async_event_emitter\dist\index.cjs:2504:31)
+[[31merror[39m 2025-11-14 14:04:04] [31m[interactionCreate] エラー: handleKeihiInteraction is not a function[39m
+TypeError: handleKeihiInteraction is not a function
+    at Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:89:17)
+    at Client.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:45:55)
+    at Client.emit (node:events:508:28)
+    at InteractionCreateAction.handle (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\actions\InteractionCreate.js:101:12)
+    at module.exports [as INTERACTION_CREATE] (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\handlers\INTERACTION_CREATE.js:4:36)
+    at WebSocketManager.handlePacket (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:352:31)
+    at WebSocketManager.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:236:12)
+    at WebSocketManager.emit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@vladfrangu\async_event_emitter\dist\index.cjs:2504:31)
+    at WebSocketShard.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\ws\dist\index.js:1190:51)
+    at WebSocketShard.emit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@vladfrangu\async_event_emitter\dist\index.cjs:2504:31)
+[[31merror[39m 2025-11-14 14:05:46] [31m[interactionCreate] エラー: The reply to this interaction has not been sent or deferred.[39m
+Error [InteractionNotReplied]: The reply to this interaction has not been sent or deferred.
+    at ButtonInteraction.followUp (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:275:48)
+    at openRoleSelect (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\keihiRoleHandler.js:56:21)
+    at async openApproveRoleSelect (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\keihiRoleHandler.js:22:3)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:89:11)
+[[31merror[39m 2025-11-14 21:22:28] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 21:28:51] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../handlers/keihi/keihiPanel'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../handlers/keihi/keihiPanel'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:4:28)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 21:28:51] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 21:29:04] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 21:48:12] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 21:48:12] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 22:27:37] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 22:27:37] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 22:27:45] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 22:27:45] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 22:51:38] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 22:51:38] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 22:54:46] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 22:54:46] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:40:41] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Unexpected end of input[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:179
+
+
+
+SyntaxError: Unexpected end of input
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js:4:35)
+[[31merror[39m 2025-11-14 23:40:41] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:42:51] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:42:51] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:43:02] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:43:02] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:45:17] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:45:17] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:45:38] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Config.js:3:47)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:45:38] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:47:24] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js:5:29)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:47:24] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiRoleHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:47:34] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js:5:29)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:47:34] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:47:43] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/keihi/gcsKeihiManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel.js:5:29)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-11-14 23:47:43] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiCsvHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:47:51] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiCsvHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:48:01] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiCsvHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:50:03] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiReportHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:50:14] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiReportHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:50:23] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiReportHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:53:09] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiReportHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:56:48] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/gcsKeihiManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiReportHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-14 23:57:07] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/keihiConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiRequestHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-15 01:05:39] [31m⚠️ Promise未処理拒否: Error: Cannot find module './gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\subscriptionManager.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-15 01:05:52] [31m⚠️ Promise未処理拒否: Error: Cannot find module './gcsSubscriptionManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\subscriptionManager.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-15 01:56:22] [31m[interactionCreate] エラー: The reply to this interaction has not been sent or deferred.[39m
+Error [InteractionNotReplied]: The reply to this interaction has not been sent or deferred.
+    at ChannelSelectMenuInteraction.followUp (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:275:48)
+    at postKeihiReportPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js:47:24)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:134:11)

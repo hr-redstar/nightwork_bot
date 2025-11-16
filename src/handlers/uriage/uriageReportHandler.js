@@ -22,24 +22,24 @@ const { IDS } = require('./ids');
 // 🔹 売上報告モーダルを開く
 // ------------------------------------------------------------
 async function openUriageReportModal(interaction) {
-  // determine store identifier from the button customId (format: uriage:report:open:STORE)
+  // ボタンの customId (uriage:report:open:STORE) から店舗IDを特定
   const rawId = interaction.customId || '';
   const parts = rawId.includes(':') ? rawId.split(':') : rawId.split('_');
   let store = parts[parts.length - 1];
-  // if no store was encoded (legacy button like 'uriage:report:open'), avoid treating 'open' as store
+  // 店舗IDがエンコードされていない古い形式のボタン（例: 'uriage:report:open'）の場合、'open' を店舗IDとして扱わないようにする
   if (!store || store === 'open' || store === 'report' || store === 'uriage') {
-    // try to infer store from panelList mapping by channel
+    // panelList のチャンネルマッピングから店舗を推測
     try {
       const guildId = interaction.guild.id;
       const panelList = await getUriagePanelList(guildId);
       const panel = panelList.find(p => p.channel === interaction.channel.id || p.channel === interaction.channel?.id);
       if (panel && panel.store) store = panel.store;
     } catch (e) {
-      // ignore and fallback to channel name parsing
+      // 失敗した場合はチャンネル名の解析にフォールバック
     }
   }
 
-  // If still not found, try to inspect messages in this channel for a panel embed that includes the store name
+  // それでも見つからない場合、このチャンネルのメッセージから店舗名を含むパネルの埋め込みを探す
   if (!store) {
     try {
       const msgs = await interaction.channel.messages.fetch({ limit: 50 }).catch(() => null);
@@ -50,7 +50,7 @@ async function openUriageReportModal(interaction) {
         if (m && m[1]) store = m[1];
       }
     } catch (e) {
-      // ignore
+      // 無視
     }
   }
   const modal = new ModalBuilder()
@@ -121,8 +121,10 @@ function parseReportInputs(interaction) {
  * @returns {Promise<import('discord.js').ThreadChannel>}
  */
 async function findOrCreateReportThread(parentChannel, storeName, date) {
-  // 仕様に合わせて: 「年月-店舗名-売上報告」
-  const threadName = `${date.slice(0, 7)}-${storeName}-売上報告`;
+  // 仕様に合わせて: 「YYYYMM-店舗名-売上報告」
+  // 日付の先頭 7 文字 (YYYY/MM) を YYYYMM 形式に変換してスレッド名衝突を避ける
+  const ym = (date || '').slice(0, 7).replace('/', ''); // e.g. '2025/11' -> '202511'
+  const threadName = `${ym}-${storeName}-売上報告`;
 
   // 1. アクティブなスレッドを検索
   let thread = parentChannel.threads.cache.find(
@@ -249,17 +251,17 @@ async function handleDelete(interaction) {
         remain: 0,
         createdAt: new Date().toLocaleString('ja-JP'),
       };
-      // store はファイル名のルールに倣って決定（thread の親チャンネル名などから判断するのが難しいため、
-      // 通常は interaction.channel.parent の名前ではなく、スレッド名から店舗名を抽出する）
-      const threadNameSegments = interaction.channel.name.split('-');
-      const storeName = threadNameSegments.slice(1, -1).join('-') || '店舗未指定';
+      // 埋め込みタイトルから店舗名を抽出する（例: '📊 店舗A 売上報告'）
+      const embedTitle = embedForCsv.data?.title || '';
+      const mStore = embedTitle.match(/📊\s*(.+?)\s*売上報告/);
+      const storeName = (mStore && mStore[1]) ? mStore[1] : (interaction.channel.name.split('-').slice(1, -1).join('-') || '店舗未指定');
       await saveUriageCsv(guildId, storeName, (date || '').replace(/\//g, ''), csvData, 'deleted');
     } catch (e) {
       console.warn('[handleDelete] CSV への削除フラグ保存に失敗:', e.message);
     }
   } catch (err) {
     console.error('[handleDelete] 削除処理でエラー:', err);
-  return interaction.reply({ content: '⚠️ 削除処理に失敗しました。', flags: MessageFlags.Ephemeral });
+    return interaction.reply({ content: '⚠️ 削除処理に失敗しました。', flags: MessageFlags.Ephemeral });
   }
 }
 
@@ -273,24 +275,24 @@ async function handleReportSubmit(interaction) {
   const config = await getUriageConfig(guildId);
   // 売上報告スレッドを作成
   const parentChannel = interaction.channel;
-  // store is encoded in the modal customId as the last segment
+  // 店舗IDはモーダルの customId の最後のセグメントにエンコードされている
   const rawId = interaction.customId || '';
   const parts = rawId.includes(':') ? rawId.split(':') : rawId.split('_');
   let storeName = parts[parts.length - 1];
   if (!storeName || storeName === 'open' || storeName === 'report' || storeName === 'uriage') {
-    // try to infer from panelList
+    // panelList から推測を試みる
     try {
       const guildId = interaction.guild.id;
       const panelList = await getUriagePanelList(guildId);
       const panel = panelList.find(p => p.channel === parentChannel.id);
       if (panel && panel.store) storeName = panel.store;
     } catch (e) {
-      // ignore
+      // 無視
     }
   }
-  // fallback: derive from channel name if still unknown
+  // フォールバック: それでも不明な場合はチャンネル名から派生させる
   if (!storeName) {
-    // try to find panel embed in the channel messages
+    // チャンネルメッセージ内のパネル埋め込みを探す
     try {
       const msgs = await parentChannel.messages.fetch({ limit: 50 }).catch(() => null);
       const found = msgs && msgs.find(m => m.embeds?.[0]?.title && m.embeds[0].title.includes('売上報告パネル'));
@@ -300,7 +302,7 @@ async function handleReportSubmit(interaction) {
         if (m && m[1]) storeName = m[1];
       }
     } catch (e) {
-      // ignore
+      // 無視
     }
   }
   if (!storeName) storeName = parentChannel.name.replace('売上報告パネル', '').trim();
@@ -392,9 +394,10 @@ async function handleApprove(interaction) {
 
   // CSV保存
   const data = parseEmbedToCsvData(embed, member.id);
-  // スレッド名は `YYYY/MM-店舗名-売上報告` の形式に変更済み
-  const segments = interaction.channel.name.split('-');
-  const storeName = segments.slice(1, -1).join('-') || '店舗未指定';
+  // 埋め込みタイトルから店舗名を抽出する
+  const title = embed.data?.title || '';
+  const m = title.match(/📊\s*(.+?)\s*売上報告/);
+  const storeName = (m && m[1]) ? m[1] : (interaction.channel.name.split('-').slice(1, -1).join('-') || '店舗未指定');
   const date = embed.data?.fields?.find(f => f.name === '日付')?.value || '';
   await saveUriageCsv(guildId, storeName, (date || '').replace(/\//g, ''), data);
 
@@ -403,7 +406,7 @@ async function handleApprove(interaction) {
     const thread = interaction.channel;
     const parent = thread?.parent;
     if (parent) {
-      // まず親チャンネル内の既存通知メッセージを検索して、見つかれば上書きする
+      // まず親チャンネル内の既存通知メッセージを検索し、見つかれば上書きする
       try {
         const msgs = await parent.messages.fetch({ limit: 50 });
         const target = msgs.find(m => m.content && m.content.includes(interaction.message.url));
@@ -417,13 +420,13 @@ async function handleApprove(interaction) {
           }
           await target.edit({ content: newContent }).catch(() => null);
         } else {
-          // 見つからなければ従来どおり新規メッセージを送信
+          // 見つからなければ従来通り新規メッセージを送信
           await parent.send({
             content: `✅ **${storeName}** の売上報告が承認されました。\n日付：${date}\n承認者：<@${member.id}>\nスレッドメッセージ：${interaction.message.url}`,
           }).catch(() => null);
         }
       } catch (err) {
-        // メッセージ取得に失敗したら新規送信へフォールバック
+        // メッセージ取得に失敗したら新規送信へフォールバックする
         await parent.send({
           content: `✅ **${storeName}** の売上報告が承認されました。\n日付：${date}\n承認者：<@${member.id}>\nスレッドメッセージ：${interaction.message.url}`,
         }).catch(() => null);
@@ -509,8 +512,10 @@ async function handleReportFixSubmit(interaction, opts = {}) {
         remain: parseInt(remain || '0', 10) || 0,
         createdAt: new Date().toLocaleString('ja-JP'),
       };
-      const threadNameSegments = interaction.channel.name.split('-');
-      const storeName = threadNameSegments.slice(1, -1).join('-') || '店舗未指定';
+  // 埋め込みタイトルから店舗名を抽出
+      const title = embed.data?.title || '';
+      const mStore = title.match(/📊\s*(.+?)\s*売上報告/);
+      const storeName = (mStore && mStore[1]) ? mStore[1] : (interaction.channel.name.split('-').slice(1, -1).join('-') || '店舗未指定');
       await saveUriageCsv(guildId, storeName, (date || '').replace(/\//g, ''), csvData, 'edited');
     } catch (e) {
       console.warn('[handleReportFixSubmit] CSV への修正履歴保存に失敗:', e.message);
@@ -591,14 +596,14 @@ function parseEmbedToCsvData(embed, approverId) {
  * @param {import('discord.js').Interaction} interaction
  */
 async function postStoreReportPanel(interaction) {
-  // `uriagePanel_Report.postUriageReportPanel` を呼び出して、
+  // `uriagePanel_Report.js` の `postUriageReportPanel` を呼び出して、
   // 店舗選択→チャンネル選択→パネル設置 のフローを開始します。
   const { postUriageReportPanel } = require('./uriagePanel_Report');
   try {
     return await postUriageReportPanel(interaction, { step: 'select' });
   } catch (err) {
     console.error('[postStoreReportPanel] 店舗別パネル設置フローの開始に失敗:', err);
-  return interaction.followUp({ content: '⚠️ 店舗別売上報告パネルの設置に失敗しました。ログを確認してください。', flags: MessageFlags.Ephemeral });
+    return interaction.followUp({ content: '⚠️ 店舗別売上報告パネルの設置に失敗しました。ログを確認してください。', flags: MessageFlags.Ephemeral });
   }
 }
 

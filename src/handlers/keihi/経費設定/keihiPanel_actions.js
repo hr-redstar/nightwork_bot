@@ -1,4 +1,4 @@
-// src/handlers/keihi/keihiPanel_actions.js
+// src/handlers/keihi/経費設定/keihiPanel_actions.js
 const {
   StringSelectMenuBuilder,
   ActionRowBuilder,
@@ -8,10 +8,10 @@ const {
   MessageFlags,
 } = require('discord.js');
 const dayjs = require('dayjs');
-const { loadKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/keihiConfigManager');
+const { loadKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { sendConfigPanel } = require('./keihiPanel_Config');
 const { postStoreKeihiPanel } = require('./keihiPanel_storePanel');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 
 /**
  * 経費設定パネルの操作を管理
@@ -100,7 +100,7 @@ async function handleRoleSelectSubmit(interaction) {
 
   await sendConfigPanel(interaction.channel, guildId);
 
-  // 設定ログスレッドにログ出力
+  // 設定ログスレッドにログを出力
   const globalConfig = await getGuildConfig(guildId);
   const logThreadId = globalConfig.settingLogThread;
   if (logThreadId) {
@@ -156,10 +156,10 @@ async function handleChannelSelectForPanel(interaction) {
   await saveKeihiConfig(guildId, keihiConfig);
   await postStoreKeihiPanel(channel, selectedStore, guildId);
 
-  // メインの設定パネルを更新
+  // メインの設定パネルを更新する
   await sendConfigPanel(interaction.channel, guildId);
 
-  // 設定ログスレッドにログ出力
+  // 設定ログスレッドにログを出力
   const globalConfig = await getGuildConfig(guildId);
   const logThreadId = globalConfig.settingLogThread;
   if (logThreadId) {

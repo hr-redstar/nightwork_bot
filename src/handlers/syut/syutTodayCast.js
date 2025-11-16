@@ -2,7 +2,7 @@
 const { StringSelectMenuBuilder, ActionRowBuilder, ChannelType } = require('discord.js');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { getTodayAttendance } = require('../../utils/syut/gcsSyut');
-const { updateCastPanel } = require('./syutCastPanel'); // Import updateCastPanel
+const { updateCastPanel } = require('./syutPanel_Cast'); // Import updateCastPanel
 
 async function showTodayCastSetup(interaction, storeName) {
   const channels = interaction.guild.channels.cache

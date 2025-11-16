@@ -1,14 +1,13 @@
-﻿﻿﻿﻿// src/handlers/keihiBotHandler.js
+﻿﻿// src/handlers/keihiBotHandler.js
 const { MessageFlags } = require('discord.js');
-const { IDS } = require('./keihi/ids');
-const { openApproveRoleSelect, openViewRoleSelect, openApplyRoleSelect, handleRoleSelected } = require('./keihi/keihiRoleHandler');
-const { postKeihiReportPanel } = require('./keihi/keihiPanel_Report');
-const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/keihiItemHandler');
-// keihi request/report handlers (legacy underscore IDs are produced in some flows)
-const { handleKeihiRequest, handleKeihiRequestSelect, handleKeihiRequestModal } = require('./keihi/keihiRequestHandler');
-const { handleKeihiApprove, handleKeihiEdit, handleKeihiEditModal, handleKeihiDelete } = require('./keihi/keihiApproveHandler');
-// const { openCsvExportFlow, handleCsvExportSelection } = require('./keihi/keihiCsvHandler'); // Placeholder
-// const { openKeihiReportModal, handleReportSubmit } = require('./keihi/keihiReportHandler');
+const { IDS } = require('./keihi/経費設定/ids');
+const { openApproveRoleSelect, openViewRoleSelect, openApplyRoleSelect, handleRoleSelected } = require('./keihi/経費設定/keihiRoleHandler');
+const { postKeihiReportPanel } = require('./keihi/経費設定/keihiPanel_Report');
+const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/経費申請/keihiItemHandler');
+const { openCsvExportFlow, handleCsvExportSelection } = require('./keihi/経費設定/keihiCsvHandler');
+const { openKeihiReportModal, handleReportSubmit } = require('./keihi/経費申請/keihiReportHandler');
+const { handleKeihiRequest } = require('./keihi/経費申請/keihiRequestHandler');
+
 
 /**
  * 経費関連イベントを処理するメインディスパッチャー
@@ -24,27 +23,28 @@ async function handleInteraction(interaction) {
         await interaction.deferUpdate();
         return postKeihiReportPanel(interaction);
       }
-      if (id === IDS.BTN_KEIHI_ROLE_APPROVER) return openApproveRoleSelect(interaction);
-      if (id === IDS.BTN_KEIHI_ROLE_VIEWER) return openViewRoleSelect(interaction);
-      if (id === IDS.BTN_KEIHI_ROLE_APPLICANT) return openApplyRoleSelect(interaction);
+      if (id === IDS.BTN_KEIHI_ROLE_APPROVER) {
+        await interaction.deferUpdate();
+        return openApproveRoleSelect(interaction);
+      }
+      if (id === IDS.BTN_KEIHI_ROLE_VIEWER) {
+        await interaction.deferUpdate();
+        return openViewRoleSelect(interaction);
+      }
+      if (id === IDS.BTN_KEIHI_ROLE_APPLICANT) {
+        await interaction.deferUpdate();
+        return openApplyRoleSelect(interaction);
+      }
+      if (id === IDS.BTN_KEIHI_CSV_EXPORT) {
+        await interaction.deferUpdate();
+        return openCsvExportFlow(interaction);
+      }
       
-      // --- 店舗別パネルのボタン ---
-      // 互換性のため旧フォーマット（underscore）も許容する
-      const BTN_ITEM_REGISTER_ALT = IDS.BTN_ITEM_REGISTER.replace(/:/g, '_');
-      if (id.startsWith(IDS.BTN_ITEM_REGISTER) || id.startsWith(BTN_ITEM_REGISTER_ALT)) {
-        return openItemRegisterModal(interaction);
+      
+      const BTN_REPORT_OPEN_ALT = IDS.BTN_REPORT_OPEN.replace(/:/g, '_');
+      if (id.startsWith(IDS.BTN_REPORT_OPEN) || id.startsWith(BTN_REPORT_OPEN_ALT)) {
+        return openKeihiReportModal(interaction);
       }
-
-      // 経費申請ログに出力された旧形式ボタン (例: keihi_request_{store})
-      if (id && id.startsWith('keihi_request_')) {
-        return handleKeihiRequest(interaction);
-      }
-
-      // スレッド内の操作ボタン（承認 / 修正 / 削除）
-      if (id === 'keihi_approve') return handleKeihiApprove(interaction);
-      if (id === 'keihi_edit') return handleKeihiEdit(interaction);
-      if (id === 'keihi_delete') return handleKeihiDelete(interaction);
-      return;
     }
 
     // セレクトメニュー（StringSelect と ChannelSelect 両方を考慮）
@@ -59,9 +59,9 @@ async function handleInteraction(interaction) {
         return postKeihiReportPanel(interaction, { step: 'select' });
       }
 
-      // 経費申請フローの項目選択（旧形式の select）
-      if (id && id.startsWith('keihi_request_select_')) {
-        return handleKeihiRequestSelect(interaction);
+      // CSVフローの選択処理
+      if (id.startsWith('keihi:select:store:csv') || id.startsWith('keihi:select:csvscope:') || id.startsWith('keihi:select:csvfile:')) {
+        return handleCsvExportSelection(interaction);
       }
 
       // チャンネル選択（ChannelSelect） -> パネル設置処理
@@ -72,34 +72,24 @@ async function handleInteraction(interaction) {
 
     if (interaction.isModalSubmit()) {
       const id = interaction.customId;
-      
-      const MODAL_ITEM_REGISTER_ALT = IDS.MODAL_ITEM_REGISTER.replace(/:/g, '_');
-      if (id.startsWith(IDS.MODAL_ITEM_REGISTER) || id.startsWith(MODAL_ITEM_REGISTER_ALT)) {
+      if (id.startsWith(IDS.MODAL_ITEM_REGISTER)) {
         return handleItemRegisterSubmit(interaction);
       }
-      // keihi request modal (旧形式)
-      if (id && id.startsWith('keihi_request_modal_')) return handleKeihiRequestModal(interaction);
-      // keihi edit modal
-      if (id && id.startsWith('keihi_edit_modal_')) return handleKeihiEditModal(interaction);
-      return;
+      
+      if (id.startsWith('keihi:modal:report:')) {
+        return handleReportSubmit(interaction);
+      }
     }
   } catch (err) {
     console.error('❌ keihiBotHandler エラー:', err);
-    if (!interaction.replied) {
-      await interaction.reply({
-        content: '⚠️ 経費処理中にエラーが発生しました。',
-        flags: MessageFlags.Ephemeral,
-      });
+    // Use centralized error handler which respects deferred/replied state
+    try {
+      const { handleInteractionError } = require('../utils/errorHandlers');
+      await handleInteractionError(interaction, '⚠️ 経費処理中にエラーが発生しました。');
+    } catch (e) {
+      console.error('[keihiBotHandlers] エラーハンドリング中に失敗:', e);
     }
   }
 }
 
 module.exports = { handleInteraction };
-
-/*
-  // --- 旧ハンドラの呼び出し（移行期間中） ---
-  const legacyKeihiHandlers = require('./legacy/keihiBotHandlers_old');
-  if (interaction.customId.startsWith('keihi_')) {
-    return legacyKeihiHandlers.handleInteraction(interaction);
-  }
-*/

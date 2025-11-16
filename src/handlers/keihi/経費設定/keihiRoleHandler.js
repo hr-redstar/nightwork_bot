@@ -1,11 +1,11 @@
-// src/handlers/keihi/keihiRoleHandler.js
+// src/handlers/keihi/経費設定/keihiRoleHandler.js
 // 経費関連の役職設定フロー
 
 const { ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
-const { getKeihiConfig, saveKeihiConfig } = require('../../utils/keihi/gcsKeihiManager');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
-const { sendSettingLog } = require('../../utils/keihi/embedLogger'); // Assuming embedLogger for keihi exists
-const { updateKeihiPanel } = require('./keihiPanel_config');
+const { getKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/gcsKeihiManager');
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const { sendSettingLog } = require('../../../utils/keihi/embedLogger'); // Assuming embedLogger for keihi exists
+const { updateKeihiPanel } = require('./keihiPanel_Config');
 const { IDS } = require('./ids');
 
 // This is a placeholder, assuming a ROLE_FLOW for keihi will be added to keihi/ids.js
@@ -38,7 +38,7 @@ async function openRoleSelect(interaction, roleType) {
   const roleList = storeRoles?.roles || [];
 
   if (!roleList?.length) {
-    return interaction.followUp({ content: '⚠️ 店舗_役職_ロール.json に役職情報がありません。', ephemeral: true });
+    return interaction.reply({ content: '⚠️ 店舗_役職_ロール.json に役職情報がありません。', ephemeral: true });
   }
 
   const select = new StringSelectMenuBuilder()
@@ -53,7 +53,7 @@ async function openRoleSelect(interaction, roleType) {
 
   const row = new ActionRowBuilder().addComponents(select);
 
-  await interaction.followUp({
+  await interaction.reply({
     content: `🎚️ **${getRoleLabel(roleType)}** の役職を選択してください。`,
     components: [row],
     ephemeral: true,

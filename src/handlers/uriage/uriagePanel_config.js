@@ -11,7 +11,7 @@ const { IDS } = require('./ids');
 const { readJson } = require('../../utils/gcs'); // 店舗情報参照に使用
 
 /**
- * すべての店舗用「売上報告パネル」を更新する（panelList の messageId を優先して編集）
+ * すべての店舗用「売上報告パネル」を更新する（panelList の messageId を優先的に編集する）
  * @param {import('discord.js').Interaction} interaction
  */
 async function updateUriageStorePanels(interaction) {
@@ -31,8 +31,8 @@ async function updateUriageStorePanels(interaction) {
           .setColor(0x5865f2);
 
         const reportButton = new ButtonBuilder()
-          // include store identifier in the button customId so the modal and submit handlers
-          // can determine which店舗 the report targets
+          // モーダルと送信ハンドラがどの店舗を対象とするかを判断できるように、
+          // ボタンの customId に店舗IDを含める
           .setCustomId(`${IDS.BTN_REPORT_OPEN}:${store}`)
           .setLabel('売上を報告する')
           .setStyle(ButtonStyle.Primary);
@@ -48,14 +48,14 @@ async function updateUriageStorePanels(interaction) {
           }
         }
 
-        // messageId がなく、もしくは取得に失敗した場合は最近のメッセージから探す
+        // messageId がない、もしくは取得に失敗した場合は最近のメッセージから探す
         const msgs = await channel.messages.fetch({ limit: 50 }).catch(() => null);
         const found = msgs && msgs.find(m => m.embeds?.[0]?.title?.includes('売上報告パネル') && m.embeds[0].title.includes(store));
         if (found) {
           await found.edit({ embeds: [panelEmbed], components }).catch(() => null);
           console.log(`🔄 売上報告パネルを更新しました（${store}）`);
         } else {
-          // 見つからなければ再送信して messageId を更新
+          // 見つからなければ再送信して messageId を更新する
           const sent = await channel.send({ embeds: [panelEmbed], components }).catch(() => null);
           if (sent) console.log(`🆕 売上報告パネルを再生成しました（${store}）`);
         }
@@ -155,31 +155,18 @@ async function buildPanelListDisplay(guildId) {
     const panelList = await getUriagePanelList(guildId);
 
     if (!stores.length) return '（店舗情報が登録されていません）';
-
     const lines = stores.map((store) => {
-      // store は { id, name } だったり、単純な文字列だったりする可能性があるため柔軟に解釈する
-      let storeId = null;
-      let storeName = null;
-      if (!store) {
-        storeId = null;
-        storeName = '不明な店舗';
-      } else if (typeof store === 'string') {
-        storeId = store;
-        storeName = store;
-      } else if (typeof store === 'object') {
-        storeId = store.id ?? store.store ?? store.name ?? null;
-        storeName = store.name ?? store.store ?? store.id ?? String(storeId);
-      }
+      // storeId または store 名のどちらか一致で判定
+      const panel = panelList.find(
+        (p) => p.storeId === store.id || p.store === store.name
+      );
 
-      // panelList は過去データにより store または storeId を持つ可能性があるため両方を確認
-      const panel = panelList.find((p) => {
-        if (!p) return false;
-        return (p.storeId && storeId && String(p.storeId) === String(storeId)) ||
-               (p.store && storeId && String(p.store) === String(storeId)) ||
-               (p.store && storeName && String(p.store) === String(storeName));
-      });
-      const channelText = panel?.channel ? `<#${panel.channel}>` : '（未設置）';
-      return `・${storeName}：${channelText}`;
+      // 表示チャンネルをリンク形式にする
+      const channelText = panel?.channel
+        ? `<#${panel.channel}>`
+        : '（未設置）';
+
+      return `・${store.name}：${channelText}`;
     });
 
     return lines.join('\n');
@@ -198,7 +185,7 @@ async function updateUriagePanel(interaction) {
     const guildId = interaction.guild.id;
     const channel = interaction.channel;
     const { embeds, components } = await buildUriagePanelConfig(guildId);
-    // まず操作チャネル内を検索して更新
+    // まず操作チャンネル内を検索して更新
     try {
       const messages = await channel.messages.fetch({ limit: 20 }).catch(() => null);
       const existingPanel = messages && messages.find((m) => m.embeds?.[0]?.title === '💰 売上設定パネル');
@@ -206,7 +193,7 @@ async function updateUriagePanel(interaction) {
         await existingPanel.edit({ embeds, components }).catch(() => null);
         console.log('🔄 売上設定パネルを更新しました。');
 
-        // 保存: 設定パネルの messageId を config に保持しておく
+        // 保存: 設定パネルの messageId を config に保持する
         try {
           const cfg = await getUriageConfig(guildId);
           cfg.settingsPanel = cfg.settingsPanel || {};
@@ -220,10 +207,10 @@ async function updateUriagePanel(interaction) {
         return;
       }
     } catch (e) {
-      // ignore and continue to guild-wide search
+      // 無視してギルド全体の検索を続ける
     }
 
-    // 操作チャネルに見つからなければ、ギルド内のテキストチャンネルを探索して既存パネルを探す
+    // 操作チャンネルに見つからなければ、ギルド内のテキストチャンネルを探索して既存パネルを探す
     const textChannels = interaction.guild.channels.cache.filter(c => c.isTextBased && c.type);
     for (const [, ch] of textChannels) {
       try {
@@ -246,12 +233,12 @@ async function updateUriagePanel(interaction) {
           return;
         }
       } catch (e) {
-        // 個別チャンネルで失敗しても続行
+        // 個別チャンネルで失敗しても処理を続行
         continue;
       }
     }
 
-    // どこにも見つからなければ操作チャネルに新規設置
+    // どこにも見つからなければ操作チャンネルに新規設置
     try {
       const sent = await channel.send({ embeds, components }).catch(() => null);
       if (sent) {
@@ -267,7 +254,7 @@ async function updateUriagePanel(interaction) {
         }
       }
     } catch (e) {
-      // ignore
+      // 無視
     }
   } catch (err) {
     console.error('❌ 売上設定パネル更新エラー:', err);

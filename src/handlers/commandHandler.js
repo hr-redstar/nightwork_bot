@@ -1,14 +1,18 @@
-// src/commands/commandHandler.js
+// src/handlers/commandHandler.js
 
 const { MessageFlags } = require('discord.js');
-const { getSubscription, isActive } = require('../utils/gcsSubscription');
+const { isGuildSubscribed } = require('../utils/subscriptionManager');
+const { DEV_GUILD_IDS } = require('../utils/config/envConfig');
+
 const logger = require('../utils/logger');
 
-async function handleCommand(interaction) {
+async function handleCommand(interaction, command) {
   const guildId = interaction.guildId;
-  const sub = await getSubscription(guildId);
 
-  if (!isActive(sub)) {
+  const logPrefix = DEV_GUILD_IDS.includes(guildId)
+    ? '[DEV]'
+    : '[PROD]';
+  if (!isGuildSubscribed(guildId)) {
     await interaction.reply({
       content: '🚫 このサーバーでは契約が有効ではありません。\nサブスクリプション契約を更新してください。',
       flags: MessageFlags.Ephemeral,
@@ -17,10 +21,8 @@ async function handleCommand(interaction) {
     return;
   }
 
-  // 契約OKなら通常処理へ
-  if (interaction.commandName === 'ping') {
-    await interaction.reply('契約ギルドとして確認済みです。');
-  }
+  logger.info(`${logPrefix} コマンド実行: ${command.data.name}`);
+  await command.execute(interaction);
 }
 
 module.exports = { handleCommand };

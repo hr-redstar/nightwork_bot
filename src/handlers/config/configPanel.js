@@ -1,4 +1,4 @@
-﻿// src/handlers/config/configPanel.js
+﻿﻿// src/handlers/config/configPanel.js
 const {
   EmbedBuilder,
   ActionRowBuilder,
@@ -23,11 +23,11 @@ async function postConfigPanel(channel) {
   const commandLog = config.commandLogThread ? `<#${config.commandLogThread}>` : '未設定';
   const settingLog = config.settingLogThread ? `<#${config.settingLogThread}>` : '未設定';
 
-  const storesList = storeRoleConfig.stores && storeRoleConfig.stores.length > 0 ? storeRoleConfig.stores.join('\n') : '未登録';
-  const rolesList = storeRoleConfig.roles?.length ? storeRoleConfig.roles.join('\n') : '未登録';
+  const storesList = storeRoleConfig.stores && storeRoleConfig.stores.length > 0 ? `\`\`\`\n${storeRoleConfig.stores.join('\n')}\n\`\`\`` : '未登録';
+  const rolesList = storeRoleConfig.roles?.length ? `\`\`\`\n${storeRoleConfig.roles.join('\n')}\n\`\`\`` : '未登録';
 
   const storeRoleMap = storeRoleConfig.link_store_role && Object.keys(storeRoleConfig.link_store_role).length
-    ? Object.entries(storeRoleConfig.link_store_role)
+    ? Object.entries(storeRoleConfig.link_store_role || {})
         .map(([store, roleIds]) => `**${store}**\n${roleIds.map(id => `<@&${id}>`).join('\n')}`)
         .join('\n')
     : '未設定';
@@ -43,7 +43,7 @@ async function postConfigPanel(channel) {
   // Embed構築
   const embed = new EmbedBuilder()
     .setTitle('⚙️ 設定パネル')
-    .setColor(0x3498db)
+    .setColor(0x3498db) // Discordの青色
     .setDescription(
       `**🏪 登録済み店舗一覧**\n${storesList}\n\n` +
       `**👥 登録済み役職一覧**\n${rolesList}\n\n` +

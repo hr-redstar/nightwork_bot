@@ -1,6 +1,7 @@
-// src/handlers/keihi/keihiPanel_config.js
+// src/handlers/keihi/経費設定/keihiPanel_config.js
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { getKeihiConfig, getKeihiPanelList } = require('../../utils/keihi/gcsKeihiManager');
+const { getKeihiConfig, getKeihiPanelList } = require('../../../utils/keihi/gcsKeihiManager');
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { IDS } = require('./ids');
 
 /**
@@ -66,6 +67,18 @@ async function updateKeihiStorePanels(interaction) {
 async function buildKeihiPanelConfig(guildId) {
   const config = await getKeihiConfig(guildId);
   const panelList = await getKeihiPanelList(guildId);
+  const storeCfg = await loadStoreRoleConfig(guildId);
+  const stores = storeCfg?.stores || [];
+  // build map: id -> name (stores may be objects {id,name} or plain strings)
+  const storeMap = {};
+  for (const s of stores) {
+    if (!s) continue;
+    if (typeof s === 'string') {
+      storeMap[s] = s;
+    } else if (s.id) {
+      storeMap[s.id] = s.name || s.id;
+    }
+  }
 
   // 経費設定パネル Embed
   const embed = new EmbedBuilder()
@@ -76,7 +89,14 @@ async function buildKeihiPanelConfig(guildId) {
       {
         name: '📋 経費パネル設置一覧',
         value:
-          panelList.length > 0 ? panelList.map((p) => `${p.store}：<#${p.channel}>`).join('\n') : '（未設置）',
+          panelList.length > 0
+            ? panelList
+                .map((p) => {
+                  const display = storeMap[p.store] || p.store || '(不明)';
+                  return `${display}：<#${p.channel}>`;
+                })
+                .join('\n')
+            : '（未設置）',
       },
       {
         name: '🛡️ 承認役職',
@@ -131,7 +151,7 @@ async function buildKeihiPanelConfig(guildId) {
 }
 
 /**
- * 経費設定パネルを更新（既存メッセージを探して上書き）
+ * 経費設定パネルを更新（既存パネル削除 → 再送信）
  * @param {import('discord.js').Interaction} interaction
  */
 async function updateKeihiPanel(interaction) {
@@ -140,23 +160,15 @@ async function updateKeihiPanel(interaction) {
     const channel = interaction.channel;
     const { embeds, components } = await buildKeihiPanelConfig(guildId);
 
-    // チャンネル内の既存パネルメッセージを探索
-    const messages = await channel.messages.fetch({ limit: 20 });
-    const existingPanel = messages.find(
-      (m) => m.embeds?.[0]?.title === '💼 経費設定パネル'
-    );
+    const messages = await channel.messages.fetch({ limit: 30 });
+    const oldPanel = messages.find((m) => m.embeds?.[0]?.title === '💼 経費設定パネル');
+    if (oldPanel) await oldPanel.delete().catch(() => null);
 
-    if (existingPanel) {
-      await existingPanel.edit({ embeds, components });
-      console.log('🔄 経費設定パネルを更新しました。');
-    } else {
-      await channel.send({ embeds, components });
-      console.log('🆕 経費設定パネルを再生成しました。');
-    }
+    await channel.send({ embeds, components });
+    console.log('🔄 経費設定パネルを再生成しました。');
   } catch (err) {
     console.error('❌ 経費設定パネル更新エラー:', err);
   }
 }
 
 module.exports = { buildKeihiPanelConfig, updateKeihiPanel, updateKeihiStorePanels };
-

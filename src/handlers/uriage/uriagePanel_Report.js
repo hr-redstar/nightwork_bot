@@ -26,12 +26,16 @@ const { getLogTargets } = require('../../utils/config/configAccessor');
  * @param {{step: 'select'}} [options] - オプション
  */
 async function postUriageReportPanel(interaction, options) {
-  const guildId = interaction.guild.id;
+  try {
+    const guildId = interaction.guild.id;
 
   // ----------------------------------------
   // ステップ1: 店舗選択メニューを表示
   // ----------------------------------------
   if (!options?.step) {
+    // ✅ ボタン応答タイムアウト回避
+    await interaction.deferUpdate();
+
     const storeData = await getStoreRoleConfig(guildId);
     const stores = storeData?.stores || storeData?.店舗 || [];
 
@@ -91,7 +95,7 @@ async function postUriageReportPanel(interaction, options) {
 
     const sent = await channel.send({ embeds: [panelEmbed], components: [new ActionRowBuilder().addComponents(reportButton)] });
 
-    // 設定を保存（messageId を含めて保存）
+    // 設定を保存（messageId を含める）
     const panelList = await getUriagePanelList(guildId);
     const existingIndex = panelList.findIndex(p => p.store === storeId);
     if (existingIndex > -1) panelList[existingIndex] = { store: storeId, channel: channelId, messageId: sent.id };
@@ -130,8 +134,33 @@ async function postUriageReportPanel(interaction, options) {
       console.warn('⚠️ 売上設定パネルの更新に失敗しました:', e?.message || e);
     }
 
-    return interaction.update({ content: `✅ **${storeId}** の売上報告パネルを <#${channelId}> に設置しました。`, components: [] });
+    // interaction.update は失敗する場合がある（タイムアウト / 不明なインタラクション）ため安全に扱う
+    try {
+      return await interaction.update({ content: `✅ **${storeId}** の売上報告パネルを <#${channelId}> に設置しました。`, components: [] });
+    } catch (err) {
+      console.warn('[postUriageReportPanel] interaction.update に失敗:', err?.message || err);
+      try {
+        await interaction.followUp({ content: `✅ **${storeId}** の売上報告パネルを <#${channelId}> に設置しました。`, ephemeral: true });
+      } catch (e) {
+        console.warn('[postUriageReportPanel] フォールバックの followUp にも失敗しました:', e?.message || e);
+      }
+      return;
+    }
   }
+  } catch (err) {
+    console.error('[postUriageReportPanel] エラー:', err);
+    try {
+      if (interaction && interaction.isRepliable && !interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: '⚠️ 売上パネル設置中にエラーが発生しました。', ephemeral: true });
+      } else if (interaction && interaction.followUp) {
+        await interaction.followUp({ content: '⚠️ 売上パネル設置中にエラーが発生しました。', ephemeral: true });
+      }
+    } catch (e) {
+      console.warn('[postUriageReportPanel] エラー時の応答に失敗しました:', e?.message || e);
+    }
+    return;
+  }
+
 }
 
 module.exports = {

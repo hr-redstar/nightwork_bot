@@ -3,7 +3,7 @@
  * エラー処理関連のヘルパー関数
  */
 const { MessageFlags } = require('discord.js');
-const logger = require('../utils/logger');
+const logger = require('./logger');
 
 /**
  * インタラクションに対して、エフェメラルなエラーメッセージを返信する

@@ -118,7 +118,7 @@ async function migrate() {
   process.exit(0);
 }
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   migrate().catch(e => { console.error('Migration failed:', e); process.exit(1); });
 });
 

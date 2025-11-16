@@ -84,4 +84,36 @@ async function sendAdminLog(guild, options) {
   }
 }
 
-module.exports = { sendSettingLog, sendAdminLog };
+/**
+ * コマンド実行ログをコマンドログスレッドに出力する (ChatInputCommandInteraction)
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ */
+async function sendCommandLog(interaction) {
+  const { guild, user, commandName } = interaction;
+  if (!guild) return; // DMでのコマンドは対象外
+
+  try {
+    const config = await getGuildConfig(guild.id);
+    const threadId = config?.commandLogThread;
+    if (!threadId) return;
+
+    const thread = await guild.channels.fetch(threadId).catch(() => null);
+    if (!thread || !thread.isTextBased()) return;
+
+    const embed = new EmbedBuilder()
+      .setTitle('▶️ コマンド実行ログ')
+      .setDescription(`**コマンド:** \`/${commandName}\``)
+      .setColor(0x95a5a6) // グレー
+      .addFields(
+        { name: '実行者', value: `<@${user.id}> (${user.tag})`, inline: true },
+        { name: 'チャンネル', value: `${interaction.channel}`, inline: true }
+      )
+      .setTimestamp();
+
+    await thread.send({ embeds: [embed] });
+  } catch (err) {
+    logger.error('[configLogger] コマンドログの出力に失敗しました:', err);
+  }
+}
+
+module.exports = { sendSettingLog, sendAdminLog, sendCommandLog };

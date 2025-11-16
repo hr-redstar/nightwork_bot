@@ -1,40 +1,39 @@
 // src/handlers/tennai_hikkakeBotHandler.js
-const fs = require('fs');
-const path = require('path');
-const { Collection } = require('discord.js');
+const { MessageFlags } = require('discord.js');
+const { handleInteractionError } = require('../utils/errorHandlers');
+const { handleHikkakeSetup, handleStoreSelectForHikkake, handleChannelSelectForHikkake } = require('./tennai_hikkake/hikkakeSetup');
+const { handleHikkakeReport, handleHikkakeReportModal } = require('./tennai_hikkake/hikkakeReport');
 
-// コマンド・ボタンハンドラーをロード
-const commandsPath = path.join(__dirname, '..', 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+/**
+ * 「店内状況・ひっかけ」関連のインタラクションを処理する
+ * @param {import('discord.js').Interaction} interaction
+ */
+async function handleTennaiHikkakeInteraction(interaction) {
+  try {
+    const { customId } = interaction;
 
-const buttonsPath = path.join(__dirname, 'tennai_hikkake', 'buttons');
-// Check if the buttons directory exists before trying to read it
-const buttonFiles = fs.existsSync(buttonsPath)
-  ? fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'))
-  : [];
-
-module.exports = (client) => {
-  client.commands = new Collection();
-  client.buttons = new Collection();
-
-  // ────────────────
-  // コマンド登録
-  // ────────────────
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
-
-    if (command.data && command.execute) {
-      client.commands.set(command.data.name, command);
+    // --- ボタン ---
+    if (interaction.isButton()) {
+      if (customId === 'setup_hikkake_all') return handleHikkakeSetup(interaction);
+      if (customId === 'setup_hikkake_store') return handleHikkakeSetup(interaction, { storeOnly: true });
+      if (customId.startsWith('hikkake_report_')) return handleHikkakeReport(interaction);
     }
-  }
 
-  // ────────────────
-  // ボタンハンドラー登録
-  // ────────────────
-  for (const file of buttonFiles) {
-    const filePath = path.join(buttonsPath, file);
-    const button = require(filePath);
-    client.buttons.set(button.customId, button);
+    // --- セレクトメニュー ---
+    if (interaction.isStringSelectMenu()) {
+      if (customId === 'select_store_for_hikkake') return handleStoreSelectForHikkake(interaction);
+    }
+    if (interaction.isChannelSelectMenu()) {
+      if (customId.startsWith('select_channel_for_hikkake_')) return handleChannelSelectForHikkake(interaction);
+    }
+
+    // --- モーダル ---
+    if (interaction.isModalSubmit()) {
+      if (customId.startsWith('hikkake_report_modal_')) return handleHikkakeReportModal(interaction);
+    }
+  } catch (error) {
+    await handleInteractionError(interaction, '⚠️ 店内状況・ひっかけ機能でエラーが発生しました。');
   }
-};
+}
+
+module.exports = handleTennaiHikkakeInteraction;
