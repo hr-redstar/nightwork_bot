@@ -83,20 +83,21 @@ async function buildKeihiPanelConfig(guildId) {
   // 経費設定パネル Embed
   const embed = new EmbedBuilder()
     .setTitle('💼 経費設定パネル')
-    .setDescription('経費申請・承認・閲覧の設定を行います。')
     .setColor(0x0078ff)
     .addFields([
       {
         name: '📋 経費パネル設置一覧',
-        value:
-          panelList.length > 0
-            ? panelList
-                .map((p) => {
-                  const display = storeMap[p.store] || p.store || '(不明)';
-                  return `${display}：<#${p.channel}>`;
-                })
-                .join('\n')
-            : '（未設置）',
+        value: stores.length > 0
+          ? stores.map(s => {
+              const storeId = s.id || s;
+              const storeName = storeMap[storeId] || storeId;
+              const panel = panelList.find(p => p.store === storeId);
+              if (panel) {
+                return `・${storeName}: <#${panel.channel}>`;
+              }
+              return `・${storeName}: 未設定`;
+            }).join('\n')
+          : '（店舗未登録）',
       },
       {
         name: '🛡️ 承認役職',

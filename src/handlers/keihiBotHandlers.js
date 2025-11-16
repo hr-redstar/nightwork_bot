@@ -1,12 +1,18 @@
-﻿﻿// src/handlers/keihiBotHandler.js
+﻿﻿﻿﻿// src/handlers/keihiBotHandler.js
 const { MessageFlags } = require('discord.js');
 const { IDS } = require('./keihi/経費設定/ids');
-const { openApproveRoleSelect, openViewRoleSelect, openApplyRoleSelect, handleRoleSelected } = require('./keihi/経費設定/keihiRoleHandler');
+const {
+  handleKeihiPanelAction,
+  handleRoleSelectSubmit,
+  handleStoreSelectForPanel,
+  handleChannelSelectForPanel,
+} = require('./keihi/経費設定/keihiPanel_actions');
 const { postKeihiReportPanel } = require('./keihi/経費設定/keihiPanel_Report');
 const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/経費申請/keihiItemHandler');
 const { openCsvExportFlow, handleCsvExportSelection } = require('./keihi/経費設定/keihiCsvHandler');
 const { openKeihiReportModal, handleReportSubmit } = require('./keihi/経費申請/keihiReportHandler');
-const { handleKeihiRequest } = require('./keihi/経費申請/keihiRequestHandler');
+const { handleKeihiRequest, handleKeihiRequestSelect, handleKeihiRequestModal } = require('./keihi/経費申請/keihiRequestHandler');
+const { handleKeihiApprove, handleKeihiEdit, handleKeihiDelete, handleKeihiEditModal } = require('./keihi/経費申請/keihiApproveHandler');
 
 
 /**
@@ -18,32 +24,25 @@ async function handleInteraction(interaction) {
     if (interaction.isButton()) {
       const id = interaction.customId;
 
-      // --- 設定パネルのボタン ---
-      if (id === IDS.BTN_KEIHI_PANEL_SETUP) {
-        await interaction.deferUpdate();
-        return postKeihiReportPanel(interaction);
+      // --- 経費設定パネルのボタン ---
+      if (id.startsWith('keihi:panel:') || id.startsWith('keihi:role:')) {
+        return handleKeihiPanelAction(interaction);
       }
-      if (id === IDS.BTN_KEIHI_ROLE_APPROVER) {
-        await interaction.deferUpdate();
-        return openApproveRoleSelect(interaction);
+      if (id === IDS.BTN_KEIHI_CSV_EXPORT) return openCsvExportFlow(interaction);
+
+      // --- 店舗別経費申請パネルのボタン ---
+      if (id.startsWith(IDS.BTN_ITEM_REGISTER)) {
+        return openItemRegisterModal(interaction);
       }
-      if (id === IDS.BTN_KEIHI_ROLE_VIEWER) {
-        await interaction.deferUpdate();
-        return openViewRoleSelect(interaction);
+      if (id.startsWith(IDS.BTN_REPORT_OPEN)) {
+        return handleKeihiRequest(interaction);
       }
-      if (id === IDS.BTN_KEIHI_ROLE_APPLICANT) {
-        await interaction.deferUpdate();
-        return openApplyRoleSelect(interaction);
-      }
-      if (id === IDS.BTN_KEIHI_CSV_EXPORT) {
-        await interaction.deferUpdate();
-        return openCsvExportFlow(interaction);
-      }
-      
-      
-      const BTN_REPORT_OPEN_ALT = IDS.BTN_REPORT_OPEN.replace(/:/g, '_');
-      if (id.startsWith(IDS.BTN_REPORT_OPEN) || id.startsWith(BTN_REPORT_OPEN_ALT)) {
-        return openKeihiReportModal(interaction);
+
+      // --- 経費申請スレッドのボタン ---
+      if (id === 'keihi_approve') return handleKeihiApprove(interaction);
+      if (id === 'keihi_edit') return handleKeihiEdit(interaction);
+      if (id === 'keihi_delete') {
+        return handleKeihiDelete(interaction);
       }
     }
 
@@ -51,22 +50,17 @@ async function handleInteraction(interaction) {
     if (interaction.isAnySelectMenu()) {
       const id = interaction.customId || '';
 
-      // 役職選択（文字列セレクト）
-      if (id.startsWith('keihi:select:role:')) return handleRoleSelected(interaction);
+      // --- 経費設定パネルのメニュー ---
+      if (id.startsWith('keihi_select_role_')) return handleRoleSelectSubmit(interaction);
+      if (id === 'keihi_select_store') return handleStoreSelectForPanel(interaction);
+      if (id.startsWith('keihi_select_channel_')) return handleChannelSelectForPanel(interaction);
 
-      // 店舗選択（文字列セレクト） -> postKeihiReportPanel の step フローへ
-      if (id === 'keihi:select:store' || id === 'keihi_select_store') {
-        return postKeihiReportPanel(interaction, { step: 'select' });
-      }
+      // --- 経費申請の項目選択 ---
+      if (id.startsWith('keihi:select:')) return handleKeihiRequestSelect(interaction);
 
       // CSVフローの選択処理
       if (id.startsWith('keihi:select:store:csv') || id.startsWith('keihi:select:csvscope:') || id.startsWith('keihi:select:csvfile:')) {
         return handleCsvExportSelection(interaction);
-      }
-
-      // チャンネル選択（ChannelSelect） -> パネル設置処理
-      if (id.startsWith('keihi:select:textchannel:') || id.startsWith('keihi_select_textchannel_')) {
-        return postKeihiReportPanel(interaction);
       }
     }
 
@@ -75,9 +69,11 @@ async function handleInteraction(interaction) {
       if (id.startsWith(IDS.MODAL_ITEM_REGISTER)) {
         return handleItemRegisterSubmit(interaction);
       }
-      
-      if (id.startsWith('keihi:modal:report:')) {
-        return handleReportSubmit(interaction);
+      if (id.startsWith('keihi_request_modal_')) {
+        return handleKeihiRequestModal(interaction);
+      }
+      if (id.startsWith('keihi_edit_modal_')) {
+        return handleKeihiEditModal(interaction);
       }
     }
   } catch (err) {

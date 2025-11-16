@@ -14,23 +14,32 @@ module.exports = {
     if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({
         content: '⚠️ このコマンドは管理者のみが実行できます。',
+        flags: MessageFlags.Ephemeral,
       });
     }
 
     try {
       // コマンドの応答を保留し、タイムアウトを防ぐ
-      await interaction.deferReply(); // ephemeral: false (public) by default
+      await interaction.deferReply({ ephemeral: true });
 
       await postKeihiPanel(interaction.channel);
 
       // コマンドログ出力
       await sendCommandLog(interaction);
 
-      // 実行結果をチャンネルに通知
-      await interaction.editReply({ content: '✅ 経費設定パネルを設置または更新しました。' });
+      // 実行結果を本人にだけ通知
+      const reply = await interaction.editReply({ content: '✅ 経費設定パネルを設置または更新しました。' });
+
+      // 30秒後にメッセージを自動削除
+      setTimeout(() => {
+        reply.delete().catch(err => console.error('Failed to delete ephemeral reply:', err));
+      }, 30000);
     } catch (err) {
       console.error('❌ /設定経費 コマンドエラー:', err);
-      await interaction.editReply({ content: '⚠️ パネルの設置中にエラーが発生しました。' });
+      // deferReply済みなので editReply でエラーを返す
+      await interaction.editReply({
+        content: '⚠️ パネルの設置中にエラーが発生しました。',
+      }).catch(() => {}); // editReplyが失敗してもクラッシュしないようにする
     }
   },
 };

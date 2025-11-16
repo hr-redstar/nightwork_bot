@@ -12,6 +12,7 @@ const { loadKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/keihi
 const { sendConfigPanel } = require('./keihiPanel_Config');
 const { postStoreKeihiPanel } = require('./keihiPanel_storePanel');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const { IDS } = require('./ids');
 
 /**
  * 経費設定パネルの操作を管理
@@ -19,10 +20,10 @@ const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigMa
 async function handleKeihiPanelAction(interaction) {
   const customId = interaction.customId;
 
-  if (customId === 'keihi_set_panel') return handlePanelSetup(interaction);
-  if (customId === 'keihi_set_approval') return handleRoleSelect(interaction, 'approval', '承認役職');
-  if (customId === 'keihi_set_view') return handleRoleSelect(interaction, 'view', '閲覧役職');
-  if (customId === 'keihi_set_request') return handleRoleSelect(interaction, 'request', '申請役職');
+  if (customId === IDS.BTN_KEIHI_PANEL_SETUP) return handlePanelSetup(interaction);
+  if (customId === IDS.BTN_KEIHI_ROLE_APPROVER) return handleRoleSelect(interaction, 'approver', '承認役職');
+  if (customId === IDS.BTN_KEIHI_ROLE_VIEWER) return handleRoleSelect(interaction, 'viewer', '閲覧役職');
+  if (customId === IDS.BTN_KEIHI_ROLE_APPLICANT) return handleRoleSelect(interaction, 'applicant', '申請役職');
 }
 
 /**
@@ -33,14 +34,14 @@ async function handleKeihiPanelAction(interaction) {
  */
 async function handleRoleSelect(interaction, type, label) {
   const storeRoleConfig = await loadStoreRoleConfig(interaction.guildId);
-  if (!storeRoleConfig.roles || storeRoleConfig.roles.length === 0) {
+  if (!storeRoleConfig?.roles || storeRoleConfig.roles.length === 0) {
     return interaction.reply({
       content: '⚠️ まだ役職が設定パネルで登録されていません。',
       flags: MessageFlags.Ephemeral,
     });
   }
 
-  const options = storeRoleConfig.roles.map(r => ({ label: r, value: r })).slice(0, 25);
+  const options = storeRoleConfig.roles.map(r => ({ label: r.name || r, value: r.id || r })).slice(0, 25);
 
   const select = new StringSelectMenuBuilder()
     .setCustomId(`keihi_select_role_${type}`)
@@ -96,7 +97,10 @@ async function handleRoleSelectSubmit(interaction) {
   keihiConfig.roles[type] = selected;
   await saveKeihiConfig(guildId, keihiConfig);
 
-  await interaction.reply({ content: `✅ ${label}を「${selected}」に設定しました。`, flags: MessageFlags.Ephemeral });
+  // deferUpdate() を使用してインタラクションを更新し、後続のパネル更新との競合を避ける
+  await interaction.deferUpdate();
+  // 一時的な確認メッセージを送信
+  await interaction.followUp({ content: `✅ ${label}を「${selected}」に設定しました。`, ephemeral: true });
 
   await sendConfigPanel(interaction.channel, guildId);
 

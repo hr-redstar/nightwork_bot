@@ -21,14 +21,15 @@ const { saveKeihiDaily } = require('../../../utils/keihi/keihiConfigManager');
  */
 async function handleKeihiRequest(interaction) {
   try {
-    if (!interaction.deferred && !interaction.replied)
-      await interaction.deferReply({ ephemeral: false });
+    // ✅ まず最初に応答を保留し、タイムアウトを防ぎます。
+    //    ephemeral: true にすることで、実行者本人にしか見えないようにします。
+    await interaction.deferReply({ ephemeral: true });
 
     const guildId = interaction.guild.id;
     const config = await loadKeihiConfig(guildId);
 
     // 経費項目を取得
-    const storeName = interaction.customId.replace('keihi_request_', '');
+    const storeName = interaction.customId.split(':').pop(); // 新旧ID形式に対応
     const items = config.storeItems?.[storeName] || [];
 
     if (items.length === 0) {
@@ -41,7 +42,7 @@ async function handleKeihiRequest(interaction) {
     const uniqueItems = [...new Set(items)];
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`keihi_request_select_${storeName}`)
+      .setCustomId(`keihi:select:${storeName}`)
       .setPlaceholder('経費項目を選択してください')
       .addOptions(uniqueItems.map(i => ({ label: i, value: i })));
 
@@ -53,11 +54,8 @@ async function handleKeihiRequest(interaction) {
     });
   } catch (err) {
     console.error('❌ handleKeihiRequest エラー:', err);
-    try {
-      if (!interaction.deferred && !interaction.replied)
-        await interaction.reply({ content: '⚠️ 経費申請処理中にエラーが発生しました。' });
-      else await interaction.editReply({ content: '⚠️ 経費申請処理中にエラーが発生しました。' });
-    } catch {}
+    // deferReply済みなので、editReplyでエラーを返す
+    if (!interaction.replied) await interaction.editReply({ content: '⚠️ 経費申請処理中にエラーが発生しました。' });
   }
 }
 

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/**
+﻿﻿﻿﻿﻿﻿/**
  * src/handlers/configBotHandlers.js
  * 設定パネルのボタン・セレクトメニューハンドラー
  */
@@ -125,24 +125,24 @@ async function handleInteraction(interaction) {
         await showBirthYearSelect(interaction, userId, storeName, roleName);
         return true;
       }
-      if (customId.startsWith('select_birth_year_')) {
-        const [, , , userId, storeToken, roleToken] = customId.split('_');
+      if (customId.startsWith('config:birth-year:')) {
+        const [, , userId, storeToken, roleToken] = customId.split(':');
         const storeName = decodeToken(storeToken);
         const roleName = decodeToken(roleToken);
         const birthYear = interaction.values[0];
         await showBirthMonthSelect(interaction, userId, storeName, roleName, birthYear);
         return true;
       }
-      if (customId.startsWith('select_birth_month_')) {
-        const [, , , userId, storeToken, roleToken, birthYear] = customId.split('_');
+      if (customId.startsWith('config:birth-month:')) {
+        const [, , userId, storeToken, roleToken, birthYear] = customId.split(':');
         const storeName = decodeToken(storeToken);
         const roleName = decodeToken(roleToken);
         const birthMonth = interaction.values[0];
         await showBirthDaySelect(interaction, userId, storeName, roleName, birthYear, birthMonth);
         return true;
       }
-      if (customId.startsWith('select_birth_day_')) {
-        const [, , , userId, storeToken, roleToken, birthYear, birthMonth] = customId.split('_');
+      if (customId.startsWith('config:birth-day:')) {
+        const [, , userId, storeToken, roleToken, birthYear, birthMonth] = customId.split(':');
         const storeName = decodeToken(storeToken);
         const roleName = decodeToken(roleToken);
         const birthDay = interaction.values[0];
@@ -188,11 +188,11 @@ async function handleInteraction(interaction) {
     // ============================================================
     if (interaction.isModalSubmit()) {
       // --- 設定モーダル ---
-      if (customId.startsWith('modal_user_info_')) {
+      if (customId.startsWith('modal:user-info:')) {
         await handleUserInfoSubmit(interaction);
         return true;
       }
-      if (customId.startsWith('modal_')) {
+      if (customId.startsWith('modal:')) {
         // configModalHandler.js で処理されるモーダル
         await configModalHandler.handleInteraction(interaction);
         return true;
@@ -207,12 +207,8 @@ async function handleInteraction(interaction) {
         await kuzibikiBotHandler(interaction);
         return true;
       }
-      if (customId.startsWith('keihi_')) {
+      if (customId.startsWith('keihi:')) {
         await keihiBotHandlers.handleInteraction(interaction);
-        return true;
-      }
-      if (customId.startsWith('uriage_')) {
-        await uriageBotHandler.handleInteraction(interaction);
         return true;
       }
 

@@ -159,7 +159,7 @@ async function showBirthYearSelect(interaction, userId, storeName, roleName) {
   const storeToken = encodeToken(storeName);
   const roleToken = encodeToken(roleName);
   const yearSelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_year_${userId}_${storeToken}_${roleToken}`)
+    .setCustomId(`config:birth-year:${userId}:${storeToken}:${roleToken}`)
     .setPlaceholder('誕生年を選択してください')
     .addOptions(years);
 
@@ -184,7 +184,7 @@ async function showBirthMonthSelect(interaction, userId, storeName, roleName, bi
   const storeToken = encodeToken(storeName);
   const roleToken = encodeToken(roleName);
   const monthSelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_month_${userId}_${storeToken}_${roleToken}_${birthYear}`)
+    .setCustomId(`config:birth-month:${userId}:${storeToken}:${roleToken}:${birthYear}`)
     .setPlaceholder('誕生月を選択してください')
     .addOptions(months);
 
@@ -210,7 +210,7 @@ async function showBirthDaySelect(interaction, userId, storeName, roleName, birt
   const storeToken = encodeToken(storeName);
   const roleToken = encodeToken(roleName);
   const daySelect = new StringSelectMenuBuilder()
-    .setCustomId(`select_birth_day_${userId}_${storeToken}_${roleToken}_${birthYear}_${birthMonth}`)
+    .setCustomId(`config:birth-day:${userId}:${storeToken}:${roleToken}:${birthYear}:${birthMonth}`)
     .setPlaceholder('誕生日を選択してください')
     .addOptions(days);
 
@@ -230,7 +230,7 @@ async function showUserInfoModal(interaction, userId, storeName, roleName, birth
   const storeToken = encodeToken(storeName);
   const roleToken = encodeToken(roleName);
   const modal = new ModalBuilder()
-    .setCustomId(`modal_user_info_${userId}_${storeToken}_${roleToken}_${dob}`)
+    .setCustomId(`modal:user-info:${userId}:${storeToken}:${roleToken}:${dob}`)
     .setTitle('🗒️ ユーザー詳細情報登録');
 
   // 既存のユーザー情報を取得してモーダルに初期値として設定
@@ -279,8 +279,8 @@ async function showUserInfoModal(interaction, userId, storeName, roleName, birth
  */
  async function handleUserInfoSubmit(interaction) {
   // customIdからuserId, storeName, roleName, dobを取得
-  const [, , , userId, storeToken, roleToken, dob] = interaction.customId.split('_');
-  const storeName = decodeToken(storeToken);
+  const [, , userId, storeToken, roleToken, ...dobParts] = interaction.customId.split(':');
+  const dob = dobParts.join(':'); // dobがコロンを含む場合を考慮
   const roleName = decodeToken(roleToken);
 
   const nickname = interaction.fields.getTextInputValue('user_nickname');

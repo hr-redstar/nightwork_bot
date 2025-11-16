@@ -1256,3 +1256,24 @@ Error [InteractionNotReplied]: The reply to this interaction has not been sent o
     at ChannelSelectMenuInteraction.followUp (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:275:48)
     at postKeihiReportPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js:47:24)
     at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:134:11)
+[[31merror[39m 2025-11-16 20:21:33] [31m[interactionCreate] エラー: The reply to this interaction has already been sent or deferred.[39m
+Error [InteractionAlreadyReplied]: The reply to this interaction has already been sent or deferred.
+    at ButtonInteraction.deferUpdate (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:292:46)
+    at postKeihiReportPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js:33:23)
+    at handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:24:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:89:11)
+[[31merror[39m 2025-11-16 20:28:58] [31m[interactionCreate] エラー: The reply to this interaction has already been sent or deferred.[39m
+Error [InteractionAlreadyReplied]: The reply to this interaction has already been sent or deferred.
+    at ButtonInteraction.deferUpdate (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:292:46)
+    at postKeihiReportPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js:33:23)
+    at handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:24:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:89:11)
+[[31merror[39m 2025-11-16 20:44:21] [31m[interactionCreate] エラー: The reply to this interaction has already been sent or deferred.[39m
+Error [InteractionAlreadyReplied]: The reply to this interaction has already been sent or deferred.
+    at ButtonInteraction.deferUpdate (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:292:46)
+    at postKeihiReportPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_Report.js:33:23)
+    at handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:24:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:81:11)
