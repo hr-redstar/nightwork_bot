@@ -7,74 +7,53 @@ const {
   EmbedBuilder,
   MessageFlags,
 } = require('discord.js');
+
 const dayjs = require('dayjs');
-const { loadKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
-const { sendConfigPanel } = require('./keihiPanel_Config');
-const { postStoreKeihiPanel } = require('./keihiPanel_storePanel');
-const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
-const { IDS } = require('./ids');
 
-/**
- * 経費設定パネルの操作を管理
- */
-async function handleKeihiPanelAction(interaction) {
-  const customId = interaction.customId;
+const {
+  loadKeihiConfig,
+  saveKeihiConfig,
+} = require('../../../utils/keihi/keihiConfigManager');
 
-  if (customId === IDS.BTN_KEIHI_PANEL_SETUP) return handlePanelSetup(interaction);
-  if (customId === IDS.BTN_KEIHI_ROLE_APPROVER) return handleRoleSelect(interaction, 'approver', '承認役職');
-  if (customId === IDS.BTN_KEIHI_ROLE_VIEWER) return handleRoleSelect(interaction, 'viewer', '閲覧役職');
-  if (customId === IDS.BTN_KEIHI_ROLE_APPLICANT) return handleRoleSelect(interaction, 'applicant', '申請役職');
-}
+const {
+  updateKeihiPanel,
+} = require('./keihiPanel_Config'); // 設定パネルを更新する
 
-/**
- * 承認／閲覧／申請役職選択ボタンの処理
- * @param {import('discord.js').Interaction} interaction
- * @param {string} type - 'approval', 'view', or 'request'
- * @param {string} label - The display label for the role type.
- */
-async function handleRoleSelect(interaction, type, label) {
-  const storeRoleConfig = await loadStoreRoleConfig(interaction.guildId);
-  if (!storeRoleConfig?.roles || storeRoleConfig.roles.length === 0) {
-    return interaction.reply({
-      content: '⚠️ まだ役職が設定パネルで登録されていません。',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+const {
+  postStoreKeihiPanel,
+} = require('./keihiPanel_storePanel');
 
-  const options = storeRoleConfig.roles.map(r => ({ label: r.name || r, value: r.id || r })).slice(0, 25);
+const {
+  loadStoreRoleConfig,
+} = require('../../../utils/config/storeRoleConfigManager');
 
-  const select = new StringSelectMenuBuilder()
-    .setCustomId(`keihi_select_role_${type}`)
-    .setPlaceholder(`${label}を選択してください`)
-    .addOptions(options);
+const {
+  getGuildConfig,
+} = require('../../../utils/config/gcsConfigManager');
 
-  const row = new ActionRowBuilder().addComponents(select);
-  await interaction.reply({
-    content: `👥 ${label}を選択してください：`,
-    components: [row],
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-/**
- * 経費パネル設置ボタンの処理
- * @param {import('discord.js').Interaction} interaction
- */
+// ======================================================
+// 1. パネル設置の開始（店舗選択）
+// ======================================================
 async function handlePanelSetup(interaction) {
-  const storeRoleConfig = await loadStoreRoleConfig(interaction.guildId);
-  if (!storeRoleConfig.stores || storeRoleConfig.stores.length === 0) {
+  const storeConfig = await loadStoreRoleConfig(interaction.guildId);
+
+  if (!storeConfig.stores?.length) {
     return interaction.reply({
       content: '⚠️ 店舗が登録されていません。設定パネルで追加してください。',
       flags: MessageFlags.Ephemeral,
     });
   }
 
-  const storeSelect = new StringSelectMenuBuilder()
-    .setCustomId('keihi_select_store')
+  const selectStore = new StringSelectMenuBuilder()
+    .setCustomId('keihi:config:select:store')
     .setPlaceholder('店舗を選択してください')
-    .addOptions(storeRoleConfig.stores.map(s => ({ label: s, value: s })));
+    .addOptions(storeConfig.stores.map(store => ({
+      label: store,
+      value: encodeURIComponent(store),
+    })));
 
-  const row = new ActionRowBuilder().addComponents(storeSelect);
+  const row = new ActionRowBuilder().addComponents(selectStore);
+
   await interaction.reply({
     content: '🏪 経費パネルを設置する店舗を選んでください。',
     components: [row],
@@ -82,112 +61,173 @@ async function handlePanelSetup(interaction) {
   });
 }
 
-/**
- * 役職選択メニューの選択肢が送信されたときの処理
- */
-async function handleRoleSelectSubmit(interaction) {
-  const guildId = interaction.guildId;
-  const guild = interaction.guild;
-  const type = interaction.customId.replace('keihi_select_role_', '');
-  const selected = interaction.values[0];
-  const label = { approval: '承認役職', view: '閲覧役職', request: '申請役職' }[type];
-
-  const keihiConfig = await loadKeihiConfig(guildId);
-  keihiConfig.roles = keihiConfig.roles || {};
-  keihiConfig.roles[type] = selected;
-  await saveKeihiConfig(guildId, keihiConfig);
-
-  // deferUpdate() を使用してインタラクションを更新し、後続のパネル更新との競合を避ける
-  await interaction.deferUpdate();
-  // 一時的な確認メッセージを送信
-  await interaction.followUp({ content: `✅ ${label}を「${selected}」に設定しました。`, ephemeral: true });
-
-  await sendConfigPanel(interaction.channel, guildId);
-
-  // 設定ログスレッドにログを出力
-  const globalConfig = await getGuildConfig(guildId);
-  const logThreadId = globalConfig.settingLogThread;
-  if (logThreadId) {
-    const logThread = await guild.channels.fetch(logThreadId).catch(() => null);
-    if (logThread && logThread.isTextBased()) {
-      const logEmbed = new EmbedBuilder()
-        .setColor('#3498db')
-        .setTitle('⚙️ 経費設定変更')
-        .setDescription(`${label}が更新されました。`)
-        .addFields(
-          { name: '変更内容', value: label, inline: true },
-          { name: '変更後', value: selected, inline: true },
-          { name: '実行者', value: `<@${interaction.user.id}>` },
-          { name: '実行時間', value: dayjs().format('YYYY/MM/DD HH:mm') }
-        );
-      await logThread.send({ embeds: [logEmbed] });
-    }
-  }
-}
-
-/**
- * 店舗選択メニューの選択肢が送信されたときの処理
- */
+// ======================================================
+// 2. 店舗を選択するとチャンネル選択を表示
+// ======================================================
 async function handleStoreSelectForPanel(interaction) {
-  const selectedStore = interaction.values[0];
+  const storeEncoded = interaction.values[0];
+  const store = decodeURIComponent(storeEncoded);
 
-  const chSelect = new ChannelSelectMenuBuilder()
-    .setCustomId(`keihi_select_channel_${selectedStore}`)
-    .setPlaceholder('経費パネルを設置するチャンネルを選択')
+  const channelSelect = new ChannelSelectMenuBuilder()
+    .setCustomId(`keihi:config:select:channel:${storeEncoded}`)
+    .setPlaceholder(`${store} のパネル設置チャンネルを選択`)
     .addChannelTypes(ChannelType.GuildText);
 
-  const row = new ActionRowBuilder().addComponents(chSelect);
-  await interaction.reply({
-    content: `📢 ${selectedStore} の経費パネル設置チャンネルを選択してください：`,
+  const row = new ActionRowBuilder().addComponents(channelSelect);
+
+  await interaction.update({
+    content: `📢 **${store}** のパネルを設置するチャンネルを選んでください：`,
     components: [row],
+  });
+}
+
+// ======================================================
+// 3. チャンネルが選択された → パネルを設置して設定更新
+// ======================================================
+async function handleChannelSelectForPanel(interaction) {
+  await interaction.deferUpdate();
+
+  const guildId = interaction.guildId;
+  const guild = interaction.guild;
+
+  const parts = interaction.customId.split(':'); // ['keihi','config','select','channel','<encodedStore>']
+  const storeEncoded = parts[4];
+  const store = decodeURIComponent(storeEncoded);
+
+  const channelId = interaction.values[0];
+  const channel = guild.channels.cache.get(channelId);
+
+  // コンフィグ反映
+  const keihiConfig = await loadKeihiConfig(guildId);
+  keihiConfig.stores = keihiConfig.stores || {};
+  keihiConfig.stores[store] = channelId;
+  await saveKeihiConfig(guildId, keihiConfig);
+
+  // パネル設置
+  await postStoreKeihiPanel(channel, store, guildId);
+
+  // 設定パネルを更新
+  await updateKeihiPanel(interaction);
+
+  // 設定ログ
+  const globalConfig = await getGuildConfig(guildId);
+  const logThreadId = globalConfig.settingLogThread;
+
+  if (logThreadId) {
+    const logThread = await guild.channels.fetch(logThreadId).catch(() => null);
+    if (logThread?.isTextBased()) {
+      const embed = new EmbedBuilder()
+        .setColor('#3498db')
+        .setTitle('⚙️ 経費設定変更')
+        .setDescription('経費パネルが新しく設置されました。')
+        .addFields(
+          { name: '店舗', value: store, inline: true },
+          { name: 'チャンネル', value: `<#${channelId}>`, inline: true },
+          { name: '実行者', value: `<@${interaction.user.id}>` },
+          { name: '実行時間', value: dayjs().format('YYYY/MM/DD HH:mm') },
+        );
+
+      await logThread.send({ embeds: [embed] });
+    }
+  }
+
+  await interaction.followUp({
+    content: `✅ **${store}** の経費パネルを <#${channelId}> に設置しました。`,
     flags: MessageFlags.Ephemeral,
   });
 }
 
-/**
- * チャンネル選択メニューの選択肢が送信されたときの処理
- */
-async function handleChannelSelectForPanel(interaction) {
-  const guildId = interaction.guildId;
-  const guild = interaction.guild;
-  const selectedStore = interaction.customId.replace('keihi_select_channel_', '');
-  const channelId = interaction.values[0];
-  const channel = guild.channels.cache.get(channelId);
+// ======================================================
+// 4. ロール選択を開始（ボタン → ロール一覧表示）
+// ======================================================
+async function handleRoleSelect(interaction) {
+  const type = interaction.customId.split(':')[3]; // approver / viewer / applicant
+  const label = {
+    approver: '承認役職',
+    viewer: '閲覧役職',
+    applicant: '申請役職',
+  }[type];
 
-  const keihiConfig = await loadKeihiConfig(guildId);
-  keihiConfig.stores = keihiConfig.stores || {};
-  keihiConfig.stores[selectedStore] = channelId;
-  await saveKeihiConfig(guildId, keihiConfig);
-  await postStoreKeihiPanel(channel, selectedStore, guildId);
+  const storeRoles = await loadStoreRoleConfig(interaction.guildId);
 
-  // メインの設定パネルを更新する
-  await sendConfigPanel(interaction.channel, guildId);
-
-  // 設定ログスレッドにログを出力
-  const globalConfig = await getGuildConfig(guildId);
-  const logThreadId = globalConfig.settingLogThread;
-  if (logThreadId) {
-    const logThread = await guild.channels.fetch(logThreadId).catch(() => null);
-    if (logThread && logThread.isTextBased()) {
-      const logEmbed = new EmbedBuilder()
-        .setColor('#3498db')
-        .setTitle('⚙️ 経費設定変更')
-        .setDescription('経費パネルが設置されました。')
-        .addFields(
-          { name: '店舗', value: selectedStore, inline: true },
-          { name: '設置チャンネル', value: `<#${channelId}>`, inline: true },
-          { name: '実行者', value: `<@${interaction.user.id}>` },
-          { name: '実行時間', value: dayjs().format('YYYY/MM/DD HH:mm') }
-        );
-      await logThread.send({ embeds: [logEmbed] });
-    }
+  if (!storeRoles?.roles?.length) {
+    return interaction.reply({
+      content: '⚠️ まだ役職が登録されていません。',
+      flags: MessageFlags.Ephemeral,
+    });
   }
 
-  await interaction.reply({ content: `✅ ${selectedStore} の経費パネルを <#${channelId}> に設置しました。`, flags: MessageFlags.Ephemeral });
+  const options = storeRoles.roles
+    .map(r => ({ label: r.name || r, value: r.id || r }))
+    .slice(0, 25);
+
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(`keihi:config:select:role:${type}`)
+    .setPlaceholder(`${label}を選択してください`)
+    .addOptions(options);
+
+  await interaction.reply({
+    content: `👥 ${label}を選択してください：`,
+    components: [new ActionRowBuilder().addComponents(select)],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+// ======================================================
+// 5. 選択されたロールを保存しパネル更新
+// ======================================================
+async function handleRoleSelectSubmit(interaction) {
+  const guildId = interaction.guildId;
+  const guild = interaction.guild;
+
+  const parts = interaction.customId.split(':');
+  const type = parts[4]; // approver / viewer / applicant
+  const selectedRoleId = interaction.values[0];
+
+  const keihiConfig = await loadKeihiConfig(guildId);
+  keihiConfig.roles = keihiConfig.roles || {};
+  keihiConfig.roles[type] = selectedRoleId;
+  await saveKeihiConfig(guildId, keihiConfig);
+
+  await interaction.deferUpdate();
+
+  await interaction.followUp({
+    content: `✅ ${{
+      approver: '承認役職',
+      viewer: '閲覧役職',
+      applicant: '申請役職',
+    }[type]} を <@&${selectedRoleId}> に設定しました。`,
+    flags: MessageFlags.Ephemeral,
+  });
+
+  await updateKeihiPanel(interaction);
+
+  // 設定ログ
+  const globalConfig = await getGuildConfig(guildId);
+  const logThreadId = globalConfig.settingLogThread;
+
+  if (logThreadId) {
+    const logThread = await guild.channels.fetch(logThreadId).catch(() => null);
+    if (logThread?.isTextBased()) {
+      const embed = new EmbedBuilder()
+        .setColor('#3498db')
+        .setTitle('⚙️ 経費設定変更')
+        .setDescription('役職設定が更新されました。')
+        .addFields(
+          { name: '種類', value: type, inline: true },
+          { name: '役職', value: `<@&${selectedRoleId}>`, inline: true },
+          { name: '実行者', value: `<@${interaction.user.id}>` },
+          { name: '実行時間', value: dayjs().format('YYYY/MM/DD HH:mm') },
+        );
+
+      await logThread.send({ embeds: [embed] });
+    }
+  }
 }
 
 module.exports = {
-  handleKeihiPanelAction,
+  handlePanelSetup,
+  handleRoleSelect,
   handleRoleSelectSubmit,
   handleStoreSelectForPanel,
   handleChannelSelectForPanel,

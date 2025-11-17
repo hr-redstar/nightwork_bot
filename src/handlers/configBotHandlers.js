@@ -87,6 +87,12 @@ async function handleInteraction(interaction) {
         await toggleSlackAutomation(interaction);
         return true;
       }
+
+      // 経費関連のボタンは keihiBotHandlers に委譲
+      if (customId.startsWith('keihi:')) {
+        await keihiBotHandlers.handleInteraction(interaction);
+        return true;
+      }
       return false;
     }
 
@@ -150,6 +156,13 @@ async function handleInteraction(interaction) {
         return true;
       }
 
+      // 経費関連のセレクトメニューは keihiBotHandlers に委譲
+      if (customId.startsWith('keihi_select_')) {
+        await keihiBotHandlers.handleInteraction(interaction);
+        return true;
+      }
+
+
       // ログチャンネル設定 (isChannelSelectMenu に移動済み)
       return false;
     }
@@ -192,8 +205,8 @@ async function handleInteraction(interaction) {
         await handleUserInfoSubmit(interaction);
         return true;
       }
-      if (customId.startsWith('modal:')) {
-        // configModalHandler.js で処理されるモーダル
+      // modal_store_edit, modal_role_edit などを処理
+      if (customId.startsWith('modal:') || customId.startsWith('modal_')) {
         await configModalHandler.handleInteraction(interaction);
         return true;
       }

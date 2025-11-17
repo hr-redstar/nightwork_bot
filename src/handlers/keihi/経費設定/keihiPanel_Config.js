@@ -23,30 +23,52 @@ async function updateKeihiStorePanels(interaction) {
         const messages = await channel.messages.fetch({ limit: 50 }).catch(() => null);
         const existing = messages && messages.find(m => m.embeds?.[0]?.title?.includes('経費申請パネル') && m.embeds[0].title.includes(storeName));
 
+        // 店舗ごとの設定を取得
+        const storeConfig = config.storeSettings?.[storeName] || {};
+        const viewerRoles = storeConfig.viewerRoles?.map(r => `<@&${r}>`).join(', ') || '未設定';
+        const applicantRoles = storeConfig.applicantRoles?.map(r => `<@&${r}>`).join(', ') || '未設定';
         const items = (storeItems[storeName] || []).map(i => `・${i}`).join('\n') || 'まだ設定されていません。';
 
         const embed = new EmbedBuilder()
           .setColor(0x2b6cb0)
-          .setTitle(`📋 経費申請パネル（${storeName}）`)
-          .setDescription('経費申請する場合は、下のボタンを押してください。')
-          .addFields([{ name: '経費項目', value: items }]);
+          .setTitle(`📋 経費パネル（${storeName}）`)
+          .addFields([
+            { name: '👁️ スレッド閲覧役職', value: viewerRoles, inline: true },
+            { name: '📝 申請役職', value: applicantRoles, inline: true },
+            { name: '経費項目', value: items, inline: false },
+          ]);
 
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
-            .setCustomId(`${IDS.BTN_ITEM_REGISTER}:${storeName}`)
+            .setCustomId(`keihi:item:register:${storeName}`)
             .setLabel('経費項目登録')
             .setStyle(ButtonStyle.Secondary),
           new ButtonBuilder()
-            .setCustomId(`${IDS.BTN_REPORT_OPEN}:${storeName}`)
+            .setCustomId(`keihi:config:store_role_viewer:${storeName}`)
+            .setLabel('スレッド閲覧役職')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId(`keihi:config:store_role_applicant:${storeName}`)
+            .setLabel('申請役職')
+            .setStyle(ButtonStyle.Secondary)
+        );
+
+        const row2 = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`keihi:panel:request_open:${storeName}`)
             .setLabel('経費申請')
-            .setStyle(ButtonStyle.Primary),
+            .setStyle(ButtonStyle.Primary)
         );
 
         if (existing) {
-          await existing.edit({ embeds: [embed], components: [row] }).catch(() => null);
+          await existing
+            .edit({ embeds: [embed], components: [row, row2] })
+            .catch(() => null);
           console.log(`🔄 経費申請パネルを更新しました: ${storeName} (<#${channelId}>)`);
         } else {
-          await channel.send({ embeds: [embed], components: [row] }).catch(() => null);
+          await channel
+            .send({ embeds: [embed], components: [row, row2] })
+            .catch(() => null);
           console.log(`🆕 経費申請パネルを再生成しました: ${storeName} (<#${channelId}>)`);
         }
       } catch (e) {
@@ -105,45 +127,26 @@ async function buildKeihiPanelConfig(guildId) {
         inline: true,
       },
       {
-        name: '👁️ 閲覧役職',
-        value: config.viewerRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
-        inline: true,
-      },
-      {
-        name: '📝 申請役職',
-        value: config.applicantRoles?.map((r) => `<@&${r}>`).join(', ') || '未設定',
-        inline: true,
-      },
-      {
         name: '🕒 更新日時',
         value: config.updatedAt || '---',
         inline: false,
       },
     ]);
-
   // ボタン行
   const row1 = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(IDS.BTN_KEIHI_PANEL_SETUP)
+      .setCustomId('keihi:config:panel_setup')
       .setLabel('経費パネル設置')
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
-      .setCustomId(IDS.BTN_KEIHI_ROLE_APPROVER)
+      .setCustomId('keihi:config:role_approver')
       .setLabel('承認役職')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_KEIHI_ROLE_VIEWER)
-      .setLabel('閲覧役職')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_KEIHI_ROLE_APPLICANT)
-      .setLabel('申請役職')
       .setStyle(ButtonStyle.Secondary)
   );
 
   const row2 = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(IDS.BTN_KEIHI_CSV_EXPORT)
+      .setCustomId('keihi:config:csv:export')
       .setLabel('経費CSV発行')
       .setStyle(ButtonStyle.Success)
   );

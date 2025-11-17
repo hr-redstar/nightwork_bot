@@ -1277,3 +1277,232 @@ Error [InteractionAlreadyReplied]: The reply to this interaction has already bee
     at handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:24:16)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:81:11)
+[[31merror[39m 2025-11-16 23:23:58] [31m[interactionCreate:SelectMenu] keihi_select_channel_star エラー: sendConfigPanel is not a function[39m
+TypeError: sendConfigPanel is not a function
+    at handleChannelSelectForPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_actions.js:167:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:105:20)
+[[31merror[39m 2025-11-16 23:28:09] [31m⚠️ JSON書き込みエラー: GCS/1412549933365592127/keihi/keihi:select:外部IT会社/2025/11/16/20251116.json ENOENT: no such file or directory, mkdir 'C:\Users\User\Desktop\nightwork_bot - コピー\local_data\GCS\1412549933365592127\keihi\keihi:select:外部IT会社\2025\11\16'[39m
+Error: ENOENT: no such file or directory, mkdir 'C:\Users\User\Desktop\nightwork_bot - コピー\local_data\GCS\1412549933365592127\keihi\keihi:select:外部IT会社\2025\11\16'
+    at async Object.mkdir (node:internal/fs/promises:861:10)
+    at async writeFile (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\gcs.js:83:5)
+    at async writeJson (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\gcs.js:120:5)
+    at async saveKeihiDaily (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\keihi\keihiConfigManager.js:88:5)
+    at async handleKeihiRequestModal (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費申請\keihiRequestHandler.js:225:3)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:131:20)
+[[31merror[39m 2025-11-16 23:53:11] [31m⚠️ Promise未処理拒否: SyntaxError: missing ) after argument list[39m
+[[31merror[39m 2025-11-17 00:31:48] [31m[interactionCreate:Button] keihi:csv:export エラー: The reply to this interaction has not been sent or deferred.[39m
+Error [InteractionNotReplied]: The reply to this interaction has not been sent or deferred.
+    at ButtonInteraction.followUp (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:275:48)
+    at openCsvExportFlow (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiCsvHandler.js:36:22)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:90:13)
+[[31merror[39m 2025-11-17 00:38:43] [31m[interactionCreate:SelectMenu] keihi:config:select:role:viewer エラー: sendConfigPanel is not a function[39m
+TypeError: sendConfigPanel is not a function
+    at handleRoleSelectSubmit (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\経費設定\keihiPanel_actions.js:98:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:125:20)
+[[31merror[39m 2025-11-18 00:41:16] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 00:41:16] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)
+[[31merror[39m 2025-11-18 00:41:16] [31m⚠️ Promise未処理拒否: SyntaxError: Unexpected end of input[39m
+[[31merror[39m 2025-11-18 00:41:41] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 00:41:41] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)
+[[31merror[39m 2025-11-18 00:41:41] [31m⚠️ Promise未処理拒否: SyntaxError: Unexpected end of input[39m
+[[31merror[39m 2025-11-18 00:41:45] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 00:41:45] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:46
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)
+[[31merror[39m 2025-11-18 00:41:45] [31m⚠️ Promise未処理拒否: SyntaxError: Unexpected end of input[39m
+[[31merror[39m 2025-11-18 00:41:48] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/経費申請/keihiReportHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-18 03:01:44] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 03:01:44] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)
+[[31merror[39m 2025-11-18 03:01:44] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/経費申請/keihiReportHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-18 04:45:47] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 04:45:47] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)
+[[31merror[39m 2025-11-18 04:50:11] [31m[DeployGuild] ❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadRecursively (C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js:39:25)
+[[31merror[39m 2025-11-18 04:50:11] [31m❌ コマンド読み込み失敗: 11_設定経費.js Identifier 'newPanelMessage' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:45
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+            ^
+
+SyntaxError: Identifier 'newPanelMessage' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at loadCommands (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:58:23)

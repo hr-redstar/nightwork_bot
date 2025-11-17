@@ -7,8 +7,7 @@ const logger = require('../utils/logger');
 
 // 機能別ハンドラー
 const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandlers');
-// const handleTennaiHikkakeInteraction = require('../handlers/tennai_hikkakeBotHandler'); // 未完成のため一時的に無効化
-const configBotHandlers = require('../handlers/configBotHandlers'); // ✅ 正しくは複数形の "s" が付きます
+const configBotHandlers = require('../handlers/configBotHandlers');
 const configModalHandler = require('../handlers/config/configModalHandler');
 const { handleSyutInteractions } = require('../handlers/syutBotHandler');
 const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
@@ -16,7 +15,6 @@ const handleKpiInteraction = require('../handlers/KPIBotHandler');
 const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
-
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -28,7 +26,7 @@ module.exports = {
         return;
       }
 
-      // --- ログ出力共通 ---
+      // --- ログ共通出力 ---
       const type = interaction.isChatInputCommand()
         ? 'コマンド'
         : interaction.isButton()
@@ -45,7 +43,7 @@ module.exports = {
       );
 
       // ============================================================
-      // スラッシュコマンド
+      // ✅ スラッシュコマンド
       // ============================================================
       if (interaction.isChatInputCommand()) {
         const command = interaction.client.commands.get(interaction.commandName);
@@ -56,7 +54,7 @@ module.exports = {
           });
           return;
         }
-        // コマンドログを出力
+
         const { sendCommandLog } = require('../handlers/config/configLogger');
         await sendCommandLog(interaction);
 
@@ -64,82 +62,113 @@ module.exports = {
         return;
       }
 
-
-
       // ============================================================
-      // ボタン押下
+      // ✅ ボタン
       // ============================================================
       if (interaction.isButton()) {
         const { customId } = interaction;
-        if (customId.startsWith('uriage:')) {
-          await handleUriageInteraction(interaction);
-          return;
-        }
 
-        // 出退勤関連のハンドラを呼び出す
-        if (customId.startsWith('syut_') || customId.startsWith('cast_')) {
-          await handleSyutInteractions(interaction);
-          return;
-        }
+        try {
+          if (customId.startsWith('uriage:')) {
+            await handleUriageInteraction(interaction);
+            return;
+          }
 
-        // customId のプレフィックスに基づいて適切なハンドラを呼び出す
-        // configBotHandlers は config_ で始まるIDを処理
-        if (customId.startsWith('config_') || customId.startsWith('keihi:')) {
-          await configBotHandlers.handleInteraction(interaction);
-          return;
-        }
+          // 出退勤関連
+          if (customId.startsWith('syut_') || customId.startsWith('cast_')) {
+            await handleSyutInteractions(interaction);
+            return;
+          }
 
-        // デフォルトで他のハンドラを試す
-        if (interaction.client.buttons.has(customId)) {
-          await interaction.client.buttons.get(customId).execute(interaction);
+          // ✅ 経費関連ボタンを全部 keihiBotHandler に集約
+          if (
+            customId.startsWith('keihi:') || // 新命名規則用 keihi:config / keihi:panel / keihi:request / keihi:approve
+            customId.startsWith('keihi_') || // 旧: keihi_approve など
+            customId.startsWith('keihiRequest_') || // 万が一のパターン
+            customId.startsWith('keihi_request_') // 今問題になってる keihi_request_〜
+          ) {
+            await handleKeihiInteraction(interaction);
+            return;
+          }
+
+          // 設定系
+          if (customId.startsWith('config_')) {
+            await configBotHandlers.handleInteraction(interaction);
+            return;
+          }
+
+          // fallback: 未対応
+          logger.warn(`[interactionCreate] 未対応ボタン: ${customId}`);
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: '⚠️ 未対応のボタンです。', ephemeral: true });
+          }
+        } catch (subErr) {
+          logger.error(`[interactionCreate:Button] ${customId} エラー:`, subErr);
+          await handleInteractionError(interaction, '⚠️ ボタン処理中にエラーが発生しました。');
         }
+        return;
       }
 
       // ============================================================
-      // セレクトメニュー
+      // ✅ セレクトメニュー
       // ============================================================
       if (interaction.isAnySelectMenu()) {
         const { customId } = interaction;
-        if (customId.startsWith('uriage:')) {
-          await handleUriageInteraction(interaction);
-          return;
-        }
 
-        // 出退勤関連のハンドラを呼び出す
-        if (customId.startsWith('syut_') || customId.startsWith('role_select:') || customId.startsWith('user_select:')) {
-          await handleSyutInteractions(interaction);
-          return;
-        }
+        try {
+          if (customId.startsWith('uriage:')) return await handleUriageInteraction(interaction);
+          if (customId.startsWith('syut_') || customId.startsWith('role_select:') || customId.startsWith('user_select:'))
+            return await handleSyutInteractions(interaction);
 
-        // --- 設定ボットのセレクトメニュー ---
-        const handledByConfig = await configBotHandlers.handleInteraction(interaction);
-        if (handledByConfig) return; // configBotHandlers が処理したらここで終了
+          // 経費関連のセレクトメニューを keihiBotHandlers に渡す
+          if (customId.startsWith('keihi_') || customId.startsWith('keihi:'))
+            return await handleKeihiInteraction(interaction);
+
+          const handledByConfig = await configBotHandlers.handleInteraction(interaction);
+          if (handledByConfig) return;
+
+          logger.warn(`[interactionCreate] 未対応セレクト: ${customId}`);
+        } catch (subErr) {
+          logger.error(`[interactionCreate:SelectMenu] ${customId} エラー:`, subErr);
+          await handleInteractionError(interaction, '⚠️ リスト選択処理中にエラーが発生しました。');
+        }
+        return;
       }
 
       // ============================================================
-      // モーダル送信
+      // ✅ モーダル送信
       // ============================================================
       if (interaction.isModalSubmit()) {
         const { customId } = interaction;
 
-        if (customId.startsWith('uriage:')) {
-          await handleUriageInteraction(interaction);
-          return;
-        }
+        try {
+          if (customId.startsWith('uriage:')) return await handleUriageInteraction(interaction);
+          if (customId.startsWith('syut_') || customId.startsWith('user_entry_modal:'))
+            return await handleSyutInteractions(interaction);
+          if (customId.startsWith('keihi:')) return await handleKeihiInteraction(interaction);
 
-        // 出退勤関連のハンドラを呼び出す
-        if (customId.startsWith('syut_') || customId.startsWith('user_entry_modal:')) {
-          await handleSyutInteractions(interaction);
-          return;
-        }
+          // 設定関連のモーダルを configBotHandlers に渡す
+          if (customId.startsWith('config_') || customId.startsWith('modal_')) {
+            return await configBotHandlers.handleInteraction(interaction);
+          }
 
-        // --- 設定モーダル ---
-        const handledByConfig = await configBotHandlers.handleInteraction(interaction);
-        if (handledByConfig) return;
+          logger.warn(`[interactionCreate] 未対応モーダル: ${customId}`);
+        } catch (subErr) {
+          logger.error(`[interactionCreate:Modal] ${customId} エラー:`, subErr);
+          await handleInteractionError(interaction, '⚠️ モーダル送信処理中にエラーが発生しました。');
+        }
+        return;
+      }
+
+      // ============================================================
+      // 未対応のInteraction
+      // ============================================================
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: '⚠️ 未対応の操作です。', ephemeral: true });
       }
     } catch (err) {
-      logger.error('[interactionCreate] エラー:', err);
-      await handleInteractionError(interaction, '⚠️ 不明なエラーが発生しました。');
+      logger.error('[interactionCreate] ルートエラー:', err);
+      await handleInteractionError(interaction, '⚠️ 予期せぬエラーが発生しました。');
     }
   },
 };

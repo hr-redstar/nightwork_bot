@@ -226,7 +226,7 @@ async function handleKeihiEdit(interaction) {
 
   // 修正モーダルを表示する
   const modal = new ModalBuilder()
-    .setCustomId(`keihi_edit_modal_${message.id}`)
+    .setCustomId(`keihi:approve:edit_modal:${message.id}`)
     .setTitle('📝 経費申請 修正');
 
   const amountInput = new TextInputBuilder()
@@ -261,7 +261,7 @@ async function handleKeihiEditModal(interaction) {
   const guildId = interaction.guild.id;
   const user = interaction.user;
   const now = dayjs().format('YYYY/MM/DD HH:mm');
-  const messageId = interaction.customId.replace('keihi_edit_modal_', '');
+  const messageId = interaction.customId.split(':')[3];
   const channel = interaction.channel;
   const message = await channel.messages.fetch(messageId);
   const embed = message.embeds[0];

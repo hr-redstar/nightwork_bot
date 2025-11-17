@@ -14,10 +14,11 @@ async function getStoreList(guildId) {
 /**
  * GCSから役職リストを取得
  * @param {string} guildId
- * @returns {Promise<string[]>}
+ * @returns {Promise<{id: string, name: string}[]>}
  */
 async function getRoleList(guildId) {
   const config = await loadStoreRoleConfig(guildId);
+  // roles は {id, name} のオブジェクト配列
   return config?.roles || [];
 }
 

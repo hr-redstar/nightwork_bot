@@ -1,6 +1,7 @@
 ﻿﻿// src/commands/11_設定経費.js
 
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const configManager = require('../utils/config/gcsConfigManager');
 const { postKeihiPanel } = require('../handlers/keihi/経費設定/keihiPanel');
 const { sendCommandLog } = require('../handlers/config/configLogger');
 
@@ -20,20 +21,36 @@ module.exports = {
 
     try {
       // コマンドの応答を保留し、タイムアウトを防ぐ
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-      await postKeihiPanel(interaction.channel);
+      const guildId = interaction.guildId;
+      const channel = interaction.channel;
+      const config = await configManager.getGuildConfig(guildId);
+      const panelMessageId = config.keihi?.panelMessageId;
+
+      // 既存のパネルメッセージがあれば削除
+      if (panelMessageId) {
+        try {
+          const oldMessage = await channel.messages.fetch(panelMessageId);
+          await oldMessage.delete();
+        } catch (error) {
+          console.warn(`[設定経費] 古いパネルメッセージの削除に失敗しました: ${panelMessageId}`, error.message);
+        }
+      }
+
+      // 新しいパネルを投稿
+      const newPanelMessage = await postKeihiPanel(channel, config);
+
+      // 投稿された最新のメッセージ（パネル）を取得してIDを保存
+      const newPanelMessage = await channel.messages.fetch({ limit: 1 });
+      config.keihi = { ...config.keihi, panelMessageId: newPanelMessage.first().id };
+      await configManager.setGuildConfig(guildId, config);
 
       // コマンドログ出力
       await sendCommandLog(interaction);
 
       // 実行結果を本人にだけ通知
-      const reply = await interaction.editReply({ content: '✅ 経費設定パネルを設置または更新しました。' });
-
-      // 30秒後にメッセージを自動削除
-      setTimeout(() => {
-        reply.delete().catch(err => console.error('Failed to delete ephemeral reply:', err));
-      }, 30000);
+      await interaction.editReply({ content: '✅ 経費設定パネルを更新しました。' });
     } catch (err) {
       console.error('❌ /設定経費 コマンドエラー:', err);
       // deferReply済みなので editReply でエラーを返す
