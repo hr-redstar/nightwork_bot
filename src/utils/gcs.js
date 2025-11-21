@@ -1,176 +1,157 @@
-/**
- * utils/gcs.js
- *
- * 開発環境ではローカル保存（./local_data）
- * 本番環境では Google Cloud Storage を使用
- */
+// src/utils/gcs.js
+// ----------------------------------------------------
+// Google Cloud Storage / ローカル 保存クライアント
+// ----------------------------------------------------
 
 const fs = require('fs');
 const path = require('path');
-const { Storage } = require('@google-cloud/storage');
 const logger = require('./logger');
 
-// -------------------------------------------------------------
-// ⚙️ 環境変数
-// -------------------------------------------------------------
-const USE_GCS = process.env.USE_GCS === 'true';
-const GCS_BUCKET = process.env.GCS_BUCKET || process.env.GCS_BUCKET_NAME;
-const LOCAL_BASE_PATH = path.join(__dirname, '../../local_data');
+let bucket = null;
+let isLocalMode = false;
+let localBasePath = path.join(process.cwd(), 'local_data');
 
-let storage = null;
-let activeMode = 'local';
+// -------------------------------
+// GCS 初期化
+// -------------------------------
+function initializeGCS() {
+  const projectId = process.env.GCP_PROJECT_ID;
+  const bucketName = process.env.GCP_BUCKET_NAME;
+  const keyFilename = process.env.GCP_SERVICE_KEY;
 
-// -------------------------------------------------------------
-// ☁️ GCS モード初期化
-// -------------------------------------------------------------
-if (USE_GCS && GCS_BUCKET) {
-  try {
-    const keyPath =
-      process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-      path.resolve(__dirname, '../config/gcsServiceAccount.json');
-    storage = new Storage({ keyFilename: keyPath });
-    activeMode = 'gcs';
-    logger.info(`☁️ GCS モード有効: バケット=${GCS_BUCKET}`);
-  } catch (err) {
-    activeMode = 'local';
-    logger.error('❌ GCS初期化失敗。ローカルモードに切り替えます。', err);
+  if (!projectId || !bucketName || !keyFilename) {
+    logger.info('💾 ローカル保存モード有効（GCS無効 or 設定なし）');
+    isLocalMode = true;
+    return;
   }
-} else {
-  logger.info('💾 ローカル保存モード有効');
-}
 
-// -------------------------------------------------------------
-// 📁 ローカルディレクトリ生成
-// -------------------------------------------------------------
-if (activeMode === 'local') {
   try {
-    fs.mkdirSync(LOCAL_BASE_PATH, { recursive: true });
-    logger.info(`📁 ローカルデータパス: ${LOCAL_BASE_PATH}`);
+    const { Storage } = require('@google-cloud/storage');
+    const storage = new Storage({
+      projectId,
+      keyFilename,
+    });
+
+    bucket = storage.bucket(bucketName);
+    isLocalMode = false;
+
+    logger.info('☁️ GCS モード有効');
   } catch (err) {
-    logger.error('❌ ローカルデータパス作成失敗:', err);
+    logger.error('❌ GCS 初期化エラー → ローカルモードに切替: ', err);
+    isLocalMode = true;
   }
 }
 
-// -------------------------------------------------------------
-// 🧩 共通ユーティリティ
-// -------------------------------------------------------------
+// ====================================================
+// GCS / ローカル共通 I/O
+// ====================================================
 
-/**
- * ファイル読み込み（テキスト）
- */
-async function readFile(filePath) {
-  if (activeMode === 'local' || !storage) {
-    const localPath = path.join(LOCAL_BASE_PATH, filePath);
+// -------------------------------
+// JSON 読み込み
+// -------------------------------
+async function readJSON(filePath) {
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, filePath);
     if (!fs.existsSync(localPath)) return null;
-    return fs.promises.readFile(localPath, 'utf8');
+    const raw = fs.readFileSync(localPath, 'utf-8');
+    return JSON.parse(raw);
   }
 
   try {
-    const [contents] = await storage.bucket(GCS_BUCKET).file(filePath).download();
-    return contents.toString('utf8');
+    const file = bucket.file(filePath);
+    const exists = await file.exists();
+    if (!exists[0]) return null;
+
+    const [contents] = await file.download();
+    return JSON.parse(contents.toString());
   } catch (err) {
-    logger.error(`❌ Read file failed: ${filePath}`, err);
+    logger.error('❌ readJSON 失敗:', filePath, err);
     return null;
   }
 }
 
-/**
- * ファイル保存（テキスト）
- */
-async function writeFile(filePath, data) {
-  if (activeMode === 'local' || !storage) {
-    const localPath = path.join(LOCAL_BASE_PATH, filePath);
-    await fs.promises.mkdir(path.dirname(localPath), { recursive: true });
-    await fs.promises.writeFile(localPath, data, 'utf8');
-    logger.debug(`💾 ローカル保存: ${localPath}`);
+// -------------------------------
+// JSON 保存
+// -------------------------------
+async function saveJSON(filePath, data) {
+  const jsonString = JSON.stringify(data, null, 2);
+
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, filePath);
+    const dir = path.dirname(localPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    fs.writeFileSync(localPath, jsonString);
+    return true;
+  }
+
+  try {
+    await bucket.file(filePath).save(jsonString, {
+      contentType: 'application/json',
+    });
+    return true;
+  } catch (err) {
+    logger.error('❌ saveJSON 失敗:', filePath, err);
+    return false;
+  }
+}
+
+// -------------------------------
+// ファイル存在チェック
+// -------------------------------
+async function exists(filePath) {
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, filePath);
+    return fs.existsSync(localPath);
+  }
+
+  try {
+    const [exists] = await bucket.file(filePath).exists();
+    return exists;
+  } catch {
+    return false;
+  }
+}
+
+// -------------------------------
+// 汎用書き込み
+// -------------------------------
+async function writeFile(filePath, buffer) {
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, filePath);
+    const dir = path.dirname(localPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    fs.writeFileSync(localPath, buffer);
     return;
   }
 
-  try {
-    await storage.bucket(GCS_BUCKET).file(filePath).save(data);
-    logger.debug(`☁️ GCS保存完了: ${filePath}`);
-  } catch (err) {
-    logger.error(`❌ Write file failed: ${filePath}`, err);
-  }
+  await bucket.file(filePath).save(buffer);
 }
 
-/**
- * JSON読み込み
- */
-async function readJson(filePath) {
-  try {
-    const content = await readFile(filePath);
-    if (!content || content.trim() === '') {
-      if (content !== null) logger.warn(`[gcs] 空のJSONファイル: ${filePath}`);
-      return null;
-    }
-    return JSON.parse(content);
-  } catch (err) {
-    logger.error(`⚠️ JSONパースエラー: ${filePath}`, err);
-    return null;
+// -------------------------------
+// 汎用読み込み
+// -------------------------------
+async function readFile(filePath) {
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, filePath);
+    if (!fs.existsSync(localPath)) return null;
+    return fs.readFileSync(localPath);
   }
+
+  const [contents] = await bucket.file(filePath).download();
+  return contents;
 }
 
-/**
- * JSON保存
- */
-async function writeJson(filePath, data) {
-  try {
-    const jsonStr = JSON.stringify(data, null, 2);
-    await writeFile(filePath, jsonStr);
-  } catch (err) {
-    logger.error(`⚠️ JSON書き込みエラー: ${filePath}`, err);
-  }
-}
-
-/**
- * ディレクトリ内のファイル一覧を取得
- */
-async function listFiles(prefix = '') {
-  if (activeMode === 'local' || !storage) {
-    const localDir = path.join(LOCAL_BASE_PATH, prefix);
-    if (!fs.existsSync(localDir)) return [];
-    return fs.readdirSync(localDir);
-  }
-
-  try {
-    const [files] = await storage.bucket(GCS_BUCKET).getFiles({ prefix });
-    return files.map((f) => f.name);
-  } catch (err) {
-    logger.error(`❌ listFiles failed: ${prefix}`, err);
-    return [];
-  }
-}
-
-async function deleteFile(filePath) {
-  if (activeMode === 'local' || !storage) {
-    const localPath = path.join(LOCAL_BASE_PATH, filePath);
-    if (fs.existsSync(localPath)) {
-      await fs.promises.unlink(localPath);
-      logger.debug(`🗑️ ローカル削除: ${filePath}`);
-    }
-    return;
-  }
-
-  try {
-    await storage.bucket(GCS_BUCKET).file(filePath).delete();
-    logger.debug(`🗑️ GCS削除完了: ${filePath}`);
-  } catch (err) {
-    logger.error(`❌ Delete file failed: ${filePath}`, err);
-  }
-}
-
-// -------------------------------------------------------------
-// 🧾 エクスポート
-// -------------------------------------------------------------
+// ====================================================
+// 公開 API
+// ====================================================
 module.exports = {
-  readFile,
+  initializeGCS,
+  isLocalMode: () => isLocalMode,
+  readJSON,
+  saveJSON,
+  exists,
   writeFile,
-  readJson,
-  writeJson,
-  // 他のモジュールとの互換性のためのエイリアス
-  readJSON: readJson,
-  saveJSON: writeJson,
-  listFiles,
-  deleteFile,
+  readFile,
 };

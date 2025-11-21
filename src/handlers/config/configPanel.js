@@ -1,136 +1,134 @@
-﻿﻿// src/handlers/config/configPanel.js
-const {
+﻿﻿const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
 } = require('discord.js');
-const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
+
 const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
+const { getGuildConfig } = require('../../utils/config/gcsConfigManager');
 
 /**
- * 設定パネルを設置または更新
- * @param {TextChannel} channel - 設置対象チャンネル
+ * 設定パネルを送信・更新
  */
-async function postConfigPanel(channel) {
+async function sendConfigPanel(channel) {
   const guildId = channel.guild.id;
-  const config = await getGuildConfig(guildId) || {};
+
   const storeRoleConfig = await loadStoreRoleConfig(guildId);
+  const globalConfig = await getGuildConfig(guildId);
 
-  // 各設定値のテキストを整形
-  const globalLog = config.globalLogChannel ? `<#${config.globalLogChannel}>` : '未設定';
-  const adminLog = config.adminLogChannel ? `<#${config.adminLogChannel}>` : '未設定';
-  const commandLog = config.commandLogThread ? `<#${config.commandLogThread}>` : '未設定';
-  const settingLog = config.settingLogThread ? `<#${config.settingLogThread}>` : '未設定';
+  const stores = storeRoleConfig.stores || [];
+  const roles = storeRoleConfig.roles || [];
+  const storeRoles = storeRoleConfig.storeRoles || {};
+  const roleUsers = storeRoleConfig.roleUsers || {};
 
-  const storesList = storeRoleConfig.stores && storeRoleConfig.stores.length > 0 ? `\`\`\`\n${storeRoleConfig.stores.join('\n')}\n\`\`\`` : '未登録';
-  const rolesList = storeRoleConfig.roles?.length ? `\`\`\`\n${storeRoleConfig.roles.join('\n')}\n\`\`\`` : '未登録';
+  // -------------------------------
+  // 🔵 登録済み店舗一覧
+  // -------------------------------
+  const storeList =
+    stores.length > 0 ? stores.map(s => `・${s}`).join('\n') : '未登録';
 
-  const storeRoleMap = storeRoleConfig.link_store_role && Object.keys(storeRoleConfig.link_store_role).length
-    ? Object.entries(storeRoleConfig.link_store_role || {})
-        .map(([store, roleIds]) => `**${store}**\n${roleIds.map(id => `<@&${id}>`).join('\n')}`)
-        .join('\n')
+  // -------------------------------
+  // 🟣 登録済み役職一覧
+  // -------------------------------
+  const roleList =
+    roles.length > 0 ? roles.map(r => `・${r.name}`).join('\n') : '未登録';
+
+  // -------------------------------
+  // 店舗とロールの紐づけ一覧
+  // -------------------------------
+  let storeRoleList = '未登録';
+  if (Object.keys(storeRoles).length > 0) {
+    storeRoleList = Object.entries(storeRoles)
+      .map(([store, roleIds]) => {
+        const roleMentions = roleIds.map(id => `<@&${id}>`).join('\n');
+        return `**${store}**\n${roleMentions}`;
+      })
+      .join('\n\n');
+  }
+
+  // -------------------------------
+  // 役職とロールの紐づけ一覧
+  // -------------------------------
+  let roleUserList = '未登録';
+  if (Object.keys(roleUsers).length > 0) {
+    roleUserList = Object.entries(roleUsers)
+      .map(([roleId, userIds]) => {
+        const roleName = roles.find(r => r.id === roleId)?.name || roleId;
+        const userMentions = userIds.map(uid => `<@${uid}>`).join('\n');
+        return `**${roleName}**\n${userMentions}`;
+      })
+      .join('\n\n');
+  }
+
+  // -------------------------------
+  // ログ設定
+  // -------------------------------
+  const logFields = [
+    { label: 'グローバルログチャンネル', id: 'globalLogChannel' },
+    { label: '管理者ログチャンネル', id: 'adminLogChannel' },
+    { label: 'コマンドログスレッド', id: 'commandLogThread' },
+    { label: '設定ログスレッド', id: 'settingLogThread' },
+  ]
+    .map(field => {
+      const v = globalConfig?.[field.id];
+      return `**${field.label}**：${v ? `<#${v}>` : '未設定'}`;
+    })
+    .join('\n');
+
+  // -------------------------------
+  // 🔔 Slack通知（簡易）
+  // -------------------------------
+  const slackInfo = globalConfig?.slackBotName
+    ? `bot名：${globalConfig.slackBotName}\n最終更新：${globalConfig.slackUpdatedAt}`
     : '未設定';
 
-  const positionRoleMap = storeRoleConfig.link_role_role && Object.keys(storeRoleConfig.link_role_role).length
-    ? Object.entries(storeRoleConfig.link_role_role)
-        .map(([position, roleIds]) => `**${position}**\n${roleIds.map(id => `<@&${id}>`).join('\n')}`)
-        .join('\n')
-    : '未設定';
-
-  const slackStatus = config.slackAutomation ? '✅ 有効' : '❌ 無効';
-
-  // Embed構築
+  // -------------------------------
+  // 📌 Embed 作成
+  // -------------------------------
   const embed = new EmbedBuilder()
+    .setColor('#3498db')
     .setTitle('⚙️ 設定パネル')
-    .setColor(0x3498db) // Discordの青色
-    .setDescription(
-      `**🏪 登録済み店舗一覧**\n${storesList}\n\n` +
-      `**👥 登録済み役職一覧**\n${rolesList}\n\n` +
-      `**🏢 店舗とロールの紐づけ一覧**\n${storeRoleMap}\n\n` +
-      `**👔 役職とロールの紐づけ一覧**\n${positionRoleMap}\n\n` +
-      '---\n\n' +
-      `**​グローバルログチャンネル**\n${globalLog}\n\n` +
-      `**管理者ログチャンネル**\n${adminLog}\n\n` +
-      `**コマンドログスレッド**\n${commandLog}\n\n` +
-      `**設定ログスレッド**\n${settingLog}\n\n` +
-      '---\n\n' +
-      `**🤖 Slack通知自動化**\n${slackStatus}`
+    .addFields(
+      { name: '🏪 登録済み店舗一覧', value: storeList },
+      { name: '👥 登録済み役職一覧', value: roleList },
+      { name: '🏪 店舗とロールの紐づけ一覧', value: storeRoleList },
+      { name: '👥 役職とユーザーの紐づけ一覧', value: roleUserList },
+      { name: '📜 ログ設定', value: logFields },
+      { name: '🔔 Slack通知自動化', value: slackInfo },
     )
     .setTimestamp();
 
-  // === ボタン構成 ===
+  // -------------------------------
+  // 🟦 ボタン作成
+  // -------------------------------
   const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('config_store_edit')
-      .setLabel('店舗名編集')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('config_role_edit')
-      .setLabel('役職編集')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('config_store_role_link')
-      .setLabel('店舗とロールの紐づけ')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('config_position_role_link')
-      .setLabel('役職とロールの紐づけ')
-      .setStyle(ButtonStyle.Secondary)
+    new ButtonBuilder().setCustomId('config:edit_store').setLabel('店舗名編集').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('config:edit_role').setLabel('役職編集').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('config:link_store_role').setLabel('店舗とロールの紐づけ').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('config:link_role_user').setLabel('役職とユーザーの紐づけ').setStyle(ButtonStyle.Secondary),
   );
 
   const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('config_user_register')
-      .setLabel('ユーザー情報登録')
-      .setStyle(ButtonStyle.Success)
+    new ButtonBuilder().setCustomId('config:user_register').setLabel('ユーザー情報登録').setStyle(ButtonStyle.Success),
   );
 
   const row3 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('config_global_log')
-      .setLabel('グローバルログ設定')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('config_admin_log')
-      .setLabel('管理者ログ設定')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('config_command_thread')
-      .setLabel('コマンドログスレッド設定')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('config_setting_thread')
-      .setLabel('設定ログスレッド設定')
-      .setStyle(ButtonStyle.Secondary)
+    new ButtonBuilder().setCustomId('config:set_global_log').setLabel('グローバルログ設定').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('config:set_admin_log').setLabel('管理者ログ設定').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('config:set_command_log').setLabel('コマンドログ設定').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('config:set_setting_log').setLabel('設定ログ設定').setStyle(ButtonStyle.Secondary),
   );
 
   const row4 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('config_slack_auto')
-      .setLabel('Slack通知自動化')
-      .setStyle(ButtonStyle.Primary)
+    new ButtonBuilder().setCustomId('config:slack').setLabel('Slack通知').setStyle(ButtonStyle.Primary),
   );
 
-  // === 既存メッセージを検索して更新 ===
-  const messages = await channel.messages.fetch({ limit: 10 });
-  const existing = messages.find((m) =>
-    m.embeds[0]?.title?.includes('設定パネル')
-  );
-
-  if (existing) {
-    await existing.edit({
-      embeds: [embed],
-      components: [row1, row2, row3, row4],
-    });
-    console.log('♻️ 設定パネルを更新しました');
-  } else {
-    await channel.send({
-      embeds: [embed],
-      components: [row1, row2, row3, row4],
-    });
-    console.log('✅ 設定パネルを新規設置しました');
-  }
+  // 送信 or 更新
+  return channel.send({
+    embeds: [embed],
+    components: [row1, row2, row3, row4],
+  });
 }
 
-module.exports = { postConfigPanel };
+module.exports = { sendConfigPanel };

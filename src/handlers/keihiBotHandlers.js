@@ -1,130 +1,138 @@
-﻿﻿// src/handlers/keihiBotHandler.js
-//
-// 経費関連の全インタラクションを一元処理する中心ハンドラー
-//
+﻿﻿// src/handlers/keihiBotHandlers.js
+// ----------------------------------------------------
+// 経費機能のルーティング一括管理
+// ----------------------------------------------------
 
-const { IDS } = require('./keihi/経費設定/ids');
+const logger = require("../utils/logger");
 
-// --- 経費設定（Config） ---
+// ----------------------------------------------------
+// 経費申請（初回）
+// ----------------------------------------------------
 const {
-  openApproveRoleSelect,
-  openViewRoleSelect,
-  openApplyRoleSelect,
-  handleRoleSelected,
-} = require('./keihi/経費設定/keihiRoleHandler');
+  startKeihiRequest,
+  openKeihiModal,
+  submitKeihiRequest,
+} = require("./keihi/keihiRequestHandler");
 
-const { postKeihiReportPanel, openKeihiReportModal, handleReportSubmit } = require('./keihi/経費設定/keihiPanel_Report');
-const { updateKeihiPanel } = require('./keihi/経費設定/keihiPanel_Config');
+// ----------------------------------------------------
+// 経費修正処理
+// ----------------------------------------------------
+const {
+  openModifyModal,
+  submitModify,
+} = require("./keihi/keihiModifyHandler");
 
-// --- 経費申請（Report） ---
-const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/経費申請/keihiItemHandler');
-const { handleKeihiRequest } = require('./keihi/経費申請/keihiRequestHandler');
+// ----------------------------------------------------
+// 経費承認 / 削除処理（後で実装）
+// ----------------------------------------------------
+const { approveKeihi } = require("./keihi/keihiApproveHandler");
+const { deleteKeihi } = require("./keihi/keihiDeleteHandler");
 
-const { openCsvExportFlow, handleCsvExportSelection } = require('./keihi/経費設定/keihiExportHandler');
+// ----------------------------------------------------
+// 経費パネル設置（設定パネル → 店舗/チャンネル選択）
+// ----------------------------------------------------
+const {
+  openStoreSelect,
+  openChannelSelect,
+  placePanel,
+} = require("./keihi/keihiPanel_setup");
 
-
-/**
- * 経費関連のインタラクションをすべて集約
- */
-async function handleInteraction(interaction) {
-  try {
-    const id = interaction.customId || "";
-
-    // ============================================================
-    // ① 経費設定パネル関連
-    // ============================================================
-    if (id === IDS.BTN_KEIHI_PANEL_SETUP) {
-      await interaction.deferUpdate();
-      return postKeihiReportPanel(interaction);
-    }
-
-    // --- 承認 / 閲覧 / 申請 役職設定ボタン ---
-    if (id === IDS.BTN_KEIHI_ROLE_APPROVER) {
-      await interaction.deferUpdate();
-      return openApproveRoleSelect(interaction);
-    }
-    if (id === IDS.BTN_KEIHI_ROLE_VIEWER) {
-      await interaction.deferUpdate();
-      return openViewRoleSelect(interaction);
-    }
-    if (id === IDS.BTN_KEIHI_ROLE_APPLICANT) {
-      await interaction.deferUpdate();
-      return openApplyRoleSelect(interaction);
-    }
-
-    // --- CSV Export ---
-    if (id === IDS.BTN_KEIHI_CSV_EXPORT) {
-      await interaction.deferUpdate();
-      return openCsvExportFlow(interaction);
-    }
-
-    // ============================================================
-    // ② 経費パネル設置のセレクト処理
-    // ============================================================
-    if (interaction.isAnySelectMenu()) {
-      if (id.startsWith('keihi:select:role:')) {
-        return handleRoleSelected(interaction);
-      }
-      if (id === 'keihi:select:store' || id === 'keihi_select_store') {
-        return postKeihiReportPanel(interaction, { step: 'select' });
-      }
-      if (id.startsWith('keihi:select:textchannel:')) {
-        return postKeihiReportPanel(interaction);
-      }
-
-      // CSV関連
-      if (
-        id.startsWith('keihi:select:store:csv') ||
-        id.startsWith('keihi:select:csvscope:') ||
-        id.startsWith('keihi:select:csvfile:')
-      ) {
-        return handleCsvExportSelection(interaction);
-      }
-    }
-
-    // ============================================================
-    // ③ 経費申請パネル関連（項目登録 / 申請）
-    // ============================================================
-
-    // --- 経費項目登録 ---
-    if (id.startsWith(IDS.BTN_ITEM_REGISTER)) {
-      return openItemRegisterModal(interaction);
-    }
-
-    // --- 経費申請 ---
-    if (id.startsWith(IDS.BTN_REPORT_OPEN)) {
-      return openKeihiReportModal(interaction);
-    }
-
-    // --- 旧ボタン互換（keihi_request_）---
-    if (id.startsWith("keihi_request_")) {
-      return handleKeihiRequest(interaction);
-    }
-
-    // ============================================================
-    // ④ モーダル
-    // ============================================================
-    if (interaction.isModalSubmit()) {
-      // 項目登録
-      if (id.startsWith(IDS.MODAL_ITEM_REGISTER)) {
-        return handleItemRegisterSubmit(interaction);
-      }
-      // 経費申請モーダル
-      if (id.startsWith('keihi:modal:report:')) {
-        return handleReportSubmit(interaction);
-      }
-    }
-
-  } catch (err) {
-    console.error("❌ keihiBotHandler エラー:", err);
+module.exports = {
+  /**
+   * 経費機能の全 interaction をここで一括ハンドリング
+   */
+  async handleInteraction(interaction) {
+    const { customId } = interaction;
 
     try {
-      const { handleInteractionError } = require('../utils/errorHandlers');
-      await handleInteractionError(interaction, '⚠️ 経費処理中にエラーが発生しました。');
-    } catch (e) {
-      console.error("[keihiBotHandler] エラー処理中のエラー:", e);
-    }
-  }
-}
+      // ===================================================
+      // ① 経費申請ボタン（経費申請パネル → 申請開始）
+      // ===================================================
+      if (customId.startsWith("keihi_request:")) {
+        const store = customId.split(":")[1];
+        return startKeihiRequest(interaction, store);
+      }
 
-module.exports = { handleInteraction };
+      // ===================================================
+      // ② 経費項目の選択メニュー
+      // ===================================================
+      if (customId.startsWith("keihi_request_item:")) {
+        const store = customId.split(":")[1];
+        const item = interaction.values?.[0];
+        return openKeihiModal(interaction, store, item);
+      }
+
+      // ===================================================
+      // ③ 経費申請モーダル送信
+      // ===================================================
+      if (customId.startsWith("keihi_request_modal:")) {
+        const parts = customId.split(":");
+        const store = parts[1];
+        const item = parts[2];
+        return submitKeihiRequest(interaction, store, item);
+      }
+
+      // ===================================================
+      // ④ 修正ボタン（スレッド内）
+      // ===================================================
+      if (customId.startsWith("keihi_modify:")) {
+        const store = customId.split(":")[1];
+        return openModifyModal(interaction, store);
+      }
+
+      // ===================================================
+      // ⑤ 修正モーダル送信
+      // ===================================================
+      if (customId.startsWith("keihi_modify_modal:")) {
+        const store = customId.split(":")[1];
+        return submitModify(interaction, store);
+      }
+
+      // ===================================================
+      // ⑥ 経費パネル設置フロー（設定パネル）
+      // ===================================================
+
+      // STEP1：パネル設置ボタン
+      if (customId === "keihi_panel_setup") {
+        return openStoreSelect(interaction);
+      }
+
+      // STEP2：店舗選択
+      if (customId === "keihi_panel_store_select") {
+        const store = interaction.values?.[0];
+        if (!store) {
+          return interaction.reply({
+            content: "⚠️ 店舗を取得できませんでした。",
+            ephemeral: true,
+          });
+        }
+        return openChannelSelect(interaction, store);
+      }
+
+      // STEP3：チャンネル選択
+      if (customId.startsWith("keihi_panel_channel:")) {
+        const store = customId.split(":")[1];
+        return placePanel(interaction, store);
+      }
+
+      // ------------------------------------------------------
+      // ※ 承認処理（keihi_approve:）は後で追加予定
+      // ※ 削除処理（keihi_delete:）は後で追加予定
+      // ------------------------------------------------------
+
+      return false; // 経費関連ではない
+
+    } catch (err) {
+      logger.error("[KeihiHandlers] エラー:", err);
+
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: "⚠️ 経費処理中にエラーが発生しました。",
+          ephemeral: true,
+        });
+      }
+
+      return true;
+    }
+  },
+};

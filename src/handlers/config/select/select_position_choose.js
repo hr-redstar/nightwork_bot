@@ -1,0 +1,51 @@
+// src/handlers/config/components/select/select_position_choose.js
+// ----------------------------------------------------
+// Step1：紐づけ対象の「役職」を選択
+// ----------------------------------------------------
+
+const {
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+} = require('discord.js');
+
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const nextStep = require('./select_position_roles.js');
+
+module.exports = {
+  customId: 'CONFIG_SELECT_POSITION',
+
+  async show(interaction) {
+    const config = await loadStoreRoleConfig(interaction.guild.id);
+    const positions = config.roles; // [{id,name}]
+
+    if (!positions.length) {
+      return interaction.reply({
+        content: '⚠️ 先に役職を登録してください。',
+        ephemeral: true,
+      });
+    }
+
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId('CONFIG_SELECT_POSITION')
+      .setPlaceholder('対象の役職を選択してください')
+      .addOptions(
+        positions.map((p) => ({
+          label: p.name,
+          value: p.id,
+        }))
+      );
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    await interaction.reply({
+      content: '👔 ロールを紐づける **役職** を選択してください。',
+      components: [row],
+      ephemeral: true,
+    });
+  },
+
+  async handle(interaction) {
+    const positionId = interaction.values[0];
+    return nextStep.show(interaction, positionId);
+  },
+};

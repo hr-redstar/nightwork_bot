@@ -3,7 +3,7 @@
  * 保存場所: GCS/ギルドID/syut/
  */
 
-const { readJson, writeJson } = require('../gcs');
+const { readJSON, saveJSON } = require('../gcs');
 
 /**
  * ベースディレクトリ
@@ -21,7 +21,7 @@ function getBasePath(guildId) {
  */
 async function getSyutConfig(guildId) {
   const filePath = `${getBasePath(guildId)}/config.json`;
-  return (await readJson(filePath)) || {
+  return (await readJSON(filePath)) || {
     castPanelList: {},
     kurofukuPanelList: {},
     lastUpdated: null,
@@ -34,7 +34,7 @@ async function getSyutConfig(guildId) {
 async function saveSyutConfig(guildId, data) {
   const filePath = `${getBasePath(guildId)}/config.json`;
   data.lastUpdated = new Date().toISOString();
-  await writeJson(filePath, data);
+  await saveJSON(filePath, data);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -43,16 +43,11 @@ async function saveSyutConfig(guildId, data) {
 
 /**
  * 日次データ取得
- * @param guildId ギルドID
- * @param storeName 店舗名
- * @param date yyyy-mm-dd
  */
 async function getDailySyuttaikin(guildId, storeName, date) {
   const [year, month, day] = date.split('-');
-  const filePath = `${getBasePath(
-    guildId
-  )}/${storeName}/${year}/${month}/${day}/${year}${month}${day}.json`;
-  return (await readJson(filePath)) || { cast: [], kurofuku: [], createdAt: null };
+  const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${month}/${day}/${year}${month}${day}.json`;
+  return (await readJSON(filePath)) || { cast: [], kurofuku: [], createdAt: null };
 }
 
 /**
@@ -60,21 +55,17 @@ async function getDailySyuttaikin(guildId, storeName, date) {
  */
 async function saveDailySyuttaikin(guildId, storeName, date, data) {
   const [year, month, day] = date.split('-');
-  const filePath = `${getBasePath(
-    guildId
-  )}/${storeName}/${year}/${month}/${day}/${year}${month}${day}.json`;
+  const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${month}/${day}/${year}${month}${day}.json`;
   data.createdAt = new Date().toISOString();
-  await writeJson(filePath, data);
+  await saveJSON(filePath, data);
 }
 
 /**
  * 月次データ取得
  */
 async function getMonthlySyuttaikin(guildId, storeName, year, month) {
-  const filePath = `${getBasePath(
-    guildId
-  )}/${storeName}/${year}/${month}/${year}${month}.json`;
-  return (await readJson(filePath)) || {
+  const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${month}/${year}${month}.json`;
+  return (await readJSON(filePath)) || {
     店舗名: storeName,
     castSummary: [],
     kurofukuSummary: [],
@@ -86,11 +77,9 @@ async function getMonthlySyuttaikin(guildId, storeName, year, month) {
  * 月次データ保存
  */
 async function saveMonthlySyuttaikin(guildId, storeName, year, month, data) {
-  const filePath = `${getBasePath(
-    guildId
-  )}/${storeName}/${year}/${month}/${year}${month}.json`;
+  const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${month}/${year}${month}.json`;
   data.updatedAt = new Date().toISOString();
-  await writeJson(filePath, data);
+  await saveJSON(filePath, data);
 }
 
 /**
@@ -98,7 +87,7 @@ async function saveMonthlySyuttaikin(guildId, storeName, year, month, data) {
  */
 async function getYearlySyuttaikin(guildId, storeName, year) {
   const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${year}.json`;
-  return (await readJson(filePath)) || {
+  return (await readJSON(filePath)) || {
     year,
     店舗名: storeName,
     castTotal: {},
@@ -113,7 +102,7 @@ async function getYearlySyuttaikin(guildId, storeName, year) {
 async function saveYearlySyuttaikin(guildId, storeName, year, data) {
   const filePath = `${getBasePath(guildId)}/${storeName}/${year}/${year}.json`;
   data.updatedAt = new Date().toISOString();
-  await writeJson(filePath, data);
+  await saveJSON(filePath, data);
 }
 
 /* -------------------------------------------------------------------------- */

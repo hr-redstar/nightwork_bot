@@ -1,58 +1,125 @@
 // src/utils/keihi/gcsKeihiManager.js
-const { readJson, writeJson, listFiles } = require('../gcs');
-const path = require('path');
+// ----------------------------------------------------
+// 経費パネル一覧の管理（GCS / ローカル両対応）
+// ----------------------------------------------------
+
+const dayjs = require('dayjs');
+const logger = require('../logger');
+const { readJSON, saveJSON } = require('../gcs');
+const { panelListPath } = require('./keihiConfigManager');
+
+// パネルの初期データ
+const defaultPanelData = {
+  panels: [],
+};
 
 /**
- * 経費設定データを取得
- */
-async function getKeihiConfig(guildId) {
-  return (await readJson(`GCS/${guildId}/keihi/config.json`)) || {};
-}
-
-/**
- * 経費設定データを保存
- */
-async function saveKeihiConfig(guildId, data) {
-  await writeJson(`GCS/${guildId}/keihi/config.json`, {
-    ...data,
-    updatedAt: new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
-  });
-}
-
-/**
- * 経費パネル設置一覧を取得
+ * パネル一覧を取得
  */
 async function getKeihiPanelList(guildId) {
-  // panelList はJSONオブジェクト内の配列と想定される（例: { list: [] }）
-  // 二重にラップされたペイロードにも対応する（例: { list: { list: [...] } }）
-  const data = await readJson(`GCS/${guildId}/keihi/panelList.json`);
-  const raw = data?.list;
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (raw.list && Array.isArray(raw.list)) return raw.list;
-  return [];
+  const file = panelListPath(guildId);
+
+  try {
+    const data = await readJSON(file);
+    if (!data) {
+      logger.info(`[gcsKeihi] パネル一覧が存在しません（新規作成）: ${file}`);
+      return { ...defaultPanelData };
+    }
+
+    // panels が無ければ初期化
+    return {
+      ...defaultPanelData,
+      ...data,
+      panels: Array.isArray(data.panels) ? data.panels : [],
+    };
+  } catch (err) {
+    logger.error('[gcsKeihi] パネル一覧読込エラー:', err);
+    return { ...defaultPanelData };
+  }
 }
 
 /**
- * 経費パネル設置一覧を保存
+ * パネル一覧を保存
  */
-async function saveKeihiPanelList(guildId, list) {
-  await writeJson(`GCS/${guildId}/keihi/panelList.json`, { list });
+async function saveKeihiPanelList(guildId, data) {
+  const file = panelListPath(guildId);
+
+  try {
+    const saveData = {
+      ...defaultPanelData,
+      ...data,
+      panels: Array.isArray(data.panels) ? data.panels : [],
+      updatedAt: dayjs().toISOString(),
+    };
+
+    await saveJSON(file, saveData);
+    return true;
+  } catch (err) {
+    logger.error('[gcsKeihi] パネル一覧保存エラー:', err);
+    return false;
+  }
 }
 
 /**
- * 指定店舗のCSVファイル一覧を取得
+ * パネルを追加
  */
-async function getCsvFileList(guildId, store) {
-  const prefix = `GCS/${guildId}/keihi/${store}/`;
-  const allFiles = await listFiles(prefix);
-  return allFiles.filter(f => f.endsWith('.csv')).map(f => path.basename(f));
+async function addKeihiPanel(guildId, panelInfo) {
+  const list = await getKeihiPanelList(guildId);
+
+  list.panels.push({
+    store: panelInfo.store,
+    channelId: panelInfo.channelId,
+    messageId: panelInfo.messageId,
+    approvalRoles: panelInfo.approvalRoles || [],
+    viewRoles: panelInfo.viewRoles || [],
+    applyRoles: panelInfo.applyRoles || [],
+    createdAt: dayjs().toISOString(),
+    updatedAt: dayjs().toISOString(),
+  });
+
+  return await saveKeihiPanelList(guildId, list);
+}
+
+/**
+ * 特定店舗のパネルを取得
+ */
+async function getPanelByStore(guildId, store) {
+  const list = await getKeihiPanelList(guildId);
+  return list.panels.find((p) => p.store === store) || null;
+}
+
+/**
+ * パネル情報を更新
+ */
+async function updateKeihiPanel(guildId, store, updates) {
+  const list = await getKeihiPanelList(guildId);
+
+  const panel = list.panels.find((p) => p.store === store);
+  if (!panel) return false;
+
+  Object.assign(panel, updates, {
+    updatedAt: dayjs().toISOString(),
+  });
+
+  return await saveKeihiPanelList(guildId, list);
+}
+
+/**
+ * パネルを削除
+ */
+async function deleteKeihiPanel(guildId, store) {
+  const list = await getKeihiPanelList(guildId);
+
+  list.panels = list.panels.filter((p) => p.store !== store);
+
+  return await saveKeihiPanelList(guildId, list);
 }
 
 module.exports = {
-  getKeihiConfig,
-  saveKeihiConfig,
   getKeihiPanelList,
   saveKeihiPanelList,
-  getCsvFileList,
+  addKeihiPanel,
+  getPanelByStore,
+  updateKeihiPanel,
+  deleteKeihiPanel,
 };

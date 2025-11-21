@@ -1,6 +1,6 @@
 // src/utils/config/storeRoleConfigManager.js
 // ----------------------------------------------------
-// 店舗・役職・ロールメンバーの共通管理モジュール
+// 店舗・役職・ロールメンバーの共通管理モジュール（完全最新版）
 // ----------------------------------------------------
 
 const dayjs = require('dayjs');
@@ -11,10 +11,6 @@ const { readJSON, saveJSON } = require('../gcs');
 // 🧭 パス生成
 // ====================================================
 
-/**
- * 店舗・役職・ロール情報の保存パス
- * 例）{guildId}/config/店舗_役職_ロール.json
- */
 function storeRoleConfigPath(guildId) {
   return `${guildId}/config/店舗_役職_ロール.json`;
 }
@@ -25,65 +21,60 @@ function storeRoleConfigPath(guildId) {
 
 function defaultStoreRoleConfig() {
   return {
-    // 店舗名一覧（文字列）
-    stores: [],
-    // 利用するロール一覧 [{ id, name }]
-    roles: [],
-    // 店舗に紐づいているロールID一覧 { [storeName]: string[] }
-    storeRoles: {},
-    // ロールに紐づくメンバーID一覧 { [roleId]: string[] }
-    roleMembers: {},
+    stores: [],                 // 店舗名一覧
+    roles: [],                  // [{id, name}]
+    storeRoles: {},             // { 店舗名: [roleId] }
+    roleMembers: {},            // { roleId: [userId] }
     updatedAt: null,
   };
 }
 
 // ====================================================
-// ⚙️ 読み書き
+// 🔧 正規化（最重要）
 // ====================================================
 
-/**
- * 店舗・役職設定の読み込み
- * @param {string} guildId
- * @returns {Promise<ReturnType<typeof defaultStoreRoleConfig>>}
- */
+function normalizeStoreRoleConfig(raw) {
+  const base = defaultStoreRoleConfig();
+  const data = raw || {};
+
+  return {
+    stores: Array.isArray(data.stores) ? data.stores : [],
+    roles: Array.isArray(data.roles) ? data.roles : [],
+    storeRoles: typeof data.storeRoles === 'object' ? data.storeRoles : {},
+    roleMembers: typeof data.roleMembers === 'object' ? data.roleMembers : {},
+    updatedAt: data.updatedAt ?? null,
+  };
+}
+
+// ====================================================
+// 📥 読み込み / 📤 保存
+// ====================================================
+
 async function loadStoreRoleConfig(guildId) {
   const path = storeRoleConfigPath(guildId);
 
   try {
-    const data = (await readJSON(path)) || {};
-    const base = defaultStoreRoleConfig();
-
-    return {
-      ...base,
-      ...data,
-      stores: Array.isArray(data.stores) ? data.stores : base.stores,
-      roles: Array.isArray(data.roles) ? data.roles : base.roles,
-      storeRoles: data.storeRoles || base.storeRoles,
-      roleMembers: data.roleMembers || base.roleMembers,
-      updatedAt: data.updatedAt || base.updatedAt,
-    };
+    const data = await readJSON(path);
+    return normalizeStoreRoleConfig(data);
   } catch (err) {
-    logger.error(`❌ storeRoleConfig 読込エラー (${guildId}):`, err);
+    logger.warn(`⚠️ storeRoleConfig 読み込み失敗 → デフォルト使用 (${guildId})`);
     return defaultStoreRoleConfig();
   }
 }
 
-/**
- * 店舗・役職設定の保存
- * @param {string} guildId
- * @param {object} config
- */
 async function saveStoreRoleConfig(guildId, config) {
   const path = storeRoleConfigPath(guildId);
+
   const saveData = {
-    ...config,
-    updatedAt: dayjs().format('YYYY/MM/DD HH:mm'),
+    ...normalizeStoreRoleConfig(config),
+    updatedAt: dayjs().format('YYYY/MM/DD HH:mm:ss'),
   };
 
   try {
     await saveJSON(path, saveData);
+    logger.info(`💾 storeRoleConfig 保存 (${guildId})`);
   } catch (err) {
-    logger.error(`❌ storeRoleConfig 保存エラー (${guildId}):`, err);
+    logger.error(`❌ storeRoleConfig 保存エラー (${guildId})`, err);
   }
 }
 
@@ -91,122 +82,115 @@ async function saveStoreRoleConfig(guildId, config) {
 // 🏪 店舗操作
 // ====================================================
 
-/**
- * 店舗を追加（重複は無視）
- */
 async function addStore(guildId, storeName) {
   const config = await loadStoreRoleConfig(guildId);
+
   if (!config.stores.includes(storeName)) {
     config.stores.push(storeName);
   }
+  if (!config.storeRoles[storeName]) {
+    config.storeRoles[storeName] = [];
+  }
+
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
 
-/**
- * 店舗を削除（storeRoles の紐づけも削除）
- */
 async function removeStore(guildId, storeName) {
   const config = await loadStoreRoleConfig(guildId);
 
   config.stores = config.stores.filter((s) => s !== storeName);
-  if (config.storeRoles[storeName]) {
-    delete config.storeRoles[storeName];
-  }
+  delete config.storeRoles[storeName]; // 紐づけだけ削除
 
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
 
 // ====================================================
-// 🎭 ロール操作
+// 🎭 ロール操作（最新版）
 // ====================================================
 
-/**
- * ロールを追加（Discord Role オブジェクト or {id,name}）
- * @param {string} guildId
- * @param {{id:string, name:string} | import('discord.js').Role} role
- */
 async function addRole(guildId, role) {
   const config = await loadStoreRoleConfig(guildId);
 
   const roleId = role.id;
   const roleName = role.name;
 
-  if (!config.roles.find((r) => r.id === roleId)) {
+  const existing = config.roles.find((r) => r.id === roleId);
+
+  if (!existing) {
     config.roles.push({ id: roleId, name: roleName });
+  } else if (existing.name !== roleName) {
+    // ロール名の変更に対応
+    existing.name = roleName;
+  }
+
+  if (!config.roleMembers[roleId]) {
+    config.roleMembers[roleId] = [];
   }
 
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
 
-/**
- * ロールを削除（storeRoles, roleMembers もクリーンアップ）
- */
 async function removeRole(guildId, roleId) {
   const config = await loadStoreRoleConfig(guildId);
 
   config.roles = config.roles.filter((r) => r.id !== roleId);
 
-  // 店舗ごとの紐づけからも削除
+  // 店舗紐づけから削除
   for (const store of Object.keys(config.storeRoles)) {
     config.storeRoles[store] = (config.storeRoles[store] || []).filter(
-      (id) => id !== roleId,
+      (id) => id !== roleId
     );
-    if (!config.storeRoles[store].length) {
-      delete config.storeRoles[store];
-    }
   }
 
-  // ロールメンバー情報も削除
-  if (config.roleMembers[roleId]) {
-    delete config.roleMembers[roleId];
-  }
+  // メンバー情報は空配列として残す
+  config.roleMembers[roleId] = [];
 
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
 
 // ====================================================
-// 🔗 店舗とロールの紐づけ
+// 🔗 店舗とロールの紐づけ（最新版）
 // ====================================================
 
-/**
- * 店舗にロールを紐づけ
- */
-async function linkStoreRole(guildId, storeName, roleId) {
+async function linkStoreRole(guildId, storeName, roleId, roleName = null) {
   const config = await loadStoreRoleConfig(guildId);
 
   if (!config.stores.includes(storeName)) {
     config.stores.push(storeName);
   }
-
-  if (!config.roles.find((r) => r.id === roleId)) {
-    // ロール名までは分からないので、最低限IDだけ登録
-    config.roles.push({ id: roleId, name: '(unknown)' });
+  if (!config.storeRoles[storeName]) {
+    config.storeRoles[storeName] = [];
   }
 
-  const list = config.storeRoles[storeName] || [];
-  if (!list.includes(roleId)) {
-    list.push(roleId);
+  // ロール名がわかる場合は更新
+  if (roleName) {
+    const existing = config.roles.find((r) => r.id === roleId);
+    if (existing) {
+      existing.name = roleName;
+    } else {
+      config.roles.push({ id: roleId, name: roleName });
+    }
   }
-  config.storeRoles[storeName] = list;
+
+  if (!config.storeRoles[storeName].includes(roleId)) {
+    config.storeRoles[storeName].push(roleId);
+  }
 
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
 
-/**
- * 店舗とロールの紐づけを解除
- */
 async function unlinkStoreRole(guildId, storeName, roleId) {
   const config = await loadStoreRoleConfig(guildId);
 
-  const list = config.storeRoles[storeName] || [];
-  config.storeRoles[storeName] = list.filter((id) => id !== roleId);
-  if (!config.storeRoles[storeName].length) {
-    delete config.storeRoles[storeName];
+  if (config.storeRoles[storeName]) {
+    config.storeRoles[storeName] = config.storeRoles[storeName].filter(
+      (id) => id !== roleId
+    );
   }
 
   await saveStoreRoleConfig(guildId, config);
@@ -214,34 +198,25 @@ async function unlinkStoreRole(guildId, storeName, roleId) {
 }
 
 // ====================================================
-// 👥 ロールに紐づくユーザー一覧を反映
+// 👥 ロールメンバーの更新
 // ====================================================
 
-/**
- * 現在のギルド状態から、roleMembers を再構築して保存
- * @param {import('discord.js').Guild} guild
- */
 async function refreshRoleMembers(guild) {
   const guildId = guild.id;
   const config = await loadStoreRoleConfig(guildId);
 
-  // 全メンバーをフェッチ（GuildMembers intent が必須）
   const members = await guild.members.fetch();
-
-  const roleMembersMap = {};
+  const roleMembers = {};
 
   for (const role of config.roles) {
     const roleId = role.id;
-    const users = members
-      .filter((m) => m.roles.cache.has(roleId))
-      .map((m) => m.id);
+    const matched = members.filter((m) => m.roles.cache.has(roleId));
 
-    if (users.length) {
-      roleMembersMap[roleId] = users;
-    }
+    roleMembers[roleId] = matched.map((m) => m.id); // 空でも配列にする
   }
 
-  config.roleMembers = roleMembersMap;
+  config.roleMembers = roleMembers;
+
   await saveStoreRoleConfig(guildId, config);
   return config;
 }
