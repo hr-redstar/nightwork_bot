@@ -6,11 +6,14 @@
 const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } = require('discord.js');
 
 const {
   loadStoreRoleConfig,
 } = require('../../../../utils/config/storeRoleConfigManager');
+const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
 
 const nextStep = require('./select_user_birth_year.js');
 
@@ -41,15 +44,21 @@ module.exports = {
     const member = await guild.members.fetch(userId);
     const userRoleIds = [...member.roles.cache.keys()];
 
-    // --- 自動推定：positionRoles とユーザーロールの一致判定 ---
+    // --- 自動推定 ---
     let defaultPositionId = null;
-
-    if (config.positionRoles) {
-      for (const [positionId, linkedRoleIds] of Object.entries(config.positionRoles)) {
-        const match = linkedRoleIds.some((rid) => userRoleIds.includes(rid));
-        if (match) {
-          defaultPositionId = positionId;
-          break;
+    // 1. 既存のユーザー情報から取得
+    const userInfo = await readUserInfo(guildId, userId);
+    if (userInfo && userInfo.position) {
+      defaultPositionId = userInfo.position;
+    } else {
+      // 2. ロール情報から推定
+      if (config.positionRoles) {
+        for (const [positionId, linkedRoleIds] of Object.entries(config.positionRoles)) {
+          const match = linkedRoleIds.some((rid) => userRoleIds.includes(rid));
+          if (match) {
+            defaultPositionId = positionId;
+            break;
+          }
         }
       }
     }
@@ -63,15 +72,32 @@ module.exports = {
         positions.map((pos) => ({
           label: pos.name,
           value: pos.id,
-          default: pos.id === defaultPositionId, // 自動判定
+          default: pos.id === defaultPositionId,
         }))
       );
 
     const row = new ActionRowBuilder().addComponents(menu);
 
+    const components = [row];
+
+    // --- 自動推定が成功した場合、「次へ」ボタンを追加 ---
+    if (defaultPositionId) {
+      const nextButton = new ButtonBuilder()
+        .setCustomId(`CONFIG_USER_GOTO_BIRTH_YEAR_${userId}_${storeName}_${defaultPositionId}`) // GOTO
+        .setLabel('この役職で決定')
+        .setStyle(ButtonStyle.Success);
+      
+      const row2 = new ActionRowBuilder().addComponents(nextButton);
+      components.push(row2);
+    }
+
     return interaction.update({
-      content: `👔 ユーザー **<@${userId}>** の役職を選択してください。\n店舗：**${storeName}**`,
-      components: [row],
+      content: 
+        `👔 ユーザー **<@${userId}>** の役職を選択してください。\n店舗：**${storeName}**\n` +
+        (defaultPositionId
+          ? `（ロール情報から **${positions.find(p => p.id === defaultPositionId)?.name || ''}** が自動選択されています）`
+          : ''),
+      components: components,
     });
   },
 

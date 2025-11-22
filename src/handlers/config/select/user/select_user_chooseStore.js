@@ -6,11 +6,14 @@
 const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } = require('discord.js');
 
 const {
   loadStoreRoleConfig,
 } = require('../../../../utils/config/storeRoleConfigManager');
+const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
 
 const nextStep = require('./select_user_choosePosition.js');
 
@@ -40,16 +43,22 @@ module.exports = {
     const member = await guild.members.fetch(userId);
     const userRoleIds = [...member.roles.cache.keys()];
 
-    // --- 自動推定：ユーザーのロールIDと一致する店舗を探す ---
+    // --- 自動推定 ---
     let defaultStore = null;
+    // 1. 既存のユーザー情報から取得
+    const userInfo = await readUserInfo(guildId, userId);
+    if (userInfo && userInfo.store) {
+      defaultStore = userInfo.store;
+    } else {
+      // 2. ロール情報から推定
+      for (const storeName of stores) {
+        const linkedRoles = config.storeRoles?.[storeName] || [];
+        const hasMatch = linkedRoles.some((roleId) => userRoleIds.includes(roleId));
 
-    for (const storeName of stores) {
-      const linkedRoles = config.storeRoles?.[storeName] || [];
-      const hasMatch = linkedRoles.some((roleId) => userRoleIds.includes(roleId));
-
-      if (hasMatch) {
-        defaultStore = storeName;
-        break;
+        if (hasMatch) {
+          defaultStore = storeName;
+          break;
+        }
       }
     }
 
@@ -63,15 +72,31 @@ module.exports = {
         stores.map((s) => ({
           label: s,
           value: s,
-          default: s === defaultStore, // 自動推定
+          default: s === defaultStore,
         }))
       );
 
     const row = new ActionRowBuilder().addComponents(menu);
+    const components = [row];
+
+    // --- 自動推定が成功した場合、「次へ」ボタンを追加 ---
+    if (defaultStore) {
+      const nextButton = new ButtonBuilder()
+        .setCustomId(`CONFIG_USER_GOTO_POSITION_${userId}_${defaultStore}`) // GOTO
+        .setLabel('この店舗で決定')
+        .setStyle(ButtonStyle.Success);
+      
+      const row2 = new ActionRowBuilder().addComponents(nextButton);
+      components.push(row2);
+    }
 
     await interaction.update({
-      content: `🏪 ユーザー **<@${userId}>** の所属店舗を選択してください。`,
-      components: [row],
+      content: 
+        `🏪 ユーザー **<@${userId}>** の所属店舗を選択してください。\n` +
+        (defaultStore 
+          ? `（ロール情報から **${defaultStore}** が自動選択されています）` 
+          : ''),
+      components: components,
     });
   },
 

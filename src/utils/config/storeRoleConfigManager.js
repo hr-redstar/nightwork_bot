@@ -12,7 +12,7 @@ const { readJSON, saveJSON } = require('../gcs');
 // ====================================================
 
 function storeRoleConfigPath(guildId) {
-  return `${guildId}/config/店舗_役職_ロール.json`;
+  return `GCS/${guildId}/config/店舗_役職_ロール.json`;
 }
 
 // ====================================================
@@ -24,6 +24,7 @@ function defaultStoreRoleConfig() {
     stores: [],                 // 店舗名一覧
     roles: [],                  // [{id, name}]
     storeRoles: {},             // { 店舗名: [roleId] }
+    positionRoles: {},          // { 役職ID: [roleId] }
     roleMembers: {},            // { roleId: [userId] }
     updatedAt: null,
   };
@@ -41,6 +42,7 @@ function normalizeStoreRoleConfig(raw) {
     stores: Array.isArray(data.stores) ? data.stores : [],
     roles: Array.isArray(data.roles) ? data.roles : [],
     storeRoles: typeof data.storeRoles === 'object' ? data.storeRoles : {},
+    positionRoles: typeof data.positionRoles === 'object' ? data.positionRoles : {},
     roleMembers: typeof data.roleMembers === 'object' ? data.roleMembers : {},
     updatedAt: data.updatedAt ?? null,
   };

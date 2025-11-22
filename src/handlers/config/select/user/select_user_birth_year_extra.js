@@ -17,10 +17,9 @@ module.exports = {
    * 年選択（1981〜1957）を表示
    */
   async show(interaction, userId, storeName, positionId) {
-    const years = [];
-    for (let y = 1981; y >= 1957; y--) {
-      years.push(y.toString());
-    }
+    const years = Array.from({ length: 1981 - 1957 + 1 }, (_, i) =>
+      String(1981 - i)
+    );
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId(
@@ -31,11 +30,11 @@ module.exports = {
       .setMaxValues(1)
       .addOptions(years.map((y) => ({ label: y, value: y })));
 
-    const row = new ActionRowBuilder().addComponents(menu);
-
     return interaction.update({
-      content: `🎂 生まれた「年」を選択してください。\nユーザー：<@${userId}>\n店舗：${storeName} / 役職ID：${positionId}`,
-      components: [row],
+      content:
+        `🎂 **生まれた「年」を選択してください（1981〜1957）**\n` +
+        `ユーザー：<@${userId}>\n店舗：${storeName} / 役職：${positionId}`,
+      components: [new ActionRowBuilder().addComponents(menu)],
     });
   },
 
@@ -43,15 +42,19 @@ module.exports = {
    * 年選択後 → Step4-2（誕生月）
    */
   async handle(interaction) {
-    // CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_<userId>_<storeName>_<positionId>
-    const parts = interaction.customId.replace('CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_', '').split('_');
+    // CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_user_store_position
+    const raw = interaction.customId.replace(
+      'CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_',
+      ''
+    );
 
-    const userId = parts[0];
-    const storeName = parts[1];
-    const positionId = parts.slice(2).join('_'); // positionが _ を含む可能性
+    const parts = raw.split('_');
 
+    const userId = parts.shift();     // 先頭
+    const storeName = parts.shift();  // 次
+    const positionId = parts.join('_'); // 残り全部が役職
     const year = interaction.values[0];
 
-    return nextStep.show(interaction, userId, storeName, positionId, year);
+    return nextStep.show(interaction, userId, storeName, positionId, year, true);
   },
 };

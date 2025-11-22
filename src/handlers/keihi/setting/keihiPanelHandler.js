@@ -1,6 +1,6 @@
-// src/handlers/keihi/keihiPanel_setup.js
+// src/handlers/keihi/keihiPanelHandler.js
 // ------------------------------------------------------------
-// 経費設定パネル → 経費パネル設置（店舗 → チャンネル → 設置）
+// 経費設定パネル → 経費申請パネル設置（店舗 → チャンネル → 設置）
 // ------------------------------------------------------------
 
 const {
@@ -8,17 +8,18 @@ const {
   StringSelectMenuBuilder,
   ChannelSelectMenuBuilder,
   ChannelType,
+  EmbedBuilder
 } = require("discord.js");
 
-const { getStoreList } = require("../../utils/config/configAccessor");
+const { getStoreList } = require("../../../utils/config/configAccessor");
 const {
   loadKeihiConfig,
   saveKeihiConfig,
-} = require("../../utils/keihi/keihiConfigManager");
+} = require("../../../utils/keihi/keihiConfigManager");
 
-const { postKeihiReportPanel } = require("./keihiPanel_Report");
-const { sendSettingLog } = require("../../utils/config/configLogger");
-const logger = require("../../utils/logger");
+const { postKeihiReportPanel } = require("../request/KeihiPanel_Request");
+const { sendSettingLog } = require("../../../utils/config/configLogger");
+const logger = require("../../../utils/logger");
 
 module.exports = {
   // ------------------------------------------------------------------
@@ -40,11 +41,14 @@ module.exports = {
       .setPlaceholder("経費パネルを設置する店舗を選んでください")
       .addOptions(stores.map((s) => ({ label: s, value: s })));
 
-    const row = new ActionRowBuilder().addComponents(menu);
+    const embed = new EmbedBuilder()
+      .setColor(0x3498db)
+      .setTitle("📍 経費パネル設置")
+      .setDescription("経費申請パネルを設置する店舗を選択してください。");
 
     return interaction.reply({
-      content: "🏪 経費パネルを設置する店舗を選択してください。",
-      components: [row],
+      embeds: [embed],
+      components: [new ActionRowBuilder().addComponents(menu)],
       ephemeral: true,
     });
   },
@@ -58,11 +62,14 @@ module.exports = {
       .setPlaceholder("パネルを設置するテキストチャンネルを選択")
       .addChannelTypes(ChannelType.GuildText);
 
-    const row = new ActionRowBuilder().addComponents(menu);
+    const embed = new EmbedBuilder()
+      .setColor(0x3498db)
+      .setTitle(`🏪 店舗：${store}`)
+      .setDescription("経費申請パネルの設置先チャンネルを選択してください。");
 
     return interaction.update({
-      content: `🏪 店舗：**${store}**\n📌 経費パネル設置先チャンネルを選択してください。`,
-      components: [row],
+      embeds: [embed],
+      components: [new ActionRowBuilder().addComponents(menu)],
     });
   },
 
@@ -70,55 +77,57 @@ module.exports = {
   // STEP 3：パネル設置
   // ------------------------------------------------------------------
   async placePanel(interaction, store) {
-    const guildId = interaction.guild.id;
-    const channel = interaction.channels.first();
+    const guild = interaction.guild;
+    const guildId = guild.id;
 
+    // 選択されたチャンネル
+    const channel = interaction.channels.first();
     if (!channel) {
       return interaction.reply({
-        content: "⚠️ チャンネルが取得できませんでした。",
+        content: "⚠️ チャンネルを取得できませんでした。",
         ephemeral: true,
       });
     }
 
     const keihiConfig = await loadKeihiConfig(guildId);
+    keihiConfig.panelMap = keihiConfig.panelMap || {};
 
-    // 既存パネルの削除確認
-    if (keihiConfig.panelMap?.[store]) {
+    // 既存パネルがあれば削除
+    if (keihiConfig.panelMap[store]) {
       const oldChId = keihiConfig.panelMap[store];
       try {
-        const oldChannel = interaction.guild.channels.cache.get(oldChId);
+        const oldChannel = guild.channels.cache.get(oldChId);
         if (oldChannel) {
-          const messages = await oldChannel.messages.fetch({ limit: 50 });
-          const oldPanel = messages.find((m) => m.author.id === interaction.client.user.id);
-          if (oldPanel) await oldPanel.delete();
+          const msgs = await oldChannel.messages.fetch({ limit: 50 });
+          const panelMsg = msgs.find((m) => m.author.id === interaction.client.user.id);
+          if (panelMsg) await panelMsg.delete();
         }
       } catch (e) {
         logger.warn("[KeihiPanel] 既存パネル削除失敗:", e.message);
       }
     }
 
-    // 経費申請パネルを送信
+    // 新しい経費申請パネルを送信
     const panelMessage = await postKeihiReportPanel(channel, { store });
 
-    // 設置情報を保存
-    keihiConfig.panelMap = keihiConfig.panelMap || {};
+    // 保存
     keihiConfig.panelMap[store] = channel.id;
-
     await saveKeihiConfig(guildId, keihiConfig);
 
-    // 設定ログ出力
+    // 設定ログ
     await sendSettingLog(guildId, {
-      type: "keihi_panel",
-      action: `経費申請パネルを設置`,
+      type: "keihi_panel_setup",
+      action: "経費申請パネルを設置",
+      store,
       userId: interaction.user.id,
       channelId: channel.id,
       messageId: panelMessage.id,
-      after: { store, channelId: channel.id },
     });
 
     return interaction.update({
       content: `✅ **${store}** の経費申請パネルを <#${channel.id}> に設置しました。`,
       components: [],
+      embeds: [],
     });
   },
 };

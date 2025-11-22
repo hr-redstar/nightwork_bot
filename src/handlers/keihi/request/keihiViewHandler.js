@@ -12,10 +12,10 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 
-const { dailyPath } = require("../../utils/keihi/keihiConfigManager");
-const { readJSON } = require("../../utils/gcs");
-const { loadKeihiConfig } = require("../../utils/keihi/keihiConfigManager");
-const { getStoreList } = require("../../utils/config/configAccessor");
+const { dailyPath } = require("../../../utils/keihi/keihiConfigManager");
+const { readJSON } = require("../../../utils/gcs");
+const { loadKeihiConfig } = require("../../../utils/keihi/keihiConfigManager");
+const { getStoreList } = require("../../../utils/config/configAccessor");
 
 module.exports = {
   /**

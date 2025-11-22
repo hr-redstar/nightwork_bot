@@ -1,53 +1,68 @@
 // src/handlers/keihi/components/keihiButtons.js
-// ----------------------------------------------------
-// 経費機能用のボタン UI コンポーネント
-// ----------------------------------------------------
-
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require("discord.js");
-
-// =====================================================
-// 経費申請パネルのボタン
-// =====================================================
-function buttonRequest(storeName) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`keihi_request:${storeName}`)
-      .setLabel("経費を申請する")
-      .setStyle(ButtonStyle.Primary)
-  );
-}
-
-// =====================================================
-// 承認 / 否認ボタン
-// =====================================================
-function buttonApproveReject(storeName, timestamp) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`keihi_approve:${storeName}:${timestamp}`)
-      .setLabel("承認する")
-      .setStyle(ButtonStyle.Success),
-
-    new ButtonBuilder()
-      .setCustomId(`keihi_deny:${storeName}:${timestamp}`)
-      .setLabel("否認する")
-      .setStyle(ButtonStyle.Danger)
-  );
-}
-
-// =====================================================
-// 閲覧系ボタン（任意）
-// =====================================================
-function buttonDailyView(storeName) {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`keihi_view:${storeName}`)
-      .setLabel("日別の経費を見る")
-      .setStyle(ButtonStyle.Secondary)
-  );
-}
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = {
-  buttonRequest,
-  buttonApproveReject,
-  buttonDailyView,
+  /** 経費申請パネルのボタン */
+  rowKeihiRequest(store) {
+    return new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`keihi_request:${store}`)
+        .setLabel("📤 経費申請")
+        .setStyle(ButtonStyle.Primary)
+    );
+  },
+
+  /** 設定パネルのボタン */
+  settingButtons() {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("keihi_panel_setup")
+          .setLabel("📤 経費パネル設置")
+          .setStyle(ButtonStyle.Primary),
+
+        new ButtonBuilder()
+          .setCustomId("keihi_role_approval")
+          .setLabel("🛡️ 承認役職")
+          .setStyle(ButtonStyle.Success),
+
+        new ButtonBuilder()
+          .setCustomId("keihi_role_view")
+          .setLabel("👁️ 閲覧役職")
+          .setStyle(ButtonStyle.Success),
+
+        new ButtonBuilder()
+          .setCustomId("keihi_role_apply")
+          .setLabel("📝 申請役職")
+          .setStyle(ButtonStyle.Success)
+      ),
+
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("keihi_csv_export")
+          .setLabel("📁 経費CSV発行")
+          .setStyle(ButtonStyle.Secondary)
+      ),
+    ];
+  },
+
+  /** スレッド内　承認・修正・削除 */
+  threadButtons(store, entryId) {
+    return new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`keihi_approve:${store}:${entryId}`)
+        .setLabel("✔ 承認")
+        .setStyle(ButtonStyle.Success),
+
+      new ButtonBuilder()
+        .setCustomId(`keihi_modify:${store}:${entryId}`)
+        .setLabel("✏ 修正")
+        .setStyle(ButtonStyle.Primary),
+
+      new ButtonBuilder()
+        .setCustomId(`keihi_delete:${store}:${entryId}`)
+        .setLabel("🗑 削除")
+        .setStyle(ButtonStyle.Danger)
+    );
+  },
 };

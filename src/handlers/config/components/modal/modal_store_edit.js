@@ -16,7 +16,7 @@ const {
   saveStoreRoleConfig 
 } = require('../../../../utils/config/storeRoleConfigManager');
 
-const { postConfigPanel } = require('../../configPanel');
+const { sendConfigPanel } = require('../../configPanel');
 const { sendSettingLog } = require('../../configLogger');
 
 module.exports = {
@@ -82,6 +82,6 @@ module.exports = {
     });
 
     // パネル更新
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

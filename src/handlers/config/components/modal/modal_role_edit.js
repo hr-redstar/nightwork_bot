@@ -16,7 +16,7 @@ const {
   saveStoreRoleConfig,
 } = require('../../../../utils/config/storeRoleConfigManager');
 
-const { postConfigPanel } = require('../../configPanel');
+const { sendConfigPanel } = require('../../configPanel');
 const { sendSettingLog } = require('../../configLogger');
 
 module.exports = {
@@ -28,7 +28,9 @@ module.exports = {
     const config = await loadStoreRoleConfig(guildId);
 
     // 現在の roles は {id,name} の配列 → name のみ抽出して改行表示
-    const roleNames = config.roles.map((r) => r.name).join('\n');
+    const roleNames = config.roles
+      .map((r) => (typeof r === 'string' ? r : r.name)) // 文字列かオブジェクトか判定して名前を取得
+      .join('\n');
 
     const modal = new ModalBuilder()
       .setCustomId('CONFIG_ROLE_EDIT_MODAL')
@@ -93,6 +95,6 @@ module.exports = {
     });
 
     // 設定パネルの更新
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

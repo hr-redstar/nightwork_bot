@@ -14,9 +14,9 @@ const {
 } = require("discord.js");
 
 const dayjs = require("dayjs");
-const { getStoreList } = require("../../utils/config/configAccessor");
-const { readJSON, listFiles } = require("../../utils/gcs");
-const { loadKeihiConfig } = require("../../utils/keihi/keihiConfigManager");
+const { getStoreList } = require("../../../utils/config/configAccessor");
+const { readJSON, listFiles } = require("../../../utils/gcs");
+const { loadKeihiConfig } = require("../../../utils/keihi/keihiConfigManager");
 
 module.exports = {
   // -----------------------------------------

@@ -11,9 +11,9 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { saveUserInfo } = require('../../../../utils/config/gcsUserInfo.js');
+const { updateUserInfo, readUserInfo } = require('../../../../utils/config/gcsUserInfo.js');
 const { sendSettingLog } = require('../../configLogger');
-const { postConfigPanel } = require('../../configPanel');
+const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
   customId: 'CONFIG_USER_INFO_MODAL',
@@ -21,11 +21,16 @@ module.exports = {
   /**
    * モーダルを開く
    */
-  async show(interaction, userId, storeName, positionId, year, month, day) {
+  async show(interaction, userId, storeName, positionId, year, month, day, isExtra = false) {
+    const customId = isExtra
+      ? `CONFIG_USER_INFO_MODAL_EXTRA_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`
+      : `CONFIG_USER_INFO_MODAL_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`;
+
+    // --- 既存のユーザー情報を読み込む ---
+    const userInfo = await readUserInfo(interaction.guild.id, userId);
+
     const modal = new ModalBuilder()
-      .setCustomId(
-        `CONFIG_USER_INFO_MODAL_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`
-      )
+      .setCustomId(customId)
       .setTitle('📝 ユーザー情報入力');
 
     // SNS
@@ -34,7 +39,8 @@ module.exports = {
       .setLabel('SNS（任意）')
       .setStyle(TextInputStyle.Short)
       .setRequired(false)
-      .setPlaceholder('@example / URL など');
+      .setPlaceholder('@example / URL など')
+      .setValue(userInfo?.sns || '');
 
     // 住所
     const address = new TextInputBuilder()
@@ -42,7 +48,8 @@ module.exports = {
       .setLabel('住所（任意）')
       .setStyle(TextInputStyle.Short)
       .setRequired(false)
-      .setPlaceholder('住所 / 都道府県 / 市区町村');
+      .setPlaceholder('住所 / 都道府県 / 市区町村')
+      .setValue(userInfo?.address || '');
 
     // 備考
     const memo = new TextInputBuilder()
@@ -50,7 +57,8 @@ module.exports = {
       .setLabel('備考（任意）')
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(false)
-      .setPlaceholder('必要な情報があれば記入');
+      .setPlaceholder('必要な情報があれば記入')
+      .setValue(userInfo?.memo || '');
 
     modal.addComponents(
       new ActionRowBuilder().addComponents(sns),
@@ -65,15 +73,23 @@ module.exports = {
    * モーダル送信後 → ユーザー情報を保存
    */
   async handle(interaction) {
-    // CONFIG_USER_INFO_MODAL_<userId>_<storeName>_<positionId>_<year>_<month>_<day>
-    const parts = interaction.customId.replace('CONFIG_USER_INFO_MODAL_', '').split('_');
+    // CONFIG_USER_INFO_MODAL or CONFIG_USER_INFO_MODAL_EXTRA
+    const id = interaction.customId;
 
-    const userId = parts[0];
-    const storeName = parts[1];
-    const positionId = parts[2];
-    const year = parts[3];
-    const month = parts[4];
-    const day = parts[5];
+    // EXTRA が前に付くケースを排除して分解
+    const raw = id
+      .replace('CONFIG_USER_INFO_MODAL_EXTRA_', '')
+      .replace('CONFIG_USER_INFO_MODAL_', '');
+
+    const parts = raw.split('_');
+
+    // 正しい順番で取り出し（必ず後ろから固定）
+    const day = parts.pop();
+    const month = parts.pop();
+    const year = parts.pop();
+    const userId = parts.shift();
+    const storeName = parts.shift();
+    const positionId = parts.join('_');
 
     const birthday = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
@@ -82,9 +98,7 @@ module.exports = {
     const address = interaction.fields.getTextInputValue('user_address') || '';
     const memo = interaction.fields.getTextInputValue('user_memo') || '';
 
-    // 保存
-    await saveUserInfo(interaction.guild.id, {
-      id: userId,
+    const saveData = {
       name: interaction.guild.members.cache.get(userId)?.displayName || 'Unknown',
       store: storeName,
       position: positionId,
@@ -92,7 +106,10 @@ module.exports = {
       sns,
       address,
       memo,
-    });
+    };
+
+    // 保存
+    await updateUserInfo(interaction.guild.id, userId, saveData);
 
     // ログ出力
     const logMsg =
@@ -115,6 +132,6 @@ module.exports = {
     });
 
     // 設定パネル更新
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

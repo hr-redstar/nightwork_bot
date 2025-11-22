@@ -18,7 +18,7 @@ const {
   loadStoreRoleConfig
 } = require('../../../utils/config/storeRoleConfigManager');
 
-const { postConfigPanel } = require('../configPanel');
+const { sendConfigPanel } = require('../configPanel');
 
 module.exports = {
   customId: 'CONFIG_LINK_ROLES_FOR_STORE',
@@ -74,6 +74,6 @@ module.exports = {
     });
 
     // 設定パネルを再描画
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

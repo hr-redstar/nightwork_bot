@@ -1,4 +1,3 @@
-// src/handlers/config/components/select/user/select_user_birth_month.js
 // ----------------------------------------------------
 // Step4-2：誕生日 月（1〜12）
 // ----------------------------------------------------
@@ -6,9 +5,12 @@
 const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } = require('discord.js');
 
 const nextStep = require('./select_user_birth_day.js');
+const { readUserInfo } = require('../../../../utils/config/gcsUserInfo.js');
 
 module.exports = {
   customId: 'CONFIG_USER_SELECT_BIRTH_MONTH',
@@ -16,29 +18,48 @@ module.exports = {
   /**
    * 月選択メニュー表示（1〜12）
    */
-  async show(interaction, userId, storeName, positionId, year) {
-    const months = [];
-    for (let m = 1; m <= 12; m++) {
-      months.push(m.toString());
-    }
+  async show(interaction, userId, storeName, positionId, year, isExtra = false) {
+    const userInfo = await readUserInfo(interaction.guild.id, userId);
+    const savedMonth = userInfo?.birthday?.split('-')[1];
+
+    const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
+
+    const customId = isExtra
+      ? `CONFIG_USER_SELECT_BIRTH_MONTH_EXTRA_${userId}_${storeName}_${positionId}_${year}`
+      : `CONFIG_USER_SELECT_BIRTH_MONTH_${userId}_${storeName}_${positionId}_${year}`;
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(
-        `CONFIG_USER_SELECT_BIRTH_MONTH_${userId}_${storeName}_${positionId}_${year}`
-      )
+      .setCustomId(customId)
       .setPlaceholder('生まれた月を選択してください')
       .setMinValues(1)
       .setMaxValues(1)
-      .addOptions(months.map((m) => ({ label: m, value: m })));
+      .addOptions(months.map((m) => ({ 
+        label: `${m}月`, 
+        value: m,
+        default: Number(savedMonth) === Number(m),
+      })));
 
-    const row = new ActionRowBuilder().addComponents(menu);
+    const components = [new ActionRowBuilder().addComponents(menu)];
+
+    // --- 既存の誕生日が設定済みの場合、「次へ」ボタンを追加 ---
+    if (userInfo?.birthday) {
+      const [savedYear, savedMonth, savedDay] = userInfo.birthday.split('-');
+      const nextButton = new ButtonBuilder()
+        .setCustomId(`CONFIG_USER_GOTO_USERINFO_${userId}_${storeName}_${positionId}_${savedYear}_${savedMonth}_${savedDay}`)
+        .setLabel('この生年月日で決定')
+        .setStyle(ButtonStyle.Success);
+      
+      const row2 = new ActionRowBuilder().addComponents(nextButton);
+      components.push(row2);
+    }
 
     return interaction.update({
       content:
         `🎂 **生年月日の選択（2/3）**\n` +
         `年：${year}\n` +
-        `ユーザー：<@${userId}> / 店舗：${storeName} / 役職：${positionId}`,
-      components: [row],
+        `ユーザー：<@${userId}> / 店舗：${storeName} / 役職：${positionId}` +
+        (userInfo?.birthday ? `\n（現在 **${userInfo.birthday}** が設定されています）` : ''),
+      components: components,
     });
   },
 
@@ -46,16 +67,19 @@ module.exports = {
    * 月選択後 → Step4-3（日選択）
    */
   async handle(interaction) {
-    // CONFIG_USER_SELECT_BIRTH_MONTH_<userId>_<storeName>_<positionId>_<year>
-    const parts = interaction.customId.replace('CONFIG_USER_SELECT_BIRTH_MONTH_', '').split('_');
+    const isExtra = interaction.customId.includes('_EXTRA_'); // EXTRAフローか判定
+    const prefix = isExtra ? 'CONFIG_USER_SELECT_BIRTH_MONTH_EXTRA_' : 'CONFIG_USER_SELECT_BIRTH_MONTH_';
+    const raw = interaction.customId.replace(prefix, '');
 
-    const userId = parts[0];
-    const storeName = parts[1];
-    const positionId = parts[2];
-    const year = parts[3];
+    const parts = raw.split('_');
 
-    const month = interaction.values[0];
+    const userId = parts.shift();    // 先頭
+    const storeName = parts.shift(); // 次
+    const year = parts.pop();        // 最後
+    const positionId = parts.join('_'); // 残り全部
 
-    return nextStep.show(interaction, userId, storeName, positionId, year, month);
+    const month = interaction.values[0]; // 選択月
+
+    return nextStep.show(interaction, userId, storeName, positionId, year, month, isExtra); // isExtra を引き継ぐ
   },
 };

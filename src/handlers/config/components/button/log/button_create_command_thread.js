@@ -1,7 +1,7 @@
 const { MessageFlags } = require('discord.js');
 const { getGuildConfig, saveGuildConfig } = require('../../../../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('../../../configLogger');
-const { postConfigPanel } = require('../../../configPanel');
+const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {
   customId: 'CONFIG_CREATE_COMMAND_THREAD',
@@ -38,6 +38,6 @@ module.exports = {
       flags: MessageFlags.Ephemeral,
     });
 
-    await postConfigPanel(channel);
+    await sendConfigPanel(channel);
   },
 };

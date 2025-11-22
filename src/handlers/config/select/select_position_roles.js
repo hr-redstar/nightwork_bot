@@ -14,7 +14,7 @@ const {
 } = require('../../../utils/config/storeRoleConfigManager');
 
 const { getRoleObjects } = require('../../../utils/config/configAccessor');
-const { postConfigPanel } = require('../configPanel');
+const { sendConfigPanel } = require('../configPanel');
 const { sendSettingLog } = require('../configLogger');
 
 module.exports = {
@@ -97,6 +97,6 @@ module.exports = {
     });
 
     // パネル再描画
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

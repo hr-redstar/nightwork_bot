@@ -1,6 +1,6 @@
-﻿﻿﻿﻿﻿﻿// src/commands/設定.js
+﻿﻿// src/commands/設定.js
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { postConfigPanel } = require('../handlers/config/configPanel');
+const { sendConfigPanel } = require('../handlers/config/configPanel');
 const { getGuildConfig } = require('../utils/config/gcsConfigManager');
 
 module.exports = {
@@ -17,7 +17,7 @@ module.exports = {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // 設定パネルを投稿（既存メッセージがあれば更新予定）
-      await postConfigPanel(channel);
+      await sendConfigPanel(channel);
 
       // 処理完了後の応答は不要なため削除
       await interaction.deleteReply();

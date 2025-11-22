@@ -7,7 +7,7 @@ const {
 
 const { getGuildConfig, saveGuildConfig } = require('../../../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('../../configLogger');
-const { postConfigPanel } = require('../../configPanel');
+const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
   customId: 'CONFIG_SELECT_GLOBAL_LOG',
@@ -53,6 +53,6 @@ module.exports = {
       components: [],
     });
 
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

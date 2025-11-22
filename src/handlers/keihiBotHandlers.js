@@ -12,7 +12,7 @@ const {
   startKeihiRequest,
   openKeihiModal,
   submitKeihiRequest,
-} = require("./keihi/keihiRequestHandler");
+} = require("./keihi/request/keihiRequestHandler");
 
 // ----------------------------------------------------
 // 経費修正処理
@@ -20,13 +20,18 @@ const {
 const {
   openModifyModal,
   submitModify,
-} = require("./keihi/keihiModifyHandler");
+} = require("./keihi/request/keihiModifyHandler");
 
 // ----------------------------------------------------
 // 経費承認 / 削除処理（後で実装）
 // ----------------------------------------------------
-const { approveKeihi } = require("./keihi/keihiApproveHandler");
-const { deleteKeihi } = require("./keihi/keihiDeleteHandler");
+const { approveKeihi } = require("./keihi/request/keihiApproveHandler.js");
+const { deleteKeihi } = require("./keihi/request/keihiDeleteHandler.js");
+
+// ----------------------------------------------------
+// 経費項目登録
+// ----------------------------------------------------
+// const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/keihiItemHandler.js');
 
 // ----------------------------------------------------
 // 経費パネル設置（設定パネル → 店舗/チャンネル選択）
@@ -35,7 +40,18 @@ const {
   openStoreSelect,
   openChannelSelect,
   placePanel,
-} = require("./keihi/keihiPanel_setup");
+} = require("./keihi/setting/keihiPanelHandler");
+
+// ----------------------------------------------------
+// 経費ロール設定
+// ----------------------------------------------------
+const { openRoleSelect } = require('./keihi/setting/keihiRoleHandler');
+
+// ----------------------------------------------------
+// 経費CSV発行
+// ----------------------------------------------------
+const { selectStoreForCsv, selectPeriod, exportCsv } = require('./keihi/setting/keihiCsvHandler');
+
 
 module.exports = {
   /**
@@ -48,6 +64,12 @@ module.exports = {
       // ===================================================
       // ① 経費申請ボタン（経費申請パネル → 申請開始）
       // ===================================================
+      // 店舗別パネルからの申請開始
+      if (customId.startsWith("keihi:panel:request_open:")) {
+        const store = customId.split(":")[3];
+        return startKeihiRequest(interaction, store);
+      }
+      // (旧ID, 後方互換性のため残す)
       if (customId.startsWith("keihi_request:")) {
         const store = customId.split(":")[1];
         return startKeihiRequest(interaction, store);
@@ -115,9 +137,57 @@ module.exports = {
         return placePanel(interaction, store);
       }
 
+      // ===================================================
+      // ⑦ ロール設定（承認・閲覧・申請）
+      // ===================================================
+      if (customId === 'keihi_role_approval') {
+        return openRoleSelect(interaction, 'approval', '承認役職');
+      }
+      if (customId.startsWith('keihi:config:store_role_viewer:')) {
+        const storeName = customId.split(':')[3];
+        return openRoleSelect(interaction, 'viewer', `[${storeName}] 閲覧役職`, storeName);
+      }
+      if (customId.startsWith('keihi:config:store_role_applicant:')) {
+        const storeName = customId.split(':')[3];
+        return openRoleSelect(interaction, 'applicant', `[${storeName}] 申請役職`, storeName);
+      }
+
+      // ===================================================
+      // ⑧ CSV発行フロー
+      // ===================================================
+      if (customId === 'keihi_csv_export') {
+        return selectStoreForCsv(interaction);
+      }
+      if (customId === 'keihi_csv_select_store') {
+        const store = interaction.values?.[0];
+        return selectPeriod(interaction, store);
+      }
+      if (customId.startsWith('keihi_csv_select_period:')) {
+        const [_, store, type, key] = customId.split(':');
+        return exportCsv(interaction, store, type, key);
+      }
+
+      // ===================================================
+      // ⑨ スレッド内ボタン（承認・削除）
+      // ===================================================
+      if (customId.startsWith('keihi_approve:')) {
+        return approveKeihi(interaction);
+      }
+      if (customId.startsWith('keihi_delete:')) {
+        return deleteKeihi(interaction);
+      }
+
+      // ===================================================
+      // ⑩ 店舗別パネルからの操作（経費項目登録）
+      // ===================================================
+      if (customId.startsWith('keihi:item:register:')) {
+        const storeName = customId.split(':')[3];
+        return openItemRegisterModal(interaction, storeName);
+      }
+      if (customId.startsWith('keihi:item:submit:')) {
+        return handleItemRegisterSubmit(interaction);
+      }
       // ------------------------------------------------------
-      // ※ 承認処理（keihi_approve:）は後で追加予定
-      // ※ 削除処理（keihi_delete:）は後で追加予定
       // ------------------------------------------------------
 
       return false; // 経費関連ではない

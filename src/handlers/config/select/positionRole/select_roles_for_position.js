@@ -13,7 +13,7 @@ const {
 } = require('../../../../utils/config/storeRoleConfigManager');
 
 const { sendSettingLog } = require('../../configLogger');
-const { postConfigPanel } = require('../../configPanel');
+const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
   customId: 'CONFIG_SELECT_ROLES_FOR_POSITION',
@@ -83,6 +83,6 @@ module.exports = {
       components: [],
     });
 
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

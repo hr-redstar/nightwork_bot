@@ -11,7 +11,7 @@ const logger = require('../logger');
 // 保存先パス生成
 // -----------------------------------------
 function userInfoPath(guildId, userId) {
-  return `${guildId}/ユーザー情報/${userId}.json`;
+  return `GCS/${guildId}/ユーザー情報/${userId}.json`;
 }
 
 // -----------------------------------------

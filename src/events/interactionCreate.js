@@ -86,8 +86,8 @@ module.exports = {
           }
 
           // --- 設定 ---
-          if (customId.startsWith('config_')) {
-            return await configBotHandlers.handleInteraction(interaction);
+          if (customId.startsWith('config_') || customId.startsWith('CONFIG_')) {
+            return await configBotHandlers(interaction);
           }
 
           // --- fallback ---
@@ -122,7 +122,7 @@ module.exports = {
           if (customId.startsWith('keihi_'))
             return await handleKeihiInteraction(interaction);
 
-          const handledByConfig = await configBotHandlers.handleInteraction(interaction);
+          const handledByConfig = await configBotHandlers(interaction);
           if (handledByConfig) return;
 
           logger.warn(`[interactionCreate] 未対応セレクト: ${customId}`);
@@ -151,8 +151,8 @@ module.exports = {
             return await handleKeihiInteraction(interaction);
 
           // --- 設定モーダル ---
-          if (customId.startsWith('config_') || customId.startsWith('modal_'))
-            return await configBotHandlers.handleInteraction(interaction);
+          if (customId.startsWith('config_') || customId.startsWith('modal_') || customId.startsWith('CONFIG_'))
+            return await configBotHandlers(interaction);
 
           logger.warn(`[interactionCreate] 未対応モーダル: ${customId}`);
         } catch (subErr) {

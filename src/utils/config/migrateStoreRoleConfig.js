@@ -6,7 +6,8 @@
 const fs = require("fs");
 const path = require("path");
 const logger = require("../logger");
-const { readJSON, saveJSON } = require("../gcs");
+const { getGuildConfig, saveGuildConfig } = require('./gcsConfigManager');
+const { loadStoreRoleConfig, saveStoreRoleConfig } = require('./storeRoleConfigManager');
 
 function getAllGuildDirectories(basePath) {
   if (!fs.existsSync(basePath)) return [];
@@ -16,48 +17,45 @@ function getAllGuildDirectories(basePath) {
     .map((d) => d.name);
 }
 
-function storeRoleConfigPath(guildId) {
-  return `GCS/${guildId}/config/店舗_役職_ロール.json`;
-}
-
 async function migrateGuild(guildId) {
-  const filePath = storeRoleConfigPath(guildId);
-
-  const config = await readJSON(filePath);
-  if (!config) {
-    logger.warn(`[migrate] ${guildId} → 店舗_役職_ロール.json が存在しない`);
+  // 1. 新しい設定ファイルをまず読み込んでみる
+  const newConfig = await loadStoreRoleConfig(guildId);
+  // 既に店舗情報があればマイグレーション済みとみなす
+  if (newConfig && newConfig.stores && newConfig.stores.length > 0) {
+    logger.info(`[migrate] ${guildId} → 既に店舗情報が存在するためスキップ`);
     return;
   }
 
-  // 新形式かどうかチェック
-  const isNewFormat = config.user_info !== undefined;
-
-  if (isNewFormat) {
-    logger.info(`[migrate] ${guildId} → 既に新フォーマット`);
+  // 2. 古い設定ファイル(config.json)を読み込む
+  // gcsConfigManagerは `GCS/` を付けてしまうので、直接パスを生成して読み込む
+  const oldConfigPath = `${guildId}/config/config.json`;
+  const { readJSON } = require('../gcs');
+  const oldConfig = await readJSON(oldConfigPath);
+  if (!oldConfig || !oldConfig.stores || oldConfig.stores.length === 0) {
+    logger.warn(`[migrate] ${guildId} → 古い設定(config.json)に店舗情報が見つからないためスキップ`);
     return;
   }
 
   logger.info(`[migrate] ${guildId} → 旧フォーマットを検出、変換します…`);
 
-  // ----------------------------------------------------
-  // 新フォーマットへ変換
-  // ----------------------------------------------------
+  // 3. 新フォーマットへ変換
   const migrated = {
-    stores: config.stores || [],
-    roles: config.roles || [],
-    link_store_role: config.link_store_role || {},
-    link_role_role: config.link_role_role || {},
-    user_info: {}, // 追加
+    stores: oldConfig.stores || [],
+    roles: oldConfig.roles || [],
+    storeRoles: oldConfig.link_store_role || {},
+    roleMembers: {},
+    updatedAt: null,
   };
 
-  await saveJSON(filePath, migrated);
+  // 4. 新しい設定ファイルとして保存
+  await saveStoreRoleConfig(guildId, migrated);
 
   logger.info(`[migrate] ${guildId} → マイグレーション完了`);
 }
 
 async function migrateAllGuilds() {
   try {
-    const base = path.join(process.cwd(), "local_data", "GCS");
+    const base = path.join(process.cwd(), "local_data");
     const guildDirs = getAllGuildDirectories(base);
 
     logger.info(`🔍 マイグレーション対象ギルド: ${guildDirs.length}件`);

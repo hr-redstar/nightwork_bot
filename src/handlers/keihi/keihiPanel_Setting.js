@@ -18,7 +18,7 @@ const {
   getKeihiPanelList,
 } = require('../../utils/keihi/keihiConfigManager');
 // 設定ログ用（パネル再配置などで使うなら）
-const { sendSettingLog } = require('../../utils/config/configLogger');
+const { sendSettingLog } = require('../config/configLogger');
 
 module.exports = {
   /**
@@ -27,16 +27,12 @@ module.exports = {
    * - パネルはエフェメラルではなく、通常メッセージとして残す
    * - 既存パネルがあればそのメッセージを編集
    */
-  async postKeihiSettingPanel(interaction) {
+  async postKeihiSettingPanel(interaction) { // 引数をinteractionに統一
     const guild = interaction.guild;
     const guildId = guild.id;
     const channel = interaction.channel;
 
     try {
-      // 応答はエフェメラルで「OKだけ返す」＋
-      // 実際の設定パネルはチャンネルに送る / 更新する
-      await interaction.deferReply({ ephemeral: true });
-
       // ------------------------------
       // 設定とパネル一覧を取得
       // ------------------------------
@@ -103,18 +99,10 @@ module.exports = {
         }
       }
 
-      // コマンドの返答（本人向け）
-      await interaction.editReply('✅ 経費設定パネルを更新しました。');
     } catch (err) {
       logger.error('[keihiSettingPanel] エラー:', err);
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({
-          content: '⚠️ 経費設定パネルの表示中にエラーが発生しました。',
-          ephemeral: true,
-        });
-      } else {
-        await interaction.editReply('⚠️ 経費設定パネルの表示中にエラーが発生しました。');
-      }
+      // エラーを呼び出し元にスローして、コマンド側でエラー応答させる
+      throw err;
     }
   },
 };
@@ -171,14 +159,6 @@ function buildKeihiSettingEmbed(guild, stores, keihiConfig, panelMap) {
         value: `役職：${formatRoles(approvalRoles)}`,
       },
       {
-        name: '👁️ 閲覧役職',
-        value: `役職：${formatRoles(viewRoles)}`,
-      },
-      {
-        name: '📝 申請役職',
-        value: `役職：${formatRoles(applyRoles)}`,
-      },
-      {
         name: '📁 経費CSV出力',
         value: '「経費CSV発行」ボタンから、店舗・期間を選択してCSVを発行できます。',
       }
@@ -204,16 +184,6 @@ function buildKeihiSettingComponents() {
       .setCustomId('keihi_role_approval')
       .setLabel('🛡️ 承認役職')
       .setStyle(ButtonStyle.Success),
-
-    new ButtonBuilder()
-      .setCustomId('keihi_role_view')
-      .setLabel('👁️ 閲覧役職')
-      .setStyle(ButtonStyle.Success),
-
-    new ButtonBuilder()
-      .setCustomId('keihi_role_apply')
-      .setLabel('📝 申請役職')
-      .setStyle(ButtonStyle.Success)
   );
 
   const row2 = new ActionRowBuilder().addComponents(

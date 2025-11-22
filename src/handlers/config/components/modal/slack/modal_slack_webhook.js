@@ -11,7 +11,7 @@ const {
 const { getGuildConfig, saveGuildConfig } = require('../../../../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('../../../configLogger');
 const { sendAdminLog } = require('../../../configLogger');
-const { postConfigPanel } = require('../../../configPanel');
+const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {
   customId: 'CONFIG_SLACK_WEBHOOK_MODAL',
@@ -70,6 +70,6 @@ module.exports = {
       flags: MessageFlags.Ephemeral,
     });
 
-    await postConfigPanel(interaction.channel);
+    await sendConfigPanel(interaction.channel);
   },
 };

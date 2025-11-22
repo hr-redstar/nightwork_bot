@@ -1,7 +1,7 @@
 ﻿﻿// src/commands/11_設定経費.js
 
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { postKeihiSettingPanel } = require("../handlers/keihi/keihiPanel_Setting");
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require("discord.js");
+const { postKeihiSettingPanel } = require("../handlers/keihi/setting/keihiPanel_Setting");
 const { sendCommandLog } = require("../handlers/config/configLogger");
 
 module.exports = {
@@ -20,18 +20,20 @@ module.exports = {
     }
 
     try {
-      // コマンドログ
-      await sendCommandLog(interaction);
+      // 応答を保留し、後続処理で失敗してもエラーを返せるようにする
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-      // 設定パネルを送信（エフェメラル）
+      // 設定パネルをチャンネルに送信（公開）
       await postKeihiSettingPanel(interaction);
 
+      // コマンドログを送信
+      await sendCommandLog(interaction);
+
+      // 成功を通知
+      await interaction.editReply('✅ 経費設定パネルを送信・更新しました。');
     } catch (err) {
       console.error("[/設定経費] エラー:", err);
-      return interaction.reply({
-        content: "⚠️ 経費設定パネルの表示中にエラーが発生しました。",
-        ephemeral: true,
-      });
+      await interaction.editReply('⚠️ 経費設定パネルの処理中にエラーが発生しました。').catch(() => {});
     }
   },
 };

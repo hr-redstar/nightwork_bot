@@ -17,7 +17,7 @@ const dayjs = require("dayjs");
 const {
   sendAdminLog,
   sendKeihiLogUpdate,
-} = require("../../utils/keihi/embedLogger");
+} = require("../../../utils/keihi/embedLogger");
 
 module.exports = {
   /**

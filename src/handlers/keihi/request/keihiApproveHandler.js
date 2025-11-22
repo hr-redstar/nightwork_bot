@@ -13,12 +13,12 @@ const {
 const dayjs = require("dayjs");
 const {
   loadKeihiConfig,
-} = require("../../utils/keihi/keihiConfigManager");
+} = require("../../../utils/keihi/keihiConfigManager");
 
 const {
   sendAdminLog,
   sendKeihiLogUpdate,
-} = require("../../utils/keihi/embedLogger");
+} = require("../../../utils/keihi/embedLogger");
 
 module.exports = {
   /**

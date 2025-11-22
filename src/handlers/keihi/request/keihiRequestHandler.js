@@ -18,17 +18,17 @@ const dayjs = require("dayjs");
 
 const {
   loadKeihiConfig,
-} = require("../../utils/keihi/keihiConfigManager");
+} = require("../../../utils/keihi/keihiConfigManager");
 
 const {
   getKeihiPanelList,
-} = require("../../utils/keihi/keihiConfigManager");
+} = require("../../../utils/keihi/keihiConfigManager");
 
 const {
   sendAdminLog,
   sendSettingLog,
   sendKeihiLog,
-} = require("../../utils/keihi/embedLogger");
+} = require("../../../utils/keihi/embedLogger");
 
 module.exports = {
   // ============================================================

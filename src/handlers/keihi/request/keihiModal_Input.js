@@ -6,14 +6,14 @@
 const { EmbedBuilder } = require("discord.js");
 const {
   validateKeihiInput,
-} = require("../../utils/keihi/keihiValidator");
+} = require("../../../utils/keihi/keihiValidator");
 
 const {
   saveDailyKeihi,
-} = require("../../utils/keihi/keihiConfigManager");
+} = require("../../../utils/keihi/keihiConfigManager");
 
-const { getStoreList } = require("../../utils/config/configAccessor");
-const { sendReportLog } = require("../../utils/keihi/embedLogger");
+const { getStoreList } = require("../../../utils/config/configAccessor");
+const { sendReportLog } = require("../../../utils/keihi/embedLogger");
 
 module.exports = {
   /**

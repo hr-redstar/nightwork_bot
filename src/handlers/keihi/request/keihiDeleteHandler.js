@@ -12,9 +12,10 @@ const {
 
 const dayjs = require("dayjs");
 const {
+  loadKeihiConfig,
   sendAdminLog,
   sendKeihiLogUpdate,
-} = require("../../utils/keihi/embedLogger");
+} = require("../../../utils/keihi/embedLogger");
 
 module.exports = {
   /**
@@ -22,6 +23,7 @@ module.exports = {
    */
   async deleteKeihi(interaction, store) {
     const user = interaction.user;
+    const member = interaction.member;
     const now = dayjs().format("YYYY-MM-DD HH:mm");
 
     // 元のメッセージ（申請内容）
@@ -40,12 +42,15 @@ module.exports = {
     // ----------------------------
     const inputUser = oldEmbed.fields.find((f) => f.name === "入力者")?.value;
     const approveUser = oldEmbed.fields.find((f) => f.name === "承認者")?.value;
+    const config = await loadKeihiConfig(interaction.guild.id);
+    const approvalRoles = config.approvalRoles || [];
 
     const userId = `<@${user.id}>`;
 
     const canDelete =
       inputUser?.includes(userId) ||
-      approveUser?.includes(userId);
+      approveUser?.includes(userId) ||
+      member.roles.cache.some((r) => approvalRoles.includes(r.id));
 
     if (!canDelete) {
       return interaction.reply({

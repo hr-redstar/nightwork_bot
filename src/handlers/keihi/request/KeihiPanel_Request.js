@@ -1,4 +1,4 @@
-// src/handlers/keihi/keihiPanel_Report.js
+// src/handlers/keihi/KeihiPanel_Request.js
 // ----------------------------------------------------
 // 経費申請パネルをチャンネルに設置する処理
 // ----------------------------------------------------
@@ -13,12 +13,12 @@ const {
   ChannelType,
 } = require("discord.js");
 
-const { getStoreList } = require("../../utils/config/configAccessor");
+const { getStoreList } = require("../../../utils/config/configAccessor");
 const {
   getKeihiPanelList,
   saveKeihiPanelList,
-} = require("../../utils/keihi/keihiConfigManager");
-const { sendSettingLog } = require("../../utils/config/configLogger");
+} = require("../../../utils/keihi/keihiConfigManager");
+const { sendSettingLog } = require("../../../utils/config/configLogger");
 
 module.exports = {
   /**
