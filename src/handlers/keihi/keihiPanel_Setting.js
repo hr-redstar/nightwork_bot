@@ -87,7 +87,7 @@ module.exports = {
 
         // 設定ログに「設定パネル設置」として残しておいてもよい
         try {
-          await sendSettingLog(guildId, {
+          await sendSettingLog(interaction, {
             type: 'keihi_setting_panel',
             action: '経費設定パネル設置',
             channelId: channel.id,

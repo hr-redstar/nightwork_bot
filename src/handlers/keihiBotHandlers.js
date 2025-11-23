@@ -5,201 +5,178 @@
 
 const logger = require("../utils/logger");
 
-// ----------------------------------------------------
-// 経費申請（初回）
-// ----------------------------------------------------
+// 経費パネル設置フロー
+const {
+  openStoreSelect,
+  openChannelSelect,
+  placePanel,
+  postKeihiSettingPanel,
+} = require("./keihi/setting/keihiPanelHandler");
+
+// 経費項目登録
+const {
+  openItemModal,
+  submitItemModal,
+} = require("./keihi/setting/keihiItemHandler");
+
+// 経費申請フロー
 const {
   startKeihiRequest,
   openKeihiModal,
   submitKeihiRequest,
 } = require("./keihi/request/keihiRequestHandler");
 
-// ----------------------------------------------------
-// 経費修正処理
-// ----------------------------------------------------
+// 経費修正・削除フロー
 const {
   openModifyModal,
   submitModify,
 } = require("./keihi/request/keihiModifyHandler");
 
-// ----------------------------------------------------
-// 経費承認 / 削除処理（後で実装）
-// ----------------------------------------------------
-const { approveKeihi } = require("./keihi/request/keihiApproveHandler.js");
-const { deleteKeihi } = require("./keihi/request/keihiDeleteHandler.js");
-
-// ----------------------------------------------------
-// 経費項目登録
-// ----------------------------------------------------
-// const { openItemRegisterModal, handleItemRegisterSubmit } = require('./keihi/keihiItemHandler.js');
-
-// ----------------------------------------------------
-// 経費パネル設置（設定パネル → 店舗/チャンネル選択）
-// ----------------------------------------------------
+// 役職設定フロー
 const {
-  openStoreSelect,
-  openChannelSelect,
-  placePanel,
-} = require("./keihi/setting/keihiPanelHandler");
-
-// ----------------------------------------------------
-// 経費ロール設定
-// ----------------------------------------------------
-const { openRoleSelect } = require('./keihi/setting/keihiRoleHandler');
-
-// ----------------------------------------------------
-// 経費CSV発行
-// ----------------------------------------------------
-const { selectStoreForCsv, selectPeriod, exportCsv } = require('./keihi/setting/keihiCsvHandler');
-
+  openRoleSelect,
+  saveRoles,
+} = require("./keihi/setting/keihiRoleHandler");
 
 module.exports = {
   /**
-   * 経費機能の全 interaction をここで一括ハンドリング
+   * 経費機能のすべての interaction をここでまとめて処理
+   * @param {import('discord.js').Interaction} interaction
+   * @returns {Promise<boolean>} このハンドラが処理したら true / 対象外なら false
    */
   async handleInteraction(interaction) {
     const { customId } = interaction;
 
     try {
-      // ===================================================
-      // ① 経費申請ボタン（経費申請パネル → 申請開始）
-      // ===================================================
-      // 店舗別パネルからの申請開始
-      if (customId.startsWith("keihi:panel:request_open:")) {
-        const store = customId.split(":")[3];
-        return startKeihiRequest(interaction, store);
-      }
-      // (旧ID, 後方互換性のため残す)
-      if (customId.startsWith("keihi_request:")) {
-        const store = customId.split(":")[1];
-        return startKeihiRequest(interaction, store);
-      }
+      // ==================== 経費設定パネルの操作 ====================
 
-      // ===================================================
-      // ② 経費項目の選択メニュー
-      // ===================================================
-      if (customId.startsWith("keihi_request_item:")) {
-        const store = customId.split(":")[1];
-        const item = interaction.values?.[0];
-        return openKeihiModal(interaction, store, item);
-      }
-
-      // ===================================================
-      // ③ 経費申請モーダル送信
-      // ===================================================
-      if (customId.startsWith("keihi_request_modal:")) {
-        const parts = customId.split(":");
-        const store = parts[1];
-        const item = parts[2];
-        return submitKeihiRequest(interaction, store, item);
-      }
-
-      // ===================================================
-      // ④ 修正ボタン（スレッド内）
-      // ===================================================
-      if (customId.startsWith("keihi_modify:")) {
-        const store = customId.split(":")[1];
-        return openModifyModal(interaction, store);
-      }
-
-      // ===================================================
-      // ⑤ 修正モーダル送信
-      // ===================================================
-      if (customId.startsWith("keihi_modify_modal:")) {
-        const store = customId.split(":")[1];
-        return submitModify(interaction, store);
-      }
-
-      // ===================================================
-      // ⑥ 経費パネル設置フロー（設定パネル）
-      // ===================================================
-
-      // STEP1：パネル設置ボタン
+      // 経費パネル設置ボタン
       if (customId === "keihi_panel_setup") {
-        return openStoreSelect(interaction);
+        await openStoreSelect(interaction);
+        return true;
       }
 
-      // STEP2：店舗選択
-      if (customId === "keihi_panel_store_select") {
+      // 店舗選択
+      if (customId === "keihi_panel_store") {
         const store = interaction.values?.[0];
         if (!store) {
-          return interaction.reply({
-            content: "⚠️ 店舗を取得できませんでした。",
+          await interaction.reply({
+            content: "⚠️ 店舗が選択されていません。",
             ephemeral: true,
           });
+          return true;
         }
-        return openChannelSelect(interaction, store);
+        await openChannelSelect(interaction, store);
+        return true;
       }
 
-      // STEP3：チャンネル選択
+      // チャンネル選択
       if (customId.startsWith("keihi_panel_channel:")) {
         const store = customId.split(":")[1];
-        return placePanel(interaction, store);
+        await placePanel(interaction, store);
+        return true;
       }
 
-      // ===================================================
-      // ⑦ ロール設定（承認・閲覧・申請）
-      // ===================================================
-      if (customId === 'keihi_role_approval') {
-        return openRoleSelect(interaction, 'approval', '承認役職');
-      }
-      if (customId.startsWith('keihi:config:store_role_viewer:')) {
-        const storeName = customId.split(':')[3];
-        return openRoleSelect(interaction, 'viewer', `[${storeName}] 閲覧役職`, storeName);
-      }
-      if (customId.startsWith('keihi:config:store_role_applicant:')) {
-        const storeName = customId.split(':')[3];
-        return openRoleSelect(interaction, 'applicant', `[${storeName}] 申請役職`, storeName);
+      // ==================== 経費申請パネルの操作（項目登録） ====================
+
+      // 経費項目登録ボタン
+      if (customId.startsWith("keihi_item:")) {
+        const store = customId.split(":")[1];
+        await openItemModal(interaction, store);
+        return true;
       }
 
-      // ===================================================
-      // ⑧ CSV発行フロー
-      // ===================================================
-      if (customId === 'keihi_csv_export') {
-        return selectStoreForCsv(interaction);
-      }
-      if (customId === 'keihi_csv_select_store') {
-        const store = interaction.values?.[0];
-        return selectPeriod(interaction, store);
-      }
-      if (customId.startsWith('keihi_csv_select_period:')) {
-        const [_, store, type, key] = customId.split(':');
-        return exportCsv(interaction, store, type, key);
+      // 経費項目モーダル送信
+      if (customId.startsWith("keihi_item_modal:")) {
+        const store = customId.split(":")[1];
+        await submitItemModal(interaction, store);
+        return true;
       }
 
-      // ===================================================
-      // ⑨ スレッド内ボタン（承認・削除）
-      // ===================================================
-      if (customId.startsWith('keihi_approve:')) {
-        return approveKeihi(interaction);
-      }
-      if (customId.startsWith('keihi_delete:')) {
-        return deleteKeihi(interaction);
+      // ==================== 経費申請フロー ====================
+
+      // 「経費申請」ボタン
+      if (customId.startsWith("keihi_request:")) {
+        const store = customId.split(":")[1];
+        await startKeihiRequest(interaction, store);
+        return true;
       }
 
-      // ===================================================
-      // ⑩ 店舗別パネルからの操作（経費項目登録）
-      // ===================================================
-      if (customId.startsWith('keihi:item:register:')) {
-        const storeName = customId.split(':')[3];
-        return openItemRegisterModal(interaction, storeName);
+      // 経費項目選択
+      if (customId.startsWith("keihi_request_item:")) {
+        const store = customId.split(":")[1];
+        const item = interaction.values[0];
+        await openKeihiModal(interaction, store, item);
+        return true;
       }
-      if (customId.startsWith('keihi:item:submit:')) {
-        return handleItemRegisterSubmit(interaction);
+
+      // 経費申請モーダル送信
+      if (customId.startsWith("keihi_request_modal:")) {
+        // customId: keihi_request_modal:<store>:<item>
+        const [_, store, item] = customId.split(":");
+        await submitKeihiRequest(interaction, store, item);
+        return true;
       }
-      // ------------------------------------------------------
-      // ------------------------------------------------------
 
-      return false; // 経費関連ではない
+      // ==================== 経費修正・削除フロー ====================
 
+      // 「修正」ボタン
+      if (customId.startsWith("keihi_modify:")) {
+        const store = customId.split(":")[1];
+        await openModifyModal(interaction, store);
+        return true;
+      }
+
+      // 修正モーダル送信
+      if (customId.startsWith("keihi_modify_modal:")) {
+        const store = customId.split(":")[1];
+        await submitModify(interaction, store);
+        return true;
+      }
+
+      // ==================== 役職設定フロー ====================
+
+      // --- 経費設定パネルの役職設定 ---
+      if (customId === "keihi_role_approval") {
+        await openRoleSelect(interaction, "approval");
+        return true;
+      }
+
+      // --- 経費申請パネルの役職設定 ---
+      if (customId === "keihi_role_view") {
+        // 本来は keihi_view_role:<store> のはずだが、一旦グローバルとして扱う
+        await openRoleSelect(interaction, "view");
+        return true;
+      }
+      if (customId === "keihi_role_apply") {
+        // 本来は keihi_apply_role:<store> のはずだが、一旦グローバルとして扱う
+        await openRoleSelect(interaction, "apply");
+        return true;
+      }
+
+      // --- 役職選択セレクトメニューの確定 ---
+      if (customId.startsWith("keihi_role_select:")) {
+        const type = customId.split(":")[1]; // approval / view / apply
+        await saveRoles(interaction, type);
+        // 役職設定後にパネルを更新
+        await postKeihiSettingPanel(interaction);
+        return true;
+      }
+
+      // ここまで来たら経費ハンドラの担当外
+      return false;
     } catch (err) {
-      logger.error("[KeihiHandlers] エラー:", err);
+      logger.error("[KeihiBotHandlers] Interaction処理エラー:", err);
 
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({
-          content: "⚠️ 経費処理中にエラーが発生しました。",
-          ephemeral: true,
-        });
+      const reply = {
+        content: "⚠️ 経費処理中にエラーが発生しました。",
+        ephemeral: true,
+      };
+
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply).catch(() => {});
+      } else {
+        await interaction.reply(reply).catch(() => {});
       }
 
       return true;

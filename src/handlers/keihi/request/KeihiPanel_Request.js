@@ -1,6 +1,6 @@
-// src/handlers/keihi/KeihiPanel_Request.js
+// src/handlers/keihi/request/KeihiPanel_Request.js
 // ----------------------------------------------------
-// 経費申請パネルをチャンネルに設置する処理
+// 経費申請パネル（店舗ごと）を設置・再描画する処理
 // ----------------------------------------------------
 
 const {
@@ -8,126 +8,125 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  StringSelectMenuBuilder,
-  ChannelSelectMenuBuilder,
-  ChannelType,
 } = require("discord.js");
 
-const { getStoreList } = require("../../../utils/config/configAccessor");
-const {
-  getKeihiPanelList,
-  saveKeihiPanelList,
-} = require("../../../utils/keihi/keihiConfigManager");
-const { sendSettingLog } = require("../../../utils/config/configLogger");
+const logger = require("../../../utils/logger");
+const { loadKeihiConfig } = require("../../../utils/keihi/keihiConfigManager");
+const { rowKeihiRequest } = require("../components/keihiButtons");
 
-module.exports = {
-  /**
-   * 1) 「経費パネル設置」ボタン
-   * 店舗リストを表示
-   */
-  async startKeihiPanelSetup(interaction) {
-    const guildId = interaction.guild.id;
-    const stores = await getStoreList(guildId);
+/**
+ * 経費申請パネルの embed + components を組み立てる
+ * → 新規送信でも再描画でも共通で使う
+ *
+ * 経費申請パネル 店舗名
+ *
+ * スレッド閲覧役職
+ * 役職：メンションロール
+ *
+ * 申請役職
+ * 役職：メンションロール
+ *
+ * 経費項目
+ *
+ * ボタン1列目：経費項目登録 / 閲覧役職 / 申請役職
+ * ボタン2列目：経費申請
+ *
+ * @param {import('discord.js').Guild} guild
+ * @param {string} store
+ * @returns {Promise<{ embeds: EmbedBuilder[], components: ActionRowBuilder[] }>}
+ */
+async function buildKeihiReportPayload(guild, store) {
+  const guildId = guild.id;
 
-    if (!stores.length) {
-      return interaction.reply({
-        content: "⚠️ 店舗が登録されていません。",
-        ephemeral: true,
-      });
-    }
+  const keihiConfig = await loadKeihiConfig(guildId);
 
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId("keihi_setup_select_store")
-      .setPlaceholder("パネルを設置する店舗を選択")
-      .addOptions(
-        stores.map((s) => ({
-          label: s,
-          value: s,
-        }))
-      );
+  const threadViewRolesByStore = keihiConfig.threadViewRolesByStore || {};
+  const applyRolesByStore = keihiConfig.applyRolesByStore || {};
+  const itemsByStore = keihiConfig.itemsByStore || {};
 
-    const embed = new EmbedBuilder()
-      .setTitle("📤 経費パネル設置")
-      .setDescription("店舗を選択してください。")
-      .setColor(0x3498db);
+  const threadViewRoles = threadViewRolesByStore[store] || [];
+  const applyRoles = applyRolesByStore[store] || keihiConfig.applyRoles || [];
+  const items = itemsByStore[store] || [];
 
-    return interaction.update({
-      embeds: [embed],
-      components: [new ActionRowBuilder().addComponents(menu)],
-    });
-  },
+  const formatRoles = async (roleIds) => {
+    if (!roleIds || !roleIds.length) return "未設定";
+    const roleMentions = await Promise.all(
+      roleIds.map(async (id) => {
+        const role = await guild.roles.fetch(id).catch(() => null);
+        return role ? role.toString() : "`削除済みロール`";
+      })
+    );
+    return roleMentions
+      .join("　");
+  };
 
-  /**
-   * 2) 店舗を選んだらチャンネル選択へ
-   */
-  async selectChannelForKeihiPanel(interaction, storeName) {
-    const channelMenu = new ChannelSelectMenuBuilder()
-      .setCustomId(`keihi_setup_select_channel:${storeName}`)
-      .setPlaceholder("設置するチャンネルを選択（検索可）")
-      .setChannelTypes([ChannelType.GuildText]);
+  const itemsText = items.length
+    ? items.map((name, idx) => `${idx + 1}. ${name}`).join("\n")
+    : "未設定";
 
-    const embed = new EmbedBuilder()
-      .setTitle(`📤 経費パネル設置 - ${storeName}`)
-      .setDescription("パネルを設置するチャンネルを選択してください。")
-      .setColor(0x3498db);
-
-    return interaction.update({
-      embeds: [embed],
-      components: [new ActionRowBuilder().addComponents(channelMenu)],
-    });
-  },
-
-  /**
-   * 3) チャンネルを選択したらパネル送信 → GCS保存 → 設定ログ
-   */
-  async postKeihiPanel(interaction, storeName, channelId) {
-    const guildId = interaction.guild.id;
-    const channel = interaction.guild.channels.cache.get(channelId);
-
-    if (!channel) {
-      return interaction.reply({
-        content: "⚠️ チャンネルが見つかりません。",
-        ephemeral: true,
-      });
-    }
-
-    // === 経費申請パネル UI ===
-    const embed = new EmbedBuilder()
-      .setTitle(`💰 経費申請パネル - ${storeName}`)
-      .setDescription("経費申請はこちらから行えます。")
-      .setColor(0x2ecc71);
-
-    const button = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`keihi_request:${storeName}`)
-        .setLabel("経費を申請する")
-        .setStyle(ButtonStyle.Primary)
+  const embed = new EmbedBuilder()
+    .setTitle(`💰 経費申請パネル - ${store}`)
+    .setColor(0x2ecc71)
+    .setDescription("この店舗の経費申請・項目設定を行います。")
+    .addFields(
+      {
+        name: "👁️ スレッド閲覧役職",
+        value: `役職：${await formatRoles(threadViewRoles)}`,
+      },
+      {
+        name: "📝 申請役職",
+        value: `役職：${await formatRoles(applyRoles)}`,
+      },
+      {
+        name: "📑 経費項目",
+        value: itemsText,
+      }
     );
 
-    // パネル送信
-    const panelMessage = await channel.send({
-      embeds: [embed],
-      components: [button],
-    });
+  // ボタン1列目：経費項目登録 / 閲覧役職 / 申請役職
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`keihi_item:${store}`)
+      .setLabel("🧾 経費項目登録")
+      .setStyle(ButtonStyle.Secondary),
 
-    // === GCS：パネル設置一覧保存 ===
-    const panelList = await getKeihiPanelList(guildId);
-    panelList[storeName] = channelId;
-    await saveKeihiPanelList(guildId, panelList);
+    new ButtonBuilder()
+      .setCustomId(`keihi_view_role:${store}`)
+      .setLabel("👁️ 閲覧役職")
+      .setStyle(ButtonStyle.Secondary),
 
-    // === 設定ログへ出力 ===
-    await sendSettingLog(guildId, {
-      action: "経費パネル設置",
-      store: storeName,
-      channel: channelId,
-      user: interaction.user.id,
-    });
+    new ButtonBuilder()
+      .setCustomId(`keihi_apply_role:${store}`)
+      .setLabel("📝 申請役職")
+      .setStyle(ButtonStyle.Secondary)
+  );
 
-    // 管理者に返信（エフェメラルでOK）
-    return interaction.update({
-      content: `✅ 経費パネルを <#${channelId}> に設置しました。`,
-      embeds: [],
-      components: [],
-    });
-  },
+  // ボタン2列目：経費申請
+  const row2 = rowKeihiRequest(store);
+
+  return {
+    embeds: [embed],
+    components: [row1, row2],
+  };
+}
+
+/**
+ * 経費申請パネルを指定チャンネルに新規送信
+ * @param {import('discord.js').TextChannel} channel
+ * @param {{ store: string }} options
+ */
+async function postKeihiReportPanel(channel, { store }) {
+  try {
+    const payload = await buildKeihiReportPayload(channel.guild, store);
+    const message = await channel.send(payload);
+    return message;
+  } catch (err) {
+    logger.error("[KeihiPanel_Request] 経費申請パネル送信エラー:", err);
+    throw err;
+  }
+}
+
+module.exports = {
+  buildKeihiReportPayload,
+  postKeihiReportPanel,
 };

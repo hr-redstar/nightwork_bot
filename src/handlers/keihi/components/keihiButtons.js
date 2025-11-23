@@ -2,7 +2,7 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
 module.exports = {
-  /** 経費申請パネルのボタン */
+  /** 経費申請パネルのボタン（2列目用） */
   rowKeihiRequest(store) {
     return new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -12,41 +12,36 @@ module.exports = {
     );
   },
 
-  /** 設定パネルのボタン */
+  /**
+   * 📘 経費設定パネルのボタン
+   *
+   * 1行目：経費パネル設置 / 承認役職
+   * 2行目：経費CSV発行
+   */
   settingButtons() {
-    return [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("keihi_panel_setup")
-          .setLabel("📤 経費パネル設置")
-          .setStyle(ButtonStyle.Primary),
+    const row1 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("keihi_panel_setup")
+        .setLabel("📤 経費パネル設置")
+        .setStyle(ButtonStyle.Primary),
 
-        new ButtonBuilder()
-          .setCustomId("keihi_role_approval")
-          .setLabel("🛡️ 承認役職")
-          .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId("keihi_role_approval")
+        .setLabel("🛡️ 承認役職")
+        .setStyle(ButtonStyle.Success)
+    );
 
-        new ButtonBuilder()
-          .setCustomId("keihi_role_view")
-          .setLabel("👁️ 閲覧役職")
-          .setStyle(ButtonStyle.Success),
+    const row2 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("keihi_csv_export")
+        .setLabel("📁 経費CSV発行")
+        .setStyle(ButtonStyle.Secondary)
+    );
 
-        new ButtonBuilder()
-          .setCustomId("keihi_role_apply")
-          .setLabel("📝 申請役職")
-          .setStyle(ButtonStyle.Success)
-      ),
-
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("keihi_csv_export")
-          .setLabel("📁 経費CSV発行")
-          .setStyle(ButtonStyle.Secondary)
-      ),
-    ];
+    return [row1, row2];
   },
 
-  /** スレッド内　承認・修正・削除 */
+  /** スレッド内　承認・修正・削除ボタン */
   threadButtons(store, entryId) {
     return new ActionRowBuilder().addComponents(
       new ButtonBuilder()

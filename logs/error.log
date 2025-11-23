@@ -1,0 +1,186 @@
+[[31merror[39m 2025-11-23 10:53:54] [31m[configLogger] 設定ログ出力エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\config\configLogger.js:44:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async postKeihiSettingPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanel_Setting.js:81:11)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:26:7)
+    at async handleCommand (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js:25:3)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:62:9)
+[[31merror[39m 2025-11-23 11:33:51] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 11:34:15] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 11:34:21] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 11:37:45] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 12:05:40] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 12:06:55] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../keihiPanel_Report.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 12:07:27] [31m[keihiPanelHandler] keihiPanel_Report の読み込みに失敗しました:[39m
+[[31merror[39m 2025-11-23 12:07:27] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 12:10:34] [31m[keihiPanelHandler] keihiPanel_Report の読み込みに失敗しました:[39m
+[[31merror[39m 2025-11-23 12:10:34] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../request/keihiPanel_Report.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 14:42:45] [31m[configLogger] 設定ログ出力エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\config\configLogger.js:44:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async placePanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:151:9)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:70:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-23 15:37:15] [31m[configLogger] 設定ログ出力エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\config\configLogger.js:44:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async placePanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:152:9)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:70:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-23 15:37:16] [31m[KeihiHandlers] エラー: The reply to this interaction has already been sent or deferred.[39m
+Error [InteractionAlreadyReplied]: The reply to this interaction has already been sent or deferred.
+    at ChannelSelectMenuInteraction.update (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:335:46)
+    at placePanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:170:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:70:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-23 17:45:00] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 17:45:09] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 17:46:19] [31m[configLogger] 設定ログ出力エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\config\configLogger.js:44:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async postKeihiSettingPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanel_Setting.js:84:11)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\11_設定経費.js:26:7)
+    at async handleCommand (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\commandHandler.js:25:3)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:62:9)
+[[31merror[39m 2025-11-23 17:51:53] [31m[configLogger] 設定ログ出力エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\config\configLogger.js:44:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async placePanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:152:9)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:61:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-23 17:51:54] [31m[KeihiBotHandlers] Interaction処理エラー: The reply to this interaction has already been sent or deferred.[39m
+Error [InteractionAlreadyReplied]: The reply to this interaction has already been sent or deferred.
+    at ChannelSelectMenuInteraction.update (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\structures\interfaces\InteractionResponses.js:335:46)
+    at placePanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:170:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:61:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-23 17:52:15] [31m[KeihiBotHandlers] Interaction処理エラー: openItemModal is not a function[39m
+TypeError: openItemModal is not a function
+    at handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:72:15)
+    at Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:85:26)
+    at Client.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js:46:55)
+    at Client.emit (node:events:508:28)
+    at InteractionCreateAction.handle (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\actions\InteractionCreate.js:101:12)
+    at module.exports [as INTERACTION_CREATE] (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\handlers\INTERACTION_CREATE.js:4:36)
+    at WebSocketManager.handlePacket (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:352:31)
+    at WebSocketManager.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\client\websocket\WebSocketManager.js:236:12)
+    at WebSocketManager.emit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@vladfrangu\async_event_emitter\dist\index.cjs:2504:31)
+    at WebSocketShard.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\ws\dist\index.js:1190:51)
+[[31merror[39m 2025-11-23 18:00:37] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 18:01:15] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 18:01:49] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 18:01:54] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/request/keihiItemHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 18:02:49] [31m⚠️ Promise未処理拒否: Error: Cannot find module './KeihiPanel_Request'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiItemHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-23 18:37:45] [31m[configLogger] sendSettingLog エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\config\configLogger.js:76:33)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async submitItemModal (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiItemHandler.js:123:7)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:72:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:151:20)
+[[31merror[39m 2025-11-24 04:27:19] [31m[configLogger] sendSettingLog エラー: Cannot read properties of undefined (reading 'username')[39m
+TypeError: Cannot read properties of undefined (reading 'username')
+    at sendSettingLog (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\config\configLogger.js:76:33)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async submitItemModal (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiItemHandler.js:131:7)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:72:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:151:20)
+[[31merror[39m 2025-11-24 05:33:52] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/setting/keihiPanelRoleHandler'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-24 07:48:18] [31m[keihiRoleHandler] saveRoles エラー: postKeihiSettingPanel is not a function[39m
+TypeError: postKeihiSettingPanel is not a function
+    at saveRoles (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiRoleHandler.js:129:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:159:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
+[[31merror[39m 2025-11-24 07:49:34] [31m[keihiRoleHandler] saveRoles エラー: Unknown Message[39m
+DiscordAPIError[10008]: Unknown Message
+    at handleErrors (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\rest\dist\index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async SequentialHandler.runRequest (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\rest\dist\index.js:1163:23)
+    at async SequentialHandler.queueRequest (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\rest\dist\index.js:994:14)
+    at async _REST.request (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\@discordjs\rest\dist\index.js:1307:22)
+    at async GuildMessageManager.edit (C:\Users\User\Desktop\nightwork_bot - コピー\node_modules\discord.js\src\managers\MessageManager.js:255:15)
+    at async postKeihiSettingPanel (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiPanelHandler.js:60:5)
+    at async saveRoles (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\setting\keihiRoleHandler.js:127:5)
+    at async handleInteraction (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandlers.js:159:9)
+    at async Object.execute (C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js:123:20)
