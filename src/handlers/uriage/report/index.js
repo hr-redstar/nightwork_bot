@@ -1,27 +1,71 @@
 // src/handlers/uriage/report/index.js
 // ----------------------------------------------------
-// 売上報告・承認・修正フローのインタラクションを処理する
+// 売上 報告系 入口
 // ----------------------------------------------------
 
-const { IDS } = require('./ids'); // report/ids.js を参照
-const { openUriageReportModal, handleReportSubmit } = require('./requestFlow');
-const { handleApprove, handleReportFixSubmit, handleDelete } = require('./statusActions');
+const { URIAGE_REPORT_IDS } = require('./ids');
+const {
+  openUriageRequestModal,
+  handleUriageRequestModalSubmit,
+} = require('./requestFlow');
+const {
+  handleUriageStatusAction,
+  handleUriageEditModalSubmit,
+} = require('./statusActions');
 
+/**
+ * 売上 報告系コンポーネントの共通ハンドラ
+ * @param {import('discord.js').Interaction} interaction
+ */
 async function handleUriageReportInteraction(interaction) {
-  const { customId } = interaction;
+  const customId = interaction.customId || '';
 
-  // 報告モーダルを開く
-  if (customId.startsWith(IDS.BTN_REPORT_OPEN)) return openUriageReportModal(interaction); // uriage:report:btn:open:storeId
+  // ボタン
+  if (interaction.isButton()) {
+    // 売上報告ボタン → 新規報告モーダル
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.OPEN_REQUEST_MODAL_PREFIX}:`)) {
+      const storeKey = customId.split(':').slice(-1)[0];
+      return openUriageRequestModal(interaction, storeKey);
+    }
 
-  // スレッド内のボタン
-  if (customId === IDS.BTN_APPROVE) return handleApprove(interaction);
-  if (customId === IDS.BTN_FIX) return handleReportFixSubmit(interaction, { openOnly: true });
-  if (customId === IDS.BTN_DELETE) return handleDelete(interaction);
+    // 承認
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_APPROVE_PREFIX}:`)) {
+      const recordId = customId.split(':').slice(-1)[0];
+      return handleUriageStatusAction(interaction, { action: 'approve', recordId });
+    }
 
-  // モーダル送信 (uriage:report:modal:submit:storeId)
-  if (customId.startsWith(IDS.MODAL_REPORT)) return handleReportSubmit(interaction);
-  // モーダル送信 (uriage:report:modal:fix:messageId)
-  if (customId.startsWith(IDS.MODAL_FIX)) return handleReportFixSubmit(interaction);
+    // 修正
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_EDIT_PREFIX}:`)) {
+      const recordId = customId.split(':').slice(-1)[0];
+      return handleUriageStatusAction(interaction, { action: 'edit', recordId });
+    }
+
+    // 削除
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_DELETE_PREFIX}:`)) {
+      const recordId = customId.split(':').slice(-1)[0];
+      return handleUriageStatusAction(interaction, { action: 'delete', recordId });
+    }
+  }
+
+  // モーダル送信
+  if (interaction.isModalSubmit()) {
+    // 新規 売上報告モーダル
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.MODAL_REQUEST_PREFIX}:`)) {
+      const storeKey = customId.split(':').slice(-1)[0];
+      return handleUriageRequestModalSubmit(interaction, storeKey);
+    }
+
+    // 修正モーダル
+    if (customId.startsWith(`${URIAGE_REPORT_IDS.EDIT_MODAL_PREFIX}:`)) {
+      const parts = customId.split(':');
+      // ['uriage','report','editModal', recordId, messageId]
+      const recordId = parts[3];
+      const messageId = parts[4];
+      return handleUriageEditModalSubmit(interaction, { recordId, messageId });
+    }
+  }
+
+  return;
 }
 
 module.exports = {

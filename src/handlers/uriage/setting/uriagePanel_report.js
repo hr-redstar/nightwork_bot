@@ -11,8 +11,8 @@ const {
 } = require('discord.js');
 const { loadStoreConfig } = require('../../../utils/config/storeConfigManager');
 const { loadUriageConfig, saveUriageConfig } = require('../../../utils/uriage/uriageConfigManager');
-const { updateUriagePanel } = require('./panel');
-const { IDS } = require('../ids');
+const { refreshUriageSettingPanelMessage } = require('../setting/uriagePanel_setting.js');
+const { IDS } = require('../setting/ids');
 const { sendSettingLog } = require('../../../utils/uriage/embedLogger');
 
 /**
@@ -31,17 +31,17 @@ async function postUriageReportPanel(interaction, options) {
 
   const storeData = await loadStoreConfig(guildId);
   const stores = storeData?.stores || [];
-
-      return interaction.followUp({
-        content: '⚠️ 店舗情報が登録されていません。GCS/config/店舗_役職_ロール.json を確認してください。',
-        ephemeral: true,
-      });
-    }
+  if (!stores.length) {
+    return interaction.followUp({
+      content: '⚠️ 店舗情報が登録されていません。GCS/config/店舗_役職_ロール.json を確認してください。',
+      ephemeral: true,
+    });
+  }
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId(IDS.SEL_STORE)
       .setPlaceholder('パネルを設置する店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s.name, value: s.id })));
+      .addOptions(stores.map((s) => ({ label: s.name, value: s.id })));
 
     return interaction.followUp({
       content: '🏪 どの店舗の売上報告パネルを設置しますか？',
@@ -71,7 +71,7 @@ async function handleReportPanelSelection(interaction) {
   // ステップ3: チャンネル選択後、パネルを設置
   // ----------------------------------------
   if (interaction.customId.startsWith(IDS.SEL_TEXT_CHANNEL)) {
-    const storeId = interaction.customId.split(':')[2];
+    const storeId = interaction.customId.split(':')[3];
     const channelId = interaction.values[0];
     const channel = await interaction.guild.channels.fetch(channelId);
 
@@ -92,7 +92,7 @@ async function handleReportPanelSelection(interaction) {
     });
 
     // 設定を保存（messageId を含める）
-    const config = await loadUriageConfig(guildId);
+    const config = await loadUriageConfig(interaction.guild.id);
     config.panels[storeId] = {
       channelId: channelId,
       messageId: sent.id,
@@ -107,7 +107,7 @@ async function handleReportPanelSelection(interaction) {
     });
 
     // 設定パネルを更新して、設置一覧などが直ちに反映されるようにする
-    await updateUriagePanel(interaction);
+    await refreshUriageSettingPanelMessage(interaction.guild, config);
 
     return interaction.update({ content: `✅ **${storeId}** の売上報告パネルを <#${channelId}> に設置しました。`, components: [] });
   }

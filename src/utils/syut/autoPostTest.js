@@ -5,7 +5,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
-const { getSyutConfig, getDailySyuttaikin } = require('./utils/syut/syutConfigManager');
+const { getSyutConfig, getDailySyuttaikin } = require('./syutConfigManager'); // 本来は autoPost.js で使う想定
 
 // ★ 環境変数に Discord Bot トークンとテストチャンネルID を設定してください
 const TOKEN = process.env.DISCORD_TOKEN;

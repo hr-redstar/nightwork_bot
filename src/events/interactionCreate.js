@@ -6,14 +6,15 @@ const { Events, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
 
 // --- 各機能のハンドラー ---
-const { handleKeihiInteraction } = require('../handlers/keihi/keihiBotHandlers');
-const configBotHandlers = require('../handlers/configBotHandlers');
-const { handleSyutInteractions } = require('../handlers/syutBotHandler');
-const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
-const handleKpiInteraction = require('../handlers/KPIBotHandler');
-const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
+
+const configBotHandlers = require('../handlers/configBotHandlers');
+//const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
+const { handleKeihiInteraction } = require('../handlers/keihi/keihiBotHandlers');
+const { handleSyutInteractions } = require('../handlers/syutBotHandler');
+const handleKpiInteraction = require('../handlers/KPIBotHandler');
+const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 
 module.exports = {
   name: Events.InteractionCreate,

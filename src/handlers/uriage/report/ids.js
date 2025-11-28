@@ -1,19 +1,30 @@
 // src/handlers/uriage/report/ids.js
+// -----------------------------------------
+// 売上 報告系 コンポーネントID
+// -----------------------------------------
 
-const PREFIX = 'uriage:report';
+const PREFIX = 'uriage:report:';
 
-const IDS = {
-  // 報告パネルのボタン
-  BTN_REPORT_OPEN: `${PREFIX}:btn:open`, // :storeId が付与される
+const URIAGE_REPORT_IDS = {
+  PREFIX,
 
-  // 報告スレッド内のボタン
-  BTN_APPROVE: `${PREFIX}:btn:approve`,
-  BTN_FIX: `${PREFIX}:btn:fix`,
-  BTN_DELETE: `${PREFIX}:btn:delete`,
+  // ボタン: 売上報告モーダルを開く
+  // 実際の customId は `${OPEN_REQUEST_MODAL_PREFIX}:${storeKey}`
+  OPEN_REQUEST_MODAL_PREFIX: `${PREFIX}openRequestModal`,
 
   // モーダル
-  MODAL_REPORT: `${PREFIX}:modal:submit`, // :storeId が付与される
-  MODAL_FIX: `${PREFIX}:modal:fix`,       // :messageId が付与される
+  // 実際の customId は `${MODAL_REQUEST_PREFIX}:${storeKey}`
+  MODAL_REQUEST_PREFIX: `${PREFIX}modalRequest`,
+
+  // ステータス変更＆操作ボタン
+  // `${BTN_APPROVE_PREFIX}:${recordId}` など
+  BTN_APPROVE_PREFIX: `${PREFIX}approve`,
+  BTN_EDIT_PREFIX: `${PREFIX}edit`,
+  BTN_DELETE_PREFIX: `${PREFIX}delete`,
+
+  // 修正モーダル
+  // `${EDIT_MODAL_PREFIX}:${recordId}:${messageId}`
+  EDIT_MODAL_PREFIX: `${PREFIX}editModal`,
 };
 
-module.exports = { IDS };
+module.exports = { URIAGE_REPORT_IDS };

@@ -122,9 +122,59 @@ async function saveKeihiConfig(guildId, config) {
   }
 }
 
+// ----------------------------------------------------
+// 経費機能 店舗別設定 (GCS/<guildId>/keihi/<storeId>/config.json)
+// ----------------------------------------------------
+
+/**
+ * keihi 店舗別設定ファイルパス
+ *   GCS/ギルドID/keihi/店舗名/config.json
+ */
+function keihiStoreConfigPath(guildId, storeId) {
+  return `${guildId}/keihi/${storeId}/config.json`;
+}
+
+/**
+ * 経費店舗別設定の読み込み
+ */
+async function loadKeihiStoreConfig(guildId, storeId) {
+  const path = keihiStoreConfigPath(guildId, storeId);
+  try {
+    const config = (await readJSON(path)) || {};
+    return config;
+  } catch (err) {
+    logger.warn(
+      `[keihiConfigManager] ${path} 読み込み失敗 -> デフォルト使用`,
+      err,
+    );
+    return {};
+  }
+}
+
+/**
+ * 経費店舗別設定の保存
+ *  - 既存の設定を読み込んでからマージして上書き
+ */
+async function saveKeihiStoreConfig(guildId, storeId, newConfig) {
+  const path = keihiStoreConfigPath(guildId, storeId);
+  try {
+    const existingConfig = await loadKeihiStoreConfig(guildId, storeId);
+    const mergedConfig = { ...existingConfig, ...newConfig };
+    await saveJSON(path, mergedConfig);
+  } catch (err) {
+    logger.error(`[keihiConfigManager] ${path} 保存失敗`, err);
+    throw err;
+  }
+}
+
 module.exports = {
   // 全体設定
   keihiGlobalConfigPath,
   loadKeihiConfig,
   saveKeihiConfig,
+
+  // 店舗別設定
+  keihiStoreConfigPath,
+  loadKeihiStoreConfig,
+  saveKeihiStoreConfig,
 };

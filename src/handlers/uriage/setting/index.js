@@ -4,7 +4,7 @@
 // ----------------------------------------------------
 
 const { IDS } = require('./ids'); // setting/ids.js を参照
-const { handleSetPanelButton, handleStoreForPanelSelect, handlePanelChannelSelect } = require('./panelLocation');
+const { handleSetPanelButton, handleStoreForPanelSelect, handlePanelChannelSelect } = require('./panelLocation.js');
 const { handleSetApproverButton, handleApproverRolesSelect, handleSetViewerButton, handleViewerRoleSelect, handleSetApplicantButton, handleApplicantRoleSelect } = require('./role');
 const { openCsvExportFlow, handleCsvExportSelection } = require('./csv'); // openCsvExportFlow は handleExportCsvButton にリネーム
 

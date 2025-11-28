@@ -4,8 +4,8 @@
 // customId のプレフィックスを見て、各機能に処理を振り分ける
 // ----------------------------------------------------
 
-const { handleKeihiSettingInteraction } = require('./setting');
-const { handleKeihiRequestInteraction } = require('./request');
+const { handleKeihiSettingInteraction } = require('./setting/index.js');
+const { handleKeihiRequestInteraction } = require('./request/index.js');
 
 /**
  * 経費関連のインタラクションをすべて処理する

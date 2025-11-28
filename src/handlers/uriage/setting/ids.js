@@ -19,6 +19,11 @@ const IDS = {
   // モーダル (report/handler.js)
   MODAL_REPORT: `${PREFIX}:report:modal:submit`,
   MODAL_FIX: `${PREFIX}:report:modal:fix`,
+
+  // パネル設置フロー (uriagePanel_Report.js)
+  SEL_STORE: `${PREFIX}:panel:select:store`,
+  SEL_TEXT_CHANNEL: `${PREFIX}:panel:select:channel`, // :storeId が付与される
+  SEL_ROLE: `${PREFIX}:panel:select:role`, // :roleFlow が付与される
 };
 
 module.exports = { IDS };

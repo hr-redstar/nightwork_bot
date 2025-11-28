@@ -6,9 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const client = require('./botClient');
 const logger = require('./utils/logger');
-const express = require('express');
-const httpLogger = require('./utils/httpLogger');
-const postCastRouter = require('./utils/syut/postCast');
+// const express = require('express');
+// const httpLogger = require('./utils/httpLogger');
+// const postCastRouter = require('./utils/syut/postCast');
 const { DEV_GUILD_IDS } = require('./utils/config/envConfig');
 const { deployCommands } = require('../scripts/deployGuildCommands'); // コマンド再読み込み確認
 const { initSyutCron } = require('./utils/syut/syutCron');
@@ -22,16 +22,16 @@ const {
 } = process.env;
 
 // --- Express サーバー設定 ---
-const app = express();
-const PORT = process.env.PORT || 8080;
+// const app = express();
+// const PORT = process.env.PORT || 8080;
 
-app.use(express.json());
-app.use(httpLogger);
-app.use('/', postCastRouter); // 出退勤POST ルーター
+// app.use(express.json());
+// app.use(httpLogger);
+// app.use('/', postCastRouter); // 出退勤POST ルーター
 
-app.get('/', (req, res) => {
-  res.status(200).send('Bot is running.');
-});
+// app.get('/', (req, res) => {
+//   res.status(200).send('Bot is running.');
+// });
 
 // -------------------------
 
@@ -138,7 +138,7 @@ function loadCommands(dir) {
   }
 
   // --- Express 起動 ---
-  app.listen(PORT, () => {
-    logger.info(`🌐 Express サーバー起動: ポート ${PORT}`);
-  });
+  // app.listen(PORT, () => {
+  //   logger.info(`🌐 Express サーバー起動: ポート ${PORT}`);
+  // });
 })();

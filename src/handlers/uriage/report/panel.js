@@ -7,23 +7,22 @@ const { loadUriageConfig, saveUriageConfig } = require('../../../utils/uriage/ur
 const { loadUriageStoreConfig } = require('../../../utils/uriage/gcsUriageManager');
 const { IDS } = require('./ids');
 
-function buildUriageReportPanelEmbed(storeName) {
+function buildUriageReportPanelEmbed(storeKey, storeName) {
+  const name = storeName || storeKey;
   return new EmbedBuilder()
-    .setTitle(`💰 売上報告パネル (${storeName})`)
-    .setDescription('下のボタンを押して、本日の売上を報告してください。')
-    .setColor(0x54a0ff); // keihi に合わせて色変更
+    .setTitle(`💰 売上報告パネル - ${name}`)
+    .setDescription('このパネルから本日の売上報告を行ってください。');
 }
 
-function buildUriageReportPanelComponents(storeId) {
+function buildUriageReportPanelComponents(storeKey) {
   const reportButton = new ButtonBuilder()
-    .setCustomId(`${IDS.BTN_REPORT_OPEN}:${storeId}`)
+    .setCustomId(`${IDS.BTN_REPORT_OPEN}:${storeKey}`)
     .setLabel('売上を報告する')
     .setStyle(ButtonStyle.Primary);
   return [new ActionRowBuilder().addComponents(reportButton)];
 }
 
 async function upsertStoreReportPanelMessage(guild, storeId, globalConfig) {
-  const guildId = guild.id;
   const storeConfig = await loadUriageStoreConfig(guildId, storeId);
   const storeName = storeConfig.name || storeId;
 
@@ -34,30 +33,30 @@ async function upsertStoreReportPanelMessage(guild, storeId, globalConfig) {
     const channel = await guild.channels.fetch(panelInfo.channelId);
     if (!channel?.isTextBased()) return null;
 
-    const embed = buildUriageReportPanelEmbed(storeName);
+    const embed = buildUriageReportPanelEmbed(storeId, storeName);
     const components = buildUriageReportPanelComponents(storeId);
 
     if (panelInfo.messageId) {
       try {
         const message = await channel.messages.fetch(panelInfo.messageId);
         await message.edit({ embeds: [embed], components });
-        logger.info(`🔄 売上報告パネルを更新しました（${storeName}）`);
+        logger.info(`🔄 売上報告パネルを更新しました（${storeId}）`);
         return message;
       } catch (err) {
         if (err.code === 10008) { // Unknown Message
           logger.warn(`[uriage/report/panel] 既存パネルメッセージが見つかりません (ID: ${panelInfo.messageId})。再送信します。`);
         } else {
-          logger.error(`[uriage/report/panel] 既存パネルメッセージの更新に失敗 (ID: ${panelInfo.messageId})`, err);
+          throw err;
         }
       }
     }
 
     const sent = await channel.send({ embeds: [embed], components });
-    logger.info(`🆕 売上報告パネルを新規設置しました（${storeName}）`);
+    logger.info(`🆕 売上報告パネルを新規設置しました（${storeId}）`);
 
     // config の messageId を更新
     globalConfig.panels[storeId].messageId = sent.id;
-    await saveUriageConfig(guildId, globalConfig);
+    await saveUriageConfig(guild.id, globalConfig);
 
     return sent;
   } catch (err) {
@@ -67,5 +66,7 @@ async function upsertStoreReportPanelMessage(guild, storeId, globalConfig) {
 }
 
 module.exports = {
+  buildUriageReportPanelEmbed,
+  buildUriageReportPanelComponents,
   upsertStoreReportPanelMessage,
 };
