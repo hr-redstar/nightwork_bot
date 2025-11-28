@@ -2,17 +2,17 @@
 // 「売上報告パネル設置」ボタンのフロー
 
 const { ActionRowBuilder, StringSelectMenuBuilder, ChannelSelectMenuBuilder, ChannelType, MessageFlags } = require('discord.js');
-const { loadStoreConfig } = require('../../../utils/config/storeConfigManager');
-const { loadUriageConfig, saveUriageConfig, loadUriageStoreConfig, saveUriageStoreConfig } = require('../../../utils/uriage/uriageConfigManager'); // loadUriageStoreConfig は gcsUriageManager にあるが、uriageConfigManager に集約する想定
-const { upsertStoreReportPanelMessage } = require('../report/panel'); // keihi の upsertStorePanelMessage に相当
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const { loadUriageConfig, saveUriageConfig } = require('../../../utils/uriage/uriageConfigManager');
+const { postUriageReportPanel } = require('./uriagePanel_report');
 const { refreshUriageSettingPanelMessage } = require('./panel'); // keihi の refreshKeihiSettingPanelMessage に相当
 const { sendSettingLog } = require('../../../utils/uriage/embedLogger');
 const logger = require('../../../utils/logger');
 const { IDS } = require('./ids');
 
-async function handleSetPanelButton(interaction) {
-  await interaction.deferUpdate();
-  const storeData = await loadStoreConfig(interaction.guild.id);
+async function openPanelLocationSelector(interaction) {
+  const guildId = interaction.guild.id;
+  const storeData = await loadStoreRoleConfig(guildId);
   const stores = storeData?.stores || [];
 
   if (!stores.length) {
@@ -25,9 +25,9 @@ async function handleSetPanelButton(interaction) {
   const menu = new StringSelectMenuBuilder()
     .setCustomId(IDS.SEL_STORE_FOR_PANEL)
     .setPlaceholder('パネルを設置する店舗を選択')
-    .addOptions(stores.map((s) => ({ label: s.name, value: s.name }))); // keihi に合わせて name を value に
+    .addOptions(stores.map((s) => ({ label: s.name, value: s.id })));
 
-  return interaction.followUp({
+  return interaction.reply({
     content: '🏪 どの店舗の売上報告パネルを設置しますか？',
     components: [new ActionRowBuilder().addComponents(menu)],
     ephemeral: true,
@@ -85,11 +85,11 @@ async function handlePanelChannelSelect(interaction) {
   await saveUriageConfig(guildId, globalConfig);
 
   // 店舗ごとの売上報告パネルメッセージを upsert
-  const panelMessage = await upsertStoreReportPanelMessage(
+  const panelMessage = await postUriageReportPanel({
     guild,
-    storeId,
-    globalConfig,
-  );
+    channel,
+    storeKey: storeId,
+  });
 
   // panelMessage.id を globalConfig.panels に反映
   if (panelMessage?.id) {
@@ -115,7 +115,7 @@ async function handlePanelChannelSelect(interaction) {
 }
 
 module.exports = {
-  handleSetPanelButton,
+  openPanelLocationSelector,
   handleStoreForPanelSelect,
   handlePanelChannelSelect,
 };

@@ -2,7 +2,7 @@
 // 売上CSVエクスポート関連のフロー
 
 const { ActionRowBuilder, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
-const { loadStoreConfig } = require('../../../utils/config/storeConfigManager');
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { listUriageCsvOptions, getUriageCsvUrl } = require('../../../utils/uriage/uriageCsvManager');
 const logger = require('../../../utils/logger');
 const { IDS, CSV_PERIOD_VALUE_PREFIX } = require('./ids');
@@ -11,7 +11,7 @@ const { IDS, CSV_PERIOD_VALUE_PREFIX } = require('./ids');
  * 「売上csv発行」ボタン → 店舗選択
  */
 async function openCsvExportFlow(interaction) {
-  const storeData = await loadStoreConfig(interaction.guild.id);
+  const storeData = await loadStoreRoleConfig(interaction.guild.id);
   const stores = storeData?.stores || [];
 
   if (!stores.length) {

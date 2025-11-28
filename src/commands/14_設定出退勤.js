@@ -10,11 +10,19 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await postSyutPanel(interaction.channel);
-      await interaction.reply({ content: '✅ 出退勤設定パネルを設置しました。', flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: '✅ 出退勤設定パネルを設置しました。' });
     } catch (err) {
       console.error('❌ /設定出退勤 実行エラー:', err);
-      await interaction.reply({ content: '⚠️ パネル設置中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: '⚠️ パネル設置中にエラーが発生しました。' });
+      } else {
+        await interaction.reply({
+          content: '⚠️ パネル設置中にエラーが発生しました。',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
   },
 };

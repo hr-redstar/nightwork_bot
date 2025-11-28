@@ -11,6 +11,10 @@ let bucket = null;
 let isLocalMode = false;
 let localBasePath = path.join(process.cwd(), 'local_data', 'GCS');
 
+const BUCKET_NAME = process.env.GCP_BUCKET_NAME;
+const PUBLIC_BASE_URL =
+  process.env.GCS_PUBLIC_BASE_URL || `https://storage.googleapis.com/${BUCKET_NAME}/`;
+
 // -------------------------------
 // GCS 初期化
 // -------------------------------
@@ -188,6 +192,18 @@ async function listFiles(prefix, options = {}) {
   }
 }
 
+/**
+ * GCS オブジェクトの公開 URL を組み立てる
+ *   例) PUBLIC_BASE_URL=https://storage.googleapis.com/my-bucket/
+ *       objectPath=GCS/12345/メッセージログ/67890/2025-11-29.json
+ *       → https://storage.googleapis.com/my-bucket/GCS/12345/メッセージログ/67890/2025-11-29.json
+ * @param {string} objectPath GCS 内のオブジェクトパス
+ */
+function buildPublicUrl(objectPath) {
+  // 日本語パスもそのまま使えるが、気になる場合は encodeURI でエンコード
+  return `${PUBLIC_BASE_URL}${encodeURI(objectPath)}`;
+}
+
 // ====================================================
 // 公開 API
 // ====================================================
@@ -200,4 +216,5 @@ module.exports = {
   writeFile,
   readFile,
   listFiles,
+  buildPublicUrl,
 };

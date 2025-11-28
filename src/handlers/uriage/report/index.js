@@ -28,19 +28,16 @@ async function handleUriageReportInteraction(interaction) {
       return openUriageRequestModal(interaction, storeKey);
     }
 
-    // 承認
     if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_APPROVE_PREFIX}:`)) {
       const recordId = customId.split(':').slice(-1)[0];
       return handleUriageStatusAction(interaction, { action: 'approve', recordId });
     }
 
-    // 修正
     if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_EDIT_PREFIX}:`)) {
       const recordId = customId.split(':').slice(-1)[0];
       return handleUriageStatusAction(interaction, { action: 'edit', recordId });
     }
 
-    // 削除
     if (customId.startsWith(`${URIAGE_REPORT_IDS.BTN_DELETE_PREFIX}:`)) {
       const recordId = customId.split(':').slice(-1)[0];
       return handleUriageStatusAction(interaction, { action: 'delete', recordId });

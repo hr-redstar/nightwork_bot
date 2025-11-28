@@ -10,3 +10,4 @@ hp/node_modules/
 
 # ✅ ローカルでのみ使うデータフォルダ
 local_data/
+logs/

@@ -12,16 +12,19 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    // ephemeral: true をデフォルトに
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
     try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await sendUriageSettingPanel(interaction);
     } catch (err) {
       logger.error('[/設定売上] エラー:', err);
-      await interaction.followUp({
-        content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。',
-        flags: [MessageFlags.Ephemeral],
-      });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。' });
+      } else {
+        await interaction.reply({
+          content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
   },
 };

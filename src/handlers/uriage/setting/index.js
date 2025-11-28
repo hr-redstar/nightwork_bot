@@ -1,36 +1,103 @@
 // src/handlers/uriage/setting/index.js
 // ----------------------------------------------------
-// 売上設定関連のインタラクションを処理する
+// 売上 設定系 入口
+//   - /設定売上 コマンド
+//   - 売上設定パネル内のボタン／セレクトの振り分け
 // ----------------------------------------------------
 
-const { IDS } = require('./ids'); // setting/ids.js を参照
-const { handleSetPanelButton, handleStoreForPanelSelect, handlePanelChannelSelect } = require('./panelLocation.js');
-const { handleSetApproverButton, handleApproverRolesSelect, handleSetViewerButton, handleViewerRoleSelect, handleSetApplicantButton, handleApplicantRoleSelect } = require('./role');
-const { openCsvExportFlow, handleCsvExportSelection } = require('./csv'); // openCsvExportFlow は handleExportCsvButton にリネーム
+const { IDS } = require('./ids');
+const { sendUriageSettingPanel } = require('./panel');
+const {
+  openPanelLocationSelector,
+  handleStoreSelectForPanel,
+  handleChannelSelectForPanel,
+} = require('./panelLocation');
+const {
+  openApproverRoleSelector,
+  handleApproverStoreSelect,
+  handleApproverRoleSelect,
+} = require('./approverRoles');
+const {
+  openUriageCsvExport,
+  handleUriageCsvStoreSelect,
+  handleUriageCsvTypeSelect,
+} = require('./csv');
+const {
+  handleSetApproverButton,
+  handleApproverRolesSelect,
+} = require('./role');
+const { handleStoreDetailSetting } = require('./store');
+const { handleItemSetting } = require('./item');
 
+/**
+ * /設定売上 コマンド
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ */
+async function handleUriageSettingCommand(interaction) {
+  return sendUriageSettingPanel(interaction);
+}
+
+/**
+ * 売上設定パネルでのコンポーネント共通ハンドラ
+ * @param {import('discord.js').Interaction} interaction
+ */
 async function handleUriageSettingInteraction(interaction) {
-  const { customId } = interaction;
+  const customId = interaction.customId || '';
 
-  // 報告パネル設置
-  if (customId === IDS.BTN_PANEL_SETUP) return handleSetPanelButton(interaction); // keihi の handleSetPanelButton
-  if (customId === IDS.SEL_STORE_FOR_PANEL) return handleStoreForPanelSelect(interaction);
-  if (customId.startsWith(IDS.SEL_PANEL_CHANNEL)) return handlePanelChannelSelect(interaction);
-
-  // 役職設定
-  if (customId === IDS.BTN_ROLE_APPROVER) return handleSetApproverButton(interaction); // keihi の handleSetApproverButton
-  if (customId === IDS.BTN_ROLE_VIEWER) return handleSetViewerButton(interaction);
-  if (customId === IDS.BTN_ROLE_APPLICANT) return handleSetApplicantButton(interaction);
-  if (customId === IDS.SEL_APPROVER_ROLE) return handleApproverRolesSelect(interaction); // keihi の handleApproverRolesSelect
-  if (customId === IDS.SEL_VIEWER_ROLE) return handleViewerRoleSelect(interaction);
-  if (customId === IDS.SEL_APPLICANT_ROLE) return handleApplicantRoleSelect(interaction);
-
-  // CSV発行
-  if (customId === IDS.BTN_CSV_EXPORT) return openCsvExportFlow(interaction); // keihi の handleExportCsvButton
-  if (customId === IDS.SEL_CSV_STORE || customId.startsWith(IDS.SEL_CSV_PERIOD)) { // keihi の handleCsvStoreSelect, handleCsvPeriodSelect
-    return handleCsvExportSelection(interaction);
+  // ボタン
+  if (interaction.isButton()) {
+    if (customId === IDS.BTN_OPEN_PANEL_LOCATION) {
+      return openPanelLocationSelector(interaction);
+    }
+    if (customId === IDS.BTN_OPEN_APPROVER_ROLE) {
+      return openApproverRoleSelector(interaction);
+    }
+    if (customId === IDS.BTN_OPEN_CSV_EXPORT) {
+      return openUriageCsvExport(interaction);
+    }
   }
+
+  // StringSelect
+  if (interaction.isStringSelectMenu()) {
+    if (customId === IDS.SELECT_STORE_FOR_PANEL) {
+      return handleStoreSelectForPanel(interaction);
+    }
+    if (customId === IDS.SELECT_STORE_FOR_APPROVER) {
+      return handleApproverStoreSelect(interaction);
+    }
+    if (customId === IDS.SELECT_STORE_FOR_CSV) {
+      return handleUriageCsvStoreSelect(interaction);
+    }
+    if (customId.startsWith(`${IDS.SELECT_CSV_TYPE}:`)) {
+      return handleUriageCsvTypeSelect(interaction);
+    }
+  }
+
+  // ChannelSelect（売上報告パネル設置）
+  if (
+    typeof interaction.isChannelSelectMenu === 'function' &&
+    interaction.isChannelSelectMenu()
+  ) {
+    if (customId.startsWith(`${IDS.SELECT_CHANNEL_FOR_PANEL}:`)) {
+      return handleChannelSelectForPanel(interaction);
+    }
+  }
+
+  // RoleSelect（承認役職）
+  if (
+    typeof interaction.isRoleSelectMenu === 'function' &&
+    interaction.isRoleSelectMenu()
+  ) {
+    if (customId.startsWith(`${IDS.SELECT_ROLE_FOR_APPROVER}:`)) {
+      return handleApproverRolesSelect(interaction);
+    }
+  }
+
+  // マッチしない場合は何もしない
+  return;
 }
 
 module.exports = {
+  handleUriageSettingCommand,
   handleUriageSettingInteraction,
 };

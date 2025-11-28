@@ -1,29 +1,32 @@
-const PREFIX = 'uriage';
+// src/handlers/uriage/setting/ids.js
+// -----------------------------------------
+// 売上 設定系 コンポーネントID
+// -----------------------------------------
 
-const IDS = {
-  // 設定パネル (setting/panel.js と共通)
-  BTN_PANEL_SETUP: 'uriage-btn-panel-setup',
-  BTN_ROLE_APPROVER: 'uriage-btn-role-approver',
-  BTN_ROLE_VIEWER: 'uriage-btn-role-viewer',
-  BTN_ROLE_APPLICANT: 'uriage-btn-role-applicant',
-  BTN_CSV_EXPORT: 'uriage-btn-csv-export',
+const PREFIX = 'uriage:setting:';
 
-  // 報告パネル (report/panel.js)
-  BTN_REPORT_OPEN: `${PREFIX}:report:btn:open`,
+const IDS = Object.freeze({
+  PREFIX,
 
-  // スレッド内ボタン (report/handler.js)
-  BTN_APPROVE: `${PREFIX}:report:btn:approve`,
-  BTN_FIX: `${PREFIX}:report:btn:fix`,
-  BTN_DELETE: `${PREFIX}:report:btn:delete`,
+  // メイン設定パネル
+  PANEL_MESSAGE: `${PREFIX}panel`,
 
-  // モーダル (report/handler.js)
-  MODAL_REPORT: `${PREFIX}:report:modal:submit`,
-  MODAL_FIX: `${PREFIX}:report:modal:fix`,
+  // ボタン
+  BTN_OPEN_PANEL_LOCATION: `${PREFIX}btnPanelLocation`,  // 売上報告パネル設置
+  BTN_OPEN_APPROVER_ROLE: `${PREFIX}btnApproverRole`,    // 承認役職
+  BTN_OPEN_CSV_EXPORT: `${PREFIX}btnCsvExport`,          // 売上csv発行
 
-  // パネル設置フロー (uriagePanel_Report.js)
-  SEL_STORE: `${PREFIX}:panel:select:store`,
-  SEL_TEXT_CHANNEL: `${PREFIX}:panel:select:channel`, // :storeId が付与される
-  SEL_ROLE: `${PREFIX}:panel:select:role`, // :roleFlow が付与される
-};
+  // セレクト（パネル設置）
+  SELECT_STORE_FOR_PANEL: `${PREFIX}selectStoreForPanel`,
+  SELECT_CHANNEL_FOR_PANEL: `${PREFIX}selectChannelForPanel`,
+
+  // セレクト（承認役職）
+  SELECT_STORE_FOR_APPROVER: `${PREFIX}selectStoreForApprover`,
+  SELECT_ROLE_FOR_APPROVER: `${PREFIX}selectRoleForApprover`,
+
+  // セレクト（CSV発行）
+  SELECT_STORE_FOR_CSV: `${PREFIX}selectStoreForCsv`,
+  SELECT_CSV_TYPE: `${PREFIX}selectCsvType`, // `${SELECT_CSV_TYPE}:${storeKey}`
+});
 
 module.exports = { IDS };

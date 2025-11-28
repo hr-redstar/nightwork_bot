@@ -10,7 +10,7 @@ const logger = require('./utils/logger');
 // const httpLogger = require('./utils/httpLogger');
 // const postCastRouter = require('./utils/syut/postCast');
 const { DEV_GUILD_IDS } = require('./utils/config/envConfig');
-const { deployCommands } = require('../scripts/deployGuildCommands'); // コマンド再読み込み確認
+const { deployCommands } = require('../scripts/deployGuildCommands');
 const { initSyutCron } = require('./utils/syut/syutCron');
 const { migrateKeihiConfig } = require('./utils/keihi/keihiMigrator');
 const {

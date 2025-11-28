@@ -1,7 +1,6 @@
 // src/handlers/uriage/setting/panel.js
 // ----------------------------------------------------
 // 売上設定パネル表示
-//   - /設定売上 から呼び出し
 // ----------------------------------------------------
 
 const {
@@ -9,6 +8,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  MessageFlags,
 } = require('discord.js');
 
 const { IDS } = require('./ids');
@@ -18,6 +18,84 @@ const {
 const {
   loadStoreRoleConfig,
 } = require('../../../utils/config/storeRoleConfigManager');
+const {
+  createSettingPanelEmbed,
+} = require('../../../utils/embedPanel');
+
+/**
+ * 売上設定パネルの Embed を構築
+ * @param {object} config - uriage/config.json の内容
+ * @param {object} storeRoleConfig - 店舗_役職_ロール.json の内容
+ * @returns {import('discord.js').EmbedBuilder}
+ */
+function buildUriageSettingEmbed(config, storeRoleConfig) {
+  const fields = [];
+
+  const stores = storeRoleConfig?.stores ?? [];
+  const storeMap = new Map(stores.map(s => [String(s.id ?? s.name), String(s.name ?? '店舗')]));
+  const panels = config?.panels ?? {};
+  const setupStoreKeys = Object.keys(panels);
+
+  if (setupStoreKeys.length > 0) {
+    for (const storeKey of setupStoreKeys) {
+      const panelInfo = panels[storeKey] ?? {};
+      // パネルが設置されている（チャンネルIDがある）店舗のみ表示
+      if (!panelInfo.channelId) continue;
+
+      const storeName = storeMap.get(storeKey) || storeKey;
+      const ch = `<#${panelInfo.channelId}>`;
+
+      const approverRoleIds = Array.isArray(panelInfo.approverRoleIds)
+        ? panelInfo.approverRoleIds
+        : [];
+
+      const approverRoles = approverRoleIds.length > 0
+        ? approverRoleIds.map((id) => `<@&${id}>`).join(' ')
+        : '未設定';
+
+      fields.push({
+        name: storeName,
+        value: `売上報告パネル: ${ch}\n承認役職: ${approverRoles}`,
+        inline: false,
+      });
+    }
+  } else {
+    fields.push({
+      name: '現在、売上報告パネルが設置されている店舗はありません。',
+      value: '下の「売上報告パネル設置」ボタンから設定を開始してください。',
+    })
+  }
+
+  return createSettingPanelEmbed('💰 売上設定パネル', fields);
+}
+
+/**
+ * 売上設定パネルのコンポーネント（ボタン）を構築
+ * @returns {import('discord.js').ActionRowBuilder[]}
+ */
+function buildUriageSettingComponents() {
+  // 1行目: 売上報告パネル設置 / 承認役職
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_OPEN_PANEL_LOCATION)
+      .setLabel('売上報告パネル設置')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_OPEN_APPROVER_ROLE)
+      .setLabel('承認役職')
+      .setStyle(ButtonStyle.Secondary),
+  );
+
+  // 2行目: 売上csv発行
+  const row2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(IDS.BTN_OPEN_CSV_EXPORT)
+      .setLabel('売上csv発行')
+      .setStyle(ButtonStyle.Success),
+  );
+
+  return [row1, row2];
+}
 
 /**
  * 売上設定パネルを表示
@@ -31,58 +109,12 @@ async function sendUriageSettingPanel(interaction) {
     loadStoreRoleConfig(guildId),
   ]);
 
-  const embed = new EmbedBuilder()
-    .setTitle('💰 売上設定パネル')
-    .setDescription('店舗ごとの売上報告パネル・権限などを設定します。');
-
-  const fields = [];
-
-  // 店舗一覧（stores が配列の場合のみ処理）
-  const stores = Array.isArray(storeRoleConfig?.stores)
-    ? storeRoleConfig.stores
-    : [];
-
-  if (stores.length > 0) {
-    const panels = config?.panels ?? {};
-
-    for (const store of stores) {
-      const storeName = String(store.name ?? '店舗');
-      const key = String(store.id ?? storeName);
-      const panelInfo = panels[key] ?? {};
-      const ch = panelInfo.channelId ? `<#${panelInfo.channelId}>` : '未設定';
-
-      fields.push({
-        name: storeName,
-        value: `売上報告パネル: ${ch}`,
-        inline: false,
-      });
-    }
-  } else {
-    embed.setFooter({
-      text: '※ 店舗情報が未設定です。/設定店舗情報 などで店舗を設定してください。',
-    });
-  }
-
-  // fields が 1件以上あるときだけ addFields する（空配列で投げない）
-  if (fields.length > 0) {
-    embed.addFields(fields);
-  }
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_OPEN_PANEL_LOCATION)
-      .setLabel('売上パネル設置')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_OPEN_CSV_SETTING)
-      .setLabel('CSV設定')
-      .setStyle(ButtonStyle.Secondary),
-  );
+  const embed = buildUriageSettingEmbed(config, storeRoleConfig);
+  const components = buildUriageSettingComponents();
 
   const payload = {
     embeds: [embed],
-    components: [row],
-    ephemeral: true,
+    components,
   };
 
   // /設定売上 側で deferReply してるので、基本 followUp になる

@@ -1,4 +1,4 @@
-﻿﻿// src/commands/11_設定経費.js
+﻿﻿﻿﻿// src/commands/11_設定経費.js
 
 const {
   SlashCommandBuilder,
@@ -34,12 +34,10 @@ module.exports = {
       console.error('[/設定経費] エラー:', err);
 
       if (interaction.deferred) {
-        // 既に defer 済みなので editReply（flags は不要）
         await interaction.editReply({
           content: '⚠️ 経費設定パネルの表示中にエラーが発生しました。',
         });
       } else if (!interaction.replied) {
-        // まだ何も返していない場合はこちら
         await interaction.reply({
           content: '⚠️ 経費設定パネルの表示中にエラーが発生しました。',
           flags: MessageFlags.Ephemeral,

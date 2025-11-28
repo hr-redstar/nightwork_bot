@@ -25,7 +25,9 @@ module.exports = {
     } catch (err) {
       console.error('❌ /設定 コマンド実行エラー:', err);
       // deferReply後なのでeditReplyでエラーメッセージを送信
-      await interaction.editReply({ content: '❌ 設定パネル設置中にエラーが発生しました。' }).catch(() => {});
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: '❌ 設定パネル設置中にエラーが発生しました。' }).catch(() => {});
+      }
     }
   },
 };

@@ -41,7 +41,9 @@ module.exports = {
 
     } catch (error) {
       console.error('設定店内状況_ひっかけ一覧 エラー:', error);
-      await interaction.editReply({ content: '⚠️ パネル設置中にエラーが発生しました。' });
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: '⚠️ パネル設置中にエラーが発生しました。' }).catch(() => {});
+      }
     }
   },
 };

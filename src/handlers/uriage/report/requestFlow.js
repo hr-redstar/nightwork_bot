@@ -1,6 +1,6 @@
 // src/handlers/uriage/report/requestFlow.js
 // ----------------------------------------------------
-// 売上「1日の締め」売上報告フロー（5項目モーダル対応版）
+// 売上「1日の締め」売上報告フロー（5項目モーダル版）
 //   - 売上報告ボタン → モーダル表示
 //   - モーダル送信 → プライベートスレッド作成
 //                    （スレッド: 年月-店舗名-売上報告）
@@ -35,28 +35,20 @@ function parseNumber(str) {
   return Number(cleaned);
 }
 
-// 「売掛・諸経費」1入力から2つの数値に分解
-// 例: "20000 5000" → { urikake: 20000, expense: 5000 }
-//     "20000"      → { urikake: 20000, expense: 0 }
+// 売掛・諸経費 1項目から分割
 function parseUrikakeExpense(str) {
-  if (!str) {
-    return { urikake: 0, expense: 0 };
-  }
+  if (!str) return { urikake: 0, expense: 0 };
 
   // カンマや全角スペースもざっくり区切りとして扱う
   const raw = str
     .replace(/,/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-
-  if (!raw) {
-    return { urikake: 0, expense: 0 };
-  }
+  if (!raw) return { urikake: 0, expense: 0 };
 
   const parts = raw.split(' ');
   const urikake = parseNumber(parts[0]);
   const expense = parts[1] != null ? parseNumber(parts[1]) : 0;
-
   return { urikake, expense };
 }
 
@@ -65,16 +57,16 @@ function createRecordId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// 店舗名解決（storeKey → storeName）
+// 店舗名解決
 async function resolveStoreName(guildId, storeKey) {
   const storeConfig = await loadStoreRoleConfig(guildId);
-  const stores = storeConfig?.stores || [];
+  const stores = Array.isArray(storeConfig?.stores) ? storeConfig.stores : [];
   const hit = stores.find((s) => s.id === storeKey || s.name === storeKey);
   return hit?.name || storeKey;
 }
 
 /**
- * 売上「1日の締め」モーダルを表示（5項目）
+ * 売上報告モーダルを表示
  * @param {import('discord.js').ButtonInteraction} interaction
  * @param {string} storeKey
  */
@@ -85,7 +77,7 @@ async function openUriageRequestModal(interaction, storeKey) {
     .setCustomId(modalCustomId)
     .setTitle('本日の売上報告（締め）');
 
-  // 1. 日付（任意 / 空欄で今日）
+  // 1. 日付
   const dateInput = new TextInputBuilder()
     .setCustomId('uriage-date')
     .setLabel('日付 (例: 2025-11-25 / 空欄で今日)')
@@ -113,10 +105,10 @@ async function openUriageRequestModal(interaction, storeKey) {
     .setStyle(TextInputStyle.Short)
     .setRequired(true);
 
-  // 5. 売掛・諸経費（1入力で2値）
+  // 5. 売掛・諸経費
   const urikakeExpenseInput = new TextInputBuilder()
     .setCustomId('uriage-urikake-expense')
-    .setLabel('売掛・諸経費（例: "20000 5000" ※諸経費なしなら "20000 0"）')
+    .setLabel('売掛・諸経費（例: "20000 5000"）')
     .setStyle(TextInputStyle.Short)
     .setRequired(true);
 
@@ -129,6 +121,12 @@ async function openUriageRequestModal(interaction, storeKey) {
   );
 
   return interaction.showModal(modal);
+}
+
+// 互換用: 古いコードで使っている openUriageReportModal → 新しい関数に丸投げ
+async function openUriageReportModal(interaction, storeKey) {
+  console.warn('非推奨の関数 openUriageReportModal が呼び出されました。openUriageRequestModal に移行してください。');
+  return openUriageRequestModal(interaction, storeKey);
 }
 
 /**
@@ -157,7 +155,7 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
     .getTextInputValue('uriage-urikake-expense')
     ?.trim();
 
-  // 日付：未入力なら今日
+  // 日付
   const now = new Date();
   if (!dateStr) {
     const y = now.getFullYear();
@@ -172,7 +170,7 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
   const card = parseNumber(cardStr);
   const { urikake, expense } = parseUrikakeExpense(urikakeExpenseStr);
 
-  // バリデーション（ざっくり）
+  // バリデーション
   if (!Number.isFinite(total) || total < 0) {
     return interaction.reply({
       content: '「総売り」は0以上の数字で入力してください。',
@@ -204,18 +202,15 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
     });
   }
 
-  const dateKey = dateStr; // 'YYYY-MM-DD'
+  const dateKey = dateStr;
   const [yearStr, monthStr] = dateStr.split('-');
-  const ymStr = `${yearStr}${monthStr}`; // スレッド名用 "年月"
+  const ymStr = `${yearStr}${monthStr}`;
   const recordId = createRecordId();
   const storeName = await resolveStoreName(guildId, storeKey);
 
-  // 残金 = 総売り - (カード + 諸経費)
   const zankin = total - (card + expense);
 
-  // -----------------------------
-  // ① プライベートスレッド作成
-  // -----------------------------
+  // ① プライベートスレッド
   const threadName = `${ymStr}-${storeName}-売上報告`.slice(0, 90);
 
   const thread = await channel.threads.create({
@@ -225,16 +220,12 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
     reason: `売上報告: ${storeName} (${dateStr})`,
   });
 
-  // 入力者をスレッドに追加（権限不足等で失敗したら無視）
   try {
     await thread.members.add(user.id);
-  } catch {
-    // ignore
-  }
+  } catch {}
 
   const nowTs = Math.floor(Date.now() / 1000);
 
-  // スレッド内ログ Embed
   const threadEmbed = new EmbedBuilder()
     .setTitle('💰 売上報告（1日の締め）')
     .setDescription(`店舗: **${storeName}**\n日付: **${dateStr}**`)
@@ -272,9 +263,7 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
     components: [buttonRow],
   });
 
-  // -----------------------------
-  // ② 親チャンネルにログ出力
-  // -----------------------------
+  // ② 親チャンネルにログ
   const logEmbed = new EmbedBuilder()
     .setTitle('💰 売上報告 受付')
     .setDescription(`店舗: **${storeName}**\n日付: **${dateStr}**`)
@@ -291,29 +280,23 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
 
   const logMessage = await channel.send({ embeds: [logEmbed] });
 
-  // -----------------------------
-  // ③ GCS に保存
-  // -----------------------------
+  // ③ GCS保存
   const record = {
     id: recordId,
-    type: 'closing', // 1日の締め
+    type: 'closing',
     createdAt: new Date().toISOString(),
     createdBy: user.id,
-
     storeKey,
     storeName,
     date: dateStr,
-
     total,
     cash,
     card,
     urikake,
     expense,
     zankin,
-
     source: 'manual',
-    status: 'pending', // 承認待ち
-
+    status: 'pending',
     threadId: thread.id,
     threadMessageId: threadMessage.id,
     logMessageId: logMessage.id,
@@ -322,9 +305,6 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
 
   await appendUriageDailyRecord(guildId, storeKey, dateKey, record);
 
-  // -----------------------------
-  // ④ ユーザーへのエフェメラル返信
-  // -----------------------------
   return interaction.reply({
     content: '売上報告（1日の締め）を受け付けました。スレッドで承認・修正・削除が行えます。',
     ephemeral: true,
@@ -333,5 +313,6 @@ async function handleUriageRequestModalSubmit(interaction, storeKey) {
 
 module.exports = {
   openUriageReportModal,
+  openUriageReportModal, // ← 追加
   handleUriageRequestModalSubmit,
 };

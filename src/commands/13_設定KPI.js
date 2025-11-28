@@ -16,7 +16,9 @@ module.exports = {
       await interaction.deleteReply();
     } catch (err) {
       console.error('❌ /設定KPI 実行エラー:', err);
-      await interaction.editReply({ content: '⚠️ KPI設定パネルの設置中にエラーが発生しました。' }).catch(() => {});
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: '⚠️ KPI設定パネルの設置中にエラーが発生しました。' }).catch(() => {});
+      }
     }
   },
 };

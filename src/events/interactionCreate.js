@@ -9,12 +9,8 @@ const logger = require('../utils/logger');
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
 
-const configBotHandlers = require('../handlers/configBotHandlers');
-//const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
+const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
 const { handleKeihiInteraction } = require('../handlers/keihi/keihiBotHandlers');
-const { handleSyutInteractions } = require('../handlers/syutBotHandler');
-const handleKpiInteraction = require('../handlers/KPIBotHandler');
-const { handleKuzibikiInteraction } = require('../handlers/kuzibiki/kuzibikiPanelHandler');
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -70,39 +66,15 @@ module.exports = {
       if (interaction.isButton()) {
         const { customId } = interaction;
 
-        try {
-          // --- 売上 ---
-          if (customId.startsWith('uriage:')) {
-            return await handleUriageInteraction(interaction);
-          }
-
-          // --- 出退勤 ---
-          if (customId.startsWith('syut_') || customId.startsWith('cast_')) {
-            return await handleSyutInteractions(interaction);
-          }
+        if (customId.startsWith('uriage:')) {
+          return handleUriageInteraction(interaction);
+        }
 
           // --- 経費（新仕様 keihi_* に統一）---
           if (customId.startsWith('keihi_')) {
             return handleKeihiInteraction(interaction);
           }
 
-          // --- 設定 ---
-          if (customId.startsWith('config_') || customId.startsWith('CONFIG_')) {
-            return await configBotHandlers(interaction);
-          }
-
-          // --- fallback ---
-          logger.warn(`[interactionCreate] 未対応ボタン: ${customId}`);
-          if (!interaction.replied && !interaction.deferred) {
-            return await interaction.reply({
-              content: '⚠️ 未対応のボタンです。',
-              ephemeral: true,
-            });
-          }
-        } catch (subErr) {
-          logger.error(`[interactionCreate:Button] ${customId} エラー:`, subErr);
-          return await handleInteractionError(interaction, '⚠️ ボタン処理中にエラーが発生しました。');
-        }
         return;
       }
 
@@ -112,24 +84,12 @@ module.exports = {
       if (interaction.isAnySelectMenu()) {
         const { customId } = interaction;
 
-        try {
-          if (customId.startsWith('uriage:'))
-            return await handleUriageInteraction(interaction);
-
-          if (customId.startsWith('syut_') || customId.startsWith('role_select:') || customId.startsWith('user_select:'))
-            return await handleSyutInteractions(interaction);
+        if (customId.startsWith('uriage:')) {
+          return handleUriageInteraction(interaction);
+        }
 
           // --- 経費統一ルール keihi_ ---
           if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
-
-          const handledByConfig = await configBotHandlers(interaction);
-          if (handledByConfig) return;
-
-          logger.warn(`[interactionCreate] 未対応セレクト: ${customId}`);
-        } catch (subErr) {
-          logger.error(`[interactionCreate:SelectMenu] ${customId} エラー:`, subErr);
-          return await handleInteractionError(interaction, '⚠️ リスト選択処理中にエラーが発生しました。');
-        }
         return;
       }
 
@@ -139,25 +99,12 @@ module.exports = {
       if (interaction.isModalSubmit()) {
         const { customId } = interaction;
 
-        try {
-          if (customId.startsWith('uriage:'))
-            return await handleUriageInteraction(interaction);
-
-          if (customId.startsWith('syut_') || customId.startsWith('user_entry_modal:'))
-            return await handleSyutInteractions(interaction);
+        if (customId.startsWith('uriage:')) {
+          return handleUriageInteraction(interaction);
+        }
 
           // --- 経費モーダル（新仕様 keihi_）---
           if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
-
-          // --- 設定モーダル ---
-          if (customId.startsWith('config_') || customId.startsWith('modal_') || customId.startsWith('CONFIG_'))
-            return await configBotHandlers(interaction);
-
-          logger.warn(`[interactionCreate] 未対応モーダル: ${customId}`);
-        } catch (subErr) {
-          logger.error(`[interactionCreate:Modal] ${customId} エラー:`, subErr);
-          return await handleInteractionError(interaction, '⚠️ モーダル送信処理中にエラーが発生しました。');
-        }
         return;
       }
 
