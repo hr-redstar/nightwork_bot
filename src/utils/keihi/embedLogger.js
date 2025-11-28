@@ -1,128 +1,126 @@
 // src/utils/keihi/embedLogger.js
-// --------------------------------------------------
-// 経費申請ログ：申請→修正→承認 を1つのメッセージで管理
-// --------------------------------------------------
+// ----------------------------------------------------
+// 経費機能向け ログ出力ヘルパー
+//   - 設定ログ
+//   - 管理者ログ
+//   - コマンドログ
+// GCS/{guildId}/config/config.json を参照
+// ----------------------------------------------------
 
-const { EmbedBuilder } = require("discord.js");
-const { loadKeihiConfig, saveKeihiConfig } = require("./keihiConfigManager");
+const { EmbedBuilder } = require('discord.js');
+const { readJSON } = require('../gcs');
+const { keihiGlobalConfigPath } = require('./keihiConfigManager'); // ★ インポートを追加
+const logger = require('../logger');
 
-module.exports = {
-  /**
-   * 初回ログ送信（経費申請）
-   */
-  async sendKeihiLog(guildId, data) {
-    const { client } = global;
+async function loadGuildConfig(guildId) {
+  try {
+    // GCS/{guildId}/config/config.json -> {guildId}/keihi/config.json を参照するように変更
+    // keihiConfigManager の loadKeihiConfig を使うのがより望ましいですが、
+    // ログ機能は独立させたいという意図を尊重し、パスのみ修正します。
+    return (await readJSON(keihiGlobalConfigPath(guildId))) || {};
+  } catch (err) {
+    logger.error('[keihi/embedLogger] guild config 読み込みエラー:', err);
+    return {};
+  }
+}
 
-    const config = await loadKeihiConfig(guildId);
-    const logChId = config.logChannel;
-    if (!logChId) return;
+/**
+ * 実際に embed を送る共通処理
+ * @param {import('discord.js').Guild} guild
+ * @param {'command'|'setting'|'admin'} kind
+ * @param {EmbedBuilder} embed
+ */
+async function sendLogEmbed(guild, kind, embed) {
+  const guildId = guild.id;
+  const config = await loadGuildConfig(guildId);
 
-    const channel = client.channels.cache.get(logChId);
-    if (!channel) return;
+  // config.json のキー名は実プロジェクトに合わせて調整
+  const channelId = config[`${kind}LogChannelId`];
+  const threadId = config[`${kind}LogThreadId`];
 
-    const embed = makeKeihiLogEmbed(data);
+  if (!channelId) {
+    logger.warn(`[keihi/embedLogger] ${kind}LogChannelId が未設定です`);
+    return;
+  }
 
-    const msg = await channel.send({ embeds: [embed] });
-
-    // threadURL : logMessageId
-    config.logs = config.logs || {};
-    config.logs[data.url] = msg.id;
-
-    await saveKeihiConfig(guildId, config);
-  },
-
-  /**
-   * 更新処理（修正/承認）
-   */
-  async sendKeihiLogUpdate(guildId, data) {
-    const { client } = global;
-    const config = await loadKeihiConfig(guildId);
-    const logChId = config.logChannel;
-    if (!logChId) return;
-
-    const channel = client.channels.cache.get(logChId);
-    if (!channel) return;
-
-    const logMsgId = config.logs?.[data.threadUrl];
-    if (!logMsgId) return;
-
-    let message;
-    try {
-      message = await channel.messages.fetch(logMsgId);
-    } catch {
+  try {
+    const channel = await guild.channels.fetch(channelId);
+    if (!channel) {
+      logger.warn(`[keihi/embedLogger] ログチャンネル取得失敗: ${channelId}`);
       return;
     }
 
-    const oldEmbed = message.embeds[0];
-    const embed = updateKeihiLogEmbed(oldEmbed, data);
+    if (threadId) {
+      try {
+        const thread = await guild.channels.fetch(threadId);
+        if (thread && thread.isThread()) {
+          await thread.send({ embeds: [embed] });
+          return;
+        }
+      } catch (e) {
+        logger.warn(
+          `[keihi/embedLogger] ログスレッド取得失敗: ${threadId} （チャンネルに直接送信にフォールバック）`,
+        );
+      }
+    }
 
-    await message.edit({ embeds: [embed] });
-  },
+    await channel.send({ embeds: [embed] });
+  } catch (err) {
+    logger.error('[keihi/embedLogger] ログ送信エラー:', err);
+  }
+}
+
+/**
+ * embed 生成の共通化
+ */
+function buildBaseEmbed(interaction, { title, description, fields, color }) {
+  const embed = new EmbedBuilder()
+    .setTitle(title || 'ログ')
+    .setDescription(description || '')
+    .setColor(color ?? 0x0984e3)
+    .setTimestamp();
+
+  if (interaction?.user) {
+    embed.setFooter({
+      text: `実行者: ${interaction.user.tag}`,
+      iconURL: interaction.user.displayAvatarURL?.() || undefined,
+    });
+  }
+
+  if (Array.isArray(fields) && fields.length) {
+    embed.addFields(fields);
+  }
+
+  return embed;
+}
+
+// ----------------------------------------------------
+// 外部公開関数
+// ----------------------------------------------------
+
+async function sendCommandLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, payload);
+  await sendLogEmbed(interaction.guild, 'command', embed);
+}
+
+async function sendSettingLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, {
+    color: 0x00b894,
+    ...payload,
+  });
+  await sendLogEmbed(interaction.guild, 'setting', embed);
+}
+
+async function sendAdminLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, {
+    color: 0xd63031,
+    ...payload,
+  });
+  await sendLogEmbed(interaction.guild, 'admin', embed);
+}
+
+module.exports = {
+  sendCommandLog,
+  sendSettingLog,
+  sendAdminLog,
 };
-
-// ----------------------------------------------------
-// 初回ログ embed（経費申請）
-// ----------------------------------------------------
-function makeKeihiLogEmbed(data) {
-  return new EmbedBuilder()
-    .setColor(0x3498db)
-    .setDescription(
-      [
-        "------------------------------",
-        `${data.date} の 経費申請しました。`,
-        `入力者：<@${data.user}>　入力時間：${data.time}`,
-        `修正者：ー　修正時間：ー`,
-        `承認者：ー　承認時間：ー`,
-        `削除者：ー　削除時間：ー`,
-        data.url,
-        "------------------------------",
-      ].join("\n")
-    );
-}
-
-// ----------------------------------------------------
-// 更新用 embed（修正 / 承認の追記）
-// ----------------------------------------------------
-function updateKeihiLogEmbed(oldEmbed, data) {
-  const text = oldEmbed.description.split("\n");
-
-  // マッピング（行管理）
-  const line = {
-    header: text[1],       // "日付 の 経費申請しました。"
-    input: text[2],        // 入力者
-    modify: text[3],       // 修正者
-    approve: text[4],      // 承認者
-    delete: text[5],       // 削除者
-    link: text[6],         // URL
-  };
-
-  // 修正時
-  if (data.type === "modify") {
-    line.modify = `修正者：<@${data.modifyUser}>　修正時間：${data.modifyTime}`;
-  }
-
-  // 承認時
-  if (data.type === "approve") {
-    line.approve = `承認者：<@${data.approveUser}>　承認時間：${data.approveTime}`;
-  }
-
-  // 削除時
-  if (data.type === "delete") {
-    line.delete = `削除者：<@${data.deleteUser}>　削除時間：${data.deleteTime}`;
-  }
-
-  return new EmbedBuilder()
-    .setColor(0x3498db)
-    .setDescription(
-      [
-        "------------------------------",
-        line.header,
-        line.input,
-        line.modify,
-        line.approve,
-        line.delete,
-        line.link,
-        "------------------------------",
-      ].join("\n")
-    );
-}

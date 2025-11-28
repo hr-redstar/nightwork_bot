@@ -103,7 +103,7 @@ async function storeHasRole(guildId, storeName, roleId) {
  */
 async function getMembersByRole(guildId, roleId) {
   const config = await loadStoreRoleConfig(guildId);
-  return config.roleMembers[roleId] || [];
+  return config.roleMembers?.[roleId] || [];
 }
 
 /**
@@ -116,7 +116,7 @@ async function getMembersByStore(guildId, storeName) {
   const set = new Set();
 
   for (const roleId of roleIds) {
-    const members = config.roleMembers[roleId] || [];
+    const members = config.roleMembers?.[roleId] || [];
     members.forEach((m) => set.add(m));
   }
 
@@ -130,7 +130,7 @@ async function getAllUsers(guildId) {
   const config = await loadStoreRoleConfig(guildId);
 
   const set = new Set();
-  for (const list of Object.values(config.roleMembers)) {
+  for (const list of Object.values(config.roleMembers || {})) {
     list.forEach((m) => set.add(m));
   }
   return Array.from(set);
@@ -143,7 +143,7 @@ async function getRolesByUserId(guildId, userId) {
   const config = await loadStoreRoleConfig(guildId);
   const roleIds = [];
 
-  for (const [roleId, members] of Object.entries(config.roleMembers)) {
+  for (const [roleId, members] of Object.entries(config.roleMembers || {})) {
     if (members.includes(userId)) {
       roleIds.push(roleId);
     }
@@ -161,7 +161,7 @@ async function getStoresByUserId(guildId, userId) {
 
   for (const [storeName, roleIds] of Object.entries(config.storeRoles)) {
     for (const roleId of roleIds) {
-      const members = config.roleMembers[roleId] || [];
+      const members = config.roleMembers?.[roleId] || [];
       if (members.includes(userId)) {
         stores.push(storeName);
         break;

@@ -23,7 +23,8 @@ async function _sendToChannel(guild, channelId, payload) {
  * @param {{ user: User, message: string, type?: string, embed?: EmbedBuilder }} options
  */
 async function sendSettingLog(guild, options) {
-  const { user, message, type = '設定変更', embed: providedEmbed } = options;
+  // userが未定義の場合に備えてデフォルト値を設定
+  const { user = { username: '不明なユーザー', displayAvatarURL: () => '' }, message, type = '設定変更', embed: providedEmbed } = options || {};
   const guildId = guild.id;
 
   try {

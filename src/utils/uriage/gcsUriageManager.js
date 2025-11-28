@@ -1,164 +1,183 @@
 // src/utils/uriage/gcsUriageManager.js
+// ----------------------------------------------------
+// 売上データの GCS / ローカル保存ヘルパー
+// ----------------------------------------------------
+
+const { readJSON, saveJSON, readFile, writeFile, listFiles } = require('../gcs');
+const logger = require('../logger');
+
+//------------------------------------------------------------
+// 🔹 パス生成ヘルパー
+//------------------------------------------------------------
+
 /**
- * 売上（uriage）関連のGCS入出力共通関数
+ * 日付文字列または Date から {yyyy, mm, dd} を取り出す
  */
-const path = require('path');
-const fs = require('fs');
-const { readJson, writeJson, readFile, writeFile, listFiles } = require('../gcs');
-const { loadStoreRoleConfig } = require('../config/storeRoleConfigManager');
+function resolveYmd(dateOrStr) {
+  if (dateOrStr instanceof Date) {
+    const yyyy = dateOrStr.getFullYear();
+    const mm = String(dateOrStr.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateOrStr.getDate()).padStart(2, '0');
+    return { yyyy, mm, dd };
+  }
 
-//------------------------------------------------------------
-// 🔹 ファイルパス定義
-//------------------------------------------------------------
-function getConfigPath(guildId) {
-  return `GCS/${guildId}/uriage/config.json`;
+  let s = String(dateOrStr || '').trim();
+  if (!s) {
+    const now = new Date();
+    return resolveYmd(now);
+  }
+
+  s = s.replace(/[\/\-]/g, '');
+
+  if (s.length === 8) {
+    const yyyy = s.slice(0, 4);
+    const mm = s.slice(4, 6);
+    const dd = s.slice(6, 8);
+    return { yyyy, mm, dd };
+  }
+
+  const now = new Date();
+  return resolveYmd(now);
 }
 
-function getPanelListPath(guildId) {
-  return `GCS/${guildId}/uriage/panelList.json`;
+/**
+ * 店舗ごとの設定ファイル
+ *   GCS/ギルドID/uriage/店舗名/config.json
+ */
+function uriageStoreConfigPath(guildId, storeId) {
+  return `${guildId}/uriage/${storeId}/config.json`;
 }
 
-function getCsvPath(guildId, store, date) {
-  return `GCS/${guildId}/uriage/${store}/売上報告_${date}.csv`;
+/**
+ * 店舗ごとの 日別データ
+ *   GCS/ギルドID/uriage/店舗名/年/月/日/年月日.json
+ */
+function uriageStoreDailyPath(guildId, storeId, dateOrStr) {
+  const { yyyy, mm, dd } = resolveYmd(dateOrStr);
+  const file = `${yyyy}${mm}${dd}.json`;
+  return `${guildId}/uriage/${storeId}/${yyyy}/${mm}/${dd}/${file}`;
+}
+
+/**
+ * 店舗ごとの 月別データ
+ *   GCS/ギルドID/uriage/店舗名/年/月/年月.json
+ */
+function uriageStoreMonthlyPath(guildId, storeId, dateOrStr) {
+  const { yyyy, mm } = resolveYmd(dateOrStr);
+  const file = `${yyyy}${mm}.json`;
+  return `${guildId}/uriage/${storeId}/${yyyy}/${mm}/${file}`;
+}
+
+/**
+ * 店舗ごとの 年別データ
+ *   GCS/ギルドID/uriage/店舗名/年/年.json
+ */
+function uriageStoreYearlyPath(guildId, storeId, dateOrStr) {
+  const { yyyy } = resolveYmd(dateOrStr);
+  const file = `${yyyy}.json`;
+  return `${guildId}/uriage/${storeId}/${yyyy}/${file}`;
 }
 
 //------------------------------------------------------------
-// 🔹 コンフィグ取得・保存
+// 🔹 読み書きラッパー
 //------------------------------------------------------------
-async function getUriageConfig(guildId) {
+
+/**
+ * 店舗別 config のデフォルトを生成
+ */
+function createDefaultStoreConfig(storeId) {
+  return {
+    storeId,
+    panel: {
+      channelId: null,
+      messageId: null,
+    },
+    viewRoleIds: [],
+    requestRoleIds: [],
+    items: [], // 売上項目
+  };
+}
+
+/**
+ * 店舗別 config.json 読み込み
+ */
+async function loadUriageStoreConfig(guildId, storeId) {
+  const path = uriageStoreConfigPath(guildId, storeId);
   try {
-    const filePath = getConfigPath(guildId);
-    const data = await readJson(filePath);
-    return data || {};
+    const raw = (await readJSON(path)) || {};
+    const base = createDefaultStoreConfig(storeId);
+    raw.panel = { ...base.panel, ...(raw.panel || {}) };
+    return { ...base, ...raw };
   } catch (err) {
-    console.warn(`[GCS] 売上設定ファイルが存在しません (${guildId})`);
+    logger.warn(
+      `[gcsUriageManager] store config 読み込み失敗: ${path} → デフォルトを返します`,
+      err,
+    );
+    return createDefaultStoreConfig(storeId);
+  }
+}
+
+/**
+ * 店舗別 config.json 保存
+ */
+async function saveUriageStoreConfig(guildId, storeId, data) {
+  const path = uriageStoreConfigPath(guildId, storeId);
+  const saveData = {
+    ...createDefaultStoreConfig(storeId),
+    ...data,
+    panel: {
+      ...createDefaultStoreConfig(storeId).panel,
+      ...(data.panel || {}),
+    },
+    lastUpdated: new Date().toISOString(),
+  };
+  try {
+    await saveJSON(path, saveData);
+  } catch (err) {
+    logger.error(`[gcsUriageManager] store config 保存失敗: ${path}`, err);
+    throw err;
+  }
+}
+
+/**
+ * 店舗・日付ごとの売上データを読み込み
+ */
+async function loadUriageDailyData(guildId, storeId, dateOrStr) {
+  const path = uriageStoreDailyPath(guildId, storeId, dateOrStr);
+  try {
+    return (await readJSON(path)) || {};
+  } catch (err) {
+    logger.warn(`[gcsUriageManager] daily 読み込み失敗: ${path}`, err);
     return {};
   }
 }
 
-async function saveUriageConfig(guildId, configData) {
-  const filePath = getConfigPath(guildId);
-  await writeJson(filePath, configData);
-}
-
-//------------------------------------------------------------
-// 🔹 パネルリスト（店舗とチャンネル紐付け）
-//------------------------------------------------------------
-async function getUriagePanelList(guildId) {
+/**
+ * 店舗・日付ごとの売上データを保存
+ */
+async function saveUriageDailyData(guildId, storeId, dateOrStr, data) {
+  const path = uriageStoreDailyPath(guildId, storeId, dateOrStr);
   try {
-    const filePath = getPanelListPath(guildId);
-    const data = await readJson(filePath);
-    return data?.list || [];
+    await saveJSON(path, data);
   } catch (err) {
-    return [];
+    logger.error(`[gcsUriageManager] daily 保存失敗: ${path}`, err);
+    throw err;
   }
-}
-
-async function saveUriagePanelList(guildId, list) {
-  const filePath = getPanelListPath(guildId);
-  await writeJson(filePath, { list });
-}
-
-//------------------------------------------------------------
-// 🔹 店舗・役職データ取得
-//------------------------------------------------------------
-async function getStoreRoleConfig(guildId) {
-  return await loadStoreRoleConfig(guildId);
-}
-
-/**
- * guild の店舗リストから storeId（または店舗名）に一致する店舗データを返す
- * @param {string} guildId
- * @param {string} storeId - 店舗の id もしくは名前
- * @returns {Promise<object|null>}
- */
-async function getStoreById(guildId, storeId) {
-  try {
-    if (!storeId) return null;
-    const cfg = await loadStoreRoleConfig(guildId);
-    const stores = cfg?.stores || [];
-    // store オブジェクトの構造が { id, name, ... } などであることを想定して柔軟に照合する
-    const found = stores.find(s => {
-      if (!s) return false;
-      const idMatch = s.id && String(s.id) === String(storeId);
-      const nameMatch = (s.name && String(s.name) === String(storeId));
-      const altMatch = (s.store && String(s.store) === String(storeId));
-      return idMatch || nameMatch || altMatch;
-    });
-    return found || null;
-  } catch (err) {
-    return null;
-  }
-}
-
-//------------------------------------------------------------
-// 🔹 更新日時の記録
-//------------------------------------------------------------
-async function updateUriageTimestamp(guildId) {
-  const config = await getUriageConfig(guildId);
-  config.updatedAt = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
-  await saveUriageConfig(guildId, config);
-}
-
-//------------------------------------------------------------
-// 🔹 CSV操作
-//------------------------------------------------------------
-/**
- * 売上CSVの保存
- * @param {string} guildId
- * @param {string} store
- * @param {string} dateStr YYYYMMDD
- * @param {object} data { date, user, approver, total, cash, card, cost, remain, createdAt }
- */
-async function saveUriageCsv(guildId, store, dateStr, data, status = 'ok') {
-  const filePath = getCsvPath(guildId, store, dateStr);
-
-  // 新しいCSVヘッダ（ステータス列を追加）
-  const header = '日付,入力者,承認者,総売り,現金,カード,諸経費,残金,登録日時,ステータス\n';
-  const line = `${data.date},${data.user},${data.approver || ''},${data.total},${data.cash},${data.card},${data.cost},${data.remain},${data.createdAt},${status}\n`;
-
-  // 既存ファイルの内容を読み込む
-  const existingContent = await readFile(filePath);
-
-  if (!existingContent) {
-    // ファイルがなければ新しいヘッダと行を作成
-    const newContent = header + line;
-    await writeFile(filePath, newContent);
-    return;
-  }
-
-  // 既存ファイルがある場合、ヘッダにステータス列がなければ互換処理を行う
-  const lines = existingContent.split('\n');
-  const existingHeader = lines[0] || '';
-  let updatedContent = existingContent;
-
-  if (!existingHeader.includes('ステータス')) {
-    // 既存の各データ行末に ',ok' を追加して新ヘッダに合わせる
-    const bodyLines = lines.slice(1).filter(l => l.trim().length > 0).map(l => `${l},ok`);
-    updatedContent = header + bodyLines.join('\n') + '\n';
-  }
-
-  // 追記する
-  await writeFile(filePath, updatedContent + line);
-}
-
-/**
- * 指定店舗のCSVファイル一覧を取得
- */
-async function getCsvFileList(guildId, store) {
-  const prefix = `GCS/${guildId}/uriage/${store}/`;
-  const allFiles = await listFiles(prefix);
-  return allFiles.filter(f => f.endsWith('.csv')).map(f => path.basename(f));
 }
 
 module.exports = {
-  getUriageConfig,
-  saveUriageConfig,
-  getUriagePanelList,
-  saveUriagePanelList,
-  getStoreRoleConfig,
-  updateUriageTimestamp,
-  saveUriageCsv,
-  getCsvFileList,
-  getStoreById,
+  // パス生成
+  uriageStoreConfigPath,
+  uriageStoreDailyPath,
+  uriageStoreMonthlyPath,
+  uriageStoreYearlyPath,
+
+  // 店舗 config
+  loadUriageStoreConfig,
+  saveUriageStoreConfig,
+  createDefaultStoreConfig,
+
+  // 日別データ
+  loadUriageDailyData,
+  saveUriageDailyData,
 };

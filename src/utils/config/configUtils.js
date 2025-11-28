@@ -1,5 +1,5 @@
 // src/utils/config/configUtils.js
-const { postConfigPanel } = require('../../handlers/config/configPanel');
+const { sendConfigPanel } = require('../../handlers/config/configPanel');
 const logger = require('../logger');
 
 /**
@@ -15,7 +15,7 @@ async function updateConfigPanelAndLog(interaction, config, logMessage) {
       const channel = await interaction.guild.channels.fetch(config.panel.channelId).catch(() => null);
       if (channel?.isTextBased()) {
         // 既存のパネルを自動検索して更新する高機能版を使用
-        await postConfigPanel(channel);
+        await sendConfigPanel(channel);
       }
     }
 

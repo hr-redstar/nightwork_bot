@@ -1,24 +1,41 @@
 // src/commands/設定売上.js
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { postUriagePanel } = require('../handlers/uriage/uriagePanel');
+const { sendCommandLog } = require('../utils/uriage/embedLogger');
+const { postUriageSettingPanel } = require('../handlers/uriage/setting/panel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定売上')
-    .setDescription('売上設定パネルを表示します（管理者向け）')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDescription('売上設定パネルを送信/更新します。')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
+  /**
+   * @param {import('discord.js').ChatInputCommandInteraction} interaction
+   */
   async execute(interaction) {
     try {
-      // 処理に時間がかかる可能性があるため、先に応答を保留する
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      // postUriagePanel はチャンネルオブジェクトを引数に取る
-      await postUriagePanel(interaction.channel);
-      // 処理完了後、保留した応答を編集して成功を伝える
-      await interaction.deleteReply();
+      await interaction.deferReply({
+        flags: MessageFlags.Ephemeral,
+      });
+
+      // コマンドログ出力
+      await sendCommandLog(interaction);
+
+      // 設定パネル送信 or 更新
+      await postUriageSettingPanel(interaction);
     } catch (err) {
-      console.error(err);
-      await interaction.editReply({ content: '⚠️ 売上設定パネルの表示に失敗しました。' }).catch(() => {});
+      console.error('[/設定売上] エラー:', err);
+
+      if (interaction.deferred) {
+        await interaction.editReply({
+          content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。',
+        });
+      } else if (!interaction.replied) {
+        await interaction.reply({
+          content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
   },
 };

@@ -12,7 +12,7 @@ const { readJSON, saveJSON } = require('../gcs');
 // ====================================================
 
 function storeRoleConfigPath(guildId) {
-  return `GCS/${guildId}/config/店舗_役職_ロール.json`;
+  return `${guildId}/config/店舗_役職_ロール.json`;
 }
 
 // ====================================================

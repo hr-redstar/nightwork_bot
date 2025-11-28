@@ -6,7 +6,7 @@ const { Events, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
 
 // --- 各機能のハンドラー ---
-const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandlers');
+const { handleKeihiInteraction } = require('../handlers/keihi/keihiBotHandlers');
 const configBotHandlers = require('../handlers/configBotHandlers');
 const { handleSyutInteractions } = require('../handlers/syutBotHandler');
 const { handleUriageInteraction } = require('../handlers/uriageBotHandler');
@@ -82,7 +82,7 @@ module.exports = {
 
           // --- 経費（新仕様 keihi_* に統一）---
           if (customId.startsWith('keihi_')) {
-            return await handleKeihiInteraction(interaction);
+            return handleKeihiInteraction(interaction);
           }
 
           // --- 設定 ---
@@ -119,8 +119,7 @@ module.exports = {
             return await handleSyutInteractions(interaction);
 
           // --- 経費統一ルール keihi_ ---
-          if (customId.startsWith('keihi_'))
-            return await handleKeihiInteraction(interaction);
+          if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
 
           const handledByConfig = await configBotHandlers(interaction);
           if (handledByConfig) return;
@@ -147,8 +146,7 @@ module.exports = {
             return await handleSyutInteractions(interaction);
 
           // --- 経費モーダル（新仕様 keihi_）---
-          if (customId.startsWith('keihi_'))
-            return await handleKeihiInteraction(interaction);
+          if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
 
           // --- 設定モーダル ---
           if (customId.startsWith('config_') || customId.startsWith('modal_') || customId.startsWith('CONFIG_'))

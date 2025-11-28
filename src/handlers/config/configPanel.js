@@ -1,4 +1,4 @@
-﻿﻿const {
+﻿﻿﻿﻿const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
@@ -80,13 +80,16 @@ async function sendConfigPanel(channel) {
   // -------------------------------
   const logFields = [
     { label: 'グローバルログチャンネル', id: 'globalLogChannel' },
-    { label: '管理者ログチャンネル', id: 'adminLogChannel' },
+    { label: '管理者ログチャンネル', id: 'adminLogChannel', fallbackId: 'adminLogChannelId' },
     { label: 'コマンドログスレッド', id: 'commandLogThread' },
     { label: '設定ログスレッド', id: 'settingLogThread' },
   ]
     .map(field => {
-      const v = globalConfig[field.id];
-      return `**${field.label}**：${v ? `<#${v}>` : '未設定'}`;
+      let value = globalConfig[field.id];
+      if (!value && field.fallbackId) {
+        value = globalConfig[field.fallbackId];
+      }
+      return `**${field.label}**：${value ? `<#${value}>` : '未設定'}`;
     })
     .join('\n');
 
@@ -133,7 +136,7 @@ async function sendConfigPanel(channel) {
   );
 
   const row4 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('config:slack').setLabel('Slack通知').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('config_slack_auto').setLabel('Slack通知').setStyle(ButtonStyle.Primary)
   );
 
   // -------------------------------

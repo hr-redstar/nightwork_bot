@@ -11,7 +11,7 @@ const logger = require('../logger');
 // 保存先パス生成
 // -----------------------------------------
 function userInfoPath(guildId, userId) {
-  return `GCS/${guildId}/ユーザー情報/${userId}.json`;
+  return `${guildId}/ユーザー情報/${userId}.json`;
 }
 
 // -----------------------------------------
@@ -44,6 +44,10 @@ async function writeUserInfo(guildId, userId, data) {
 // -----------------------------------------
 async function updateUserInfo(guildId, userId, patch) {
   try {
+    if (typeof patch !== 'object' || patch === null) {
+      throw new Error('patch は object である必要があります');
+    }
+
     const current = await readUserInfo(guildId, userId);
     const updated = { ...current, ...patch };
 

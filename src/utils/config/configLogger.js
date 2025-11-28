@@ -1,98 +1,181 @@
 // src/utils/config/configLogger.js
-// ----------------------------------------------------
-// 設定ログ・管理者ログ・コマンドログ 共通ロガー（最新版）
-// ----------------------------------------------------
 
-const { EmbedBuilder } = require("discord.js");
-const logger = require("../logger");
-const { getGuildConfig } = require("./gcsConfigManager");
+const { EmbedBuilder } = require('discord.js');
+const { readJSON } = require('../gcs');
+const logger = require('../logger');
 
-// -----------------------------------------------
-// 内部ヘルパー：指定チャンネルに安全に送信
-// -----------------------------------------------
-async function sendToChannel(guild, channelId, payload) {
-  if (!channelId) return;
+function guildConfigPath(guildId) {
+  return `${guildId}/config/config.json`;
+}
 
-  const channel = guild.channels.cache.get(channelId);
-  if (!channel || !channel.isTextBased()) return;
-
+async function loadGuildConfig(guildId) {
   try {
-    await channel.send(payload);
+    return (await readJSON(guildConfigPath(guildId))) || {};
   } catch (err) {
-    logger.error(`[configLogger] チャンネル送信エラー: ${channelId}`, err);
+    logger.error('[keihi/embedLogger] guild config 読み込みエラー:', err);
+    return {};
   }
 }
 
-// ======================================================
-// ① コマンドログ（/コマンド実行）
-// ======================================================
-async function sendCommandLog(interaction) {
+/**
+ * 実際に embed を送る共通処理
+ * @param {import('discord.js').Guild} guild
+ * @param {'command'|'setting'|'admin'} kind
+ * @param {EmbedBuilder} embed
+ */
+async function sendLogEmbed(guild, kind, embed) {
+  const guildId = guild.id;
+  const config = await loadGuildConfig(guildId);
+
+  let channelId;
+  let threadId;
+
+  // kind ごとの優先順位で拾う
+  switch (kind) {
+    case 'command':
+      channelId =
+        config.commandLogChannelId ||
+        config.commandLogChannel ||
+        config.globalLogChannel; // ← 最後に globalLogChannel
+      threadId =
+        config.commandLogThreadId ||
+        config.commandLogThread;
+      break;
+
+    case 'setting':
+      channelId =
+        config.settingLogChannelId ||
+        config.settingLogChannel ||
+        config.logChannelId || // 汎用ログ
+        config.globalLogChannel; // 経費申請はこちらに分類される
+      threadId =
+        config.settingLogThreadId ||
+        config.settingLogThread;
+      break;
+
+    case 'admin':
+      channelId =
+        config.adminLogChannelId ||
+        config.adminLogChannel ||
+        config.globalLogChannel;
+      threadId =
+        config.adminLogThreadId ||
+        config.adminLogThread;
+      break;
+
+    default:
+      // 想定外の kind は global に投げる
+      channelId = config.globalLogChannel || config.adminLogChannel;
+      threadId = null;
+      break;
+  }
+
+  if (!channelId && !threadId) {
+    logger.warn(`[keihi/embedLogger] ${kind} 用のログチャンネルが未設定です`);
+    return;
+  }
+
   try {
-    const guild = interaction.guild;
-    const guildId = guild.id;
+    // ① threadId があれば、まずスレッドを優先
+    if (threadId) {
+      try {
+        const thread = await guild.channels.fetch(threadId);
+        if (thread && thread.isThread && thread.isThread()) {
+          await thread.send({ embeds: [embed] });
+          return;
+        }
+        // 取れなかったらチャンネルにフォールバック
+        logger.warn(
+          `[keihi/embedLogger] ログスレッド取得失敗: ${threadId} （チャンネルに直接送信にフォールバック）`,
+        );
+      } catch (e) {
+        logger.warn(
+          `[keihi/embedLogger] ログスレッド取得エラー: ${threadId} （チャンネルに直接送信にフォールバック）`,
+          e,
+        );
+      }
+    }
 
-    const config = await getGuildConfig(guildId);
-    const threadId = config.commandLogThread;
+    // ② スレッドが無い or 失敗した場合は、チャンネルに送信
+    if (!channelId) {
+      logger.warn(
+        `[keihi/embedLogger] ${kind}LogChannel が未設定のためメッセージ送信をスキップします`,
+      );
+      return;
+    }
 
-    if (!threadId) return;
+    const channel = await guild.channels.fetch(channelId);
+    if (!channel) {
+      logger.warn(`[keihi/embedLogger] ログチャンネル取得失敗: ${channelId}`);
+      return;
+    }
 
-    const thread = guild.channels.cache.get(threadId);
-    if (!thread || !thread.isTextBased()) return;
+    await channel.send({ embeds: [embed] });
+  } catch (err) {
+    logger.error('[keihi/embedLogger] ログ送信エラー:', err);
+  }
+}
 
-    await thread.send({
-      embeds: [
-        new EmbedBuilder()
-          .setTitle("▶️ コマンド実行ログ")
-          .setColor(0x95a5a6)
-          .setDescription(`\`/${interaction.commandName}\``)
-          .addFields(
-            { name: "実行者", value: `<@${interaction.user.id}>`, inline: true },
-            { name: "チャンネル", value: `${interaction.channel}`, inline: true }
-          )
-          .setTimestamp(),
-      ],
+/**
+ * embed 生成の共通化
+ */
+function buildBaseEmbed(interaction, { title, description, fields, color }) {
+  const embed = new EmbedBuilder()
+    .setTitle(title || 'ログ')
+    .setDescription(description || '')
+    .setColor(color ?? 0x0984e3)
+    .setTimestamp();
+
+  if (interaction?.user) {
+    embed.setFooter({
+      text: `実行者: ${interaction.user.tag}`,
+      iconURL: interaction.user.displayAvatarURL?.() || undefined,
     });
-  } catch (err) {
-    logger.error("[configLogger] sendCommandLog エラー:", err);
   }
+
+  if (Array.isArray(fields) && fields.length) {
+    embed.addFields(fields);
+  }
+
+  return embed;
 }
 
-// ======================================================
-// ② 設定変更ログ（設定ログ + 管理者ログ 両方へ出力）
-// ======================================================
-async function sendSettingLog(guild, { user, message, embed: customEmbed }) {
-  try {
-    const guildId = guild.id;
+// ----------------------------------------------------
+// 外部公開関数
+// ----------------------------------------------------
 
-    const config = await getGuildConfig(guildId);
-    if (!config) return;
+async function sendCommandLog(interaction, payload = {}) {
+  const defaultPayload = {
+    title: `コマンド実行: /${interaction.commandName}`,
+    description: `${interaction.user} が /${interaction.commandName} を実行しました。`,
+  };
 
-    const embed =
-      customEmbed ||
-      new EmbedBuilder()
-        .setTitle("⚙️ 設定変更ログ")
-        .setDescription(message || "設定が更新されました。")
-        .setColor(0x2ecc71)
-        .setFooter({ text: user.username, iconURL: user.displayAvatarURL() })
-        .setTimestamp();
+  const embed = buildBaseEmbed(interaction, {
+    ...defaultPayload,
+    ...payload, // 明示指定があれば上書き
+  });
 
-    const payload = { embeds: [embed] };
+  await sendLogEmbed(interaction.guild, 'command', embed);
+}
 
-    // 設定ログスレッド
-    await sendToChannel(guild, config.settingLogThread, payload);
+async function sendSettingLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, {
+    color: 0x00b894,
+    ...payload,
+  });
+  await sendLogEmbed(interaction.guild, 'setting', embed);
+}
 
-    // 管理者ログ
-    await sendToChannel(guild, config.adminLogChannel, payload);
-
-    logger.info(
-      `[configLogger] 設定ログ出力: ${guild.name} by ${user.username}`
-    );
-  } catch (err) {
-    logger.error("[configLogger] sendSettingLog エラー:", err);
-  }
+async function sendAdminLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, {
+    color: 0xd63031,
+    ...payload,
+  });
+  await sendLogEmbed(interaction.guild, 'admin', embed);
 }
 
 module.exports = {
   sendCommandLog,
   sendSettingLog,
+  sendAdminLog,
 };

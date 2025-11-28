@@ -1,4 +1,5 @@
 ﻿﻿// src/commands/設定.js
+
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { sendConfigPanel } = require('../handlers/config/configPanel');
 const { getGuildConfig } = require('../utils/config/gcsConfigManager');

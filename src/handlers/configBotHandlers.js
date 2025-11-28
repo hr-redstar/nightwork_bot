@@ -1,4 +1,4 @@
-﻿﻿// src/handlers/configBotHandlers.js
+﻿﻿﻿﻿// src/handlers/configBotHandlers.js
 // ----------------------------------------------------
 // 設定パネルのボタン / セレクト / モーダル dispatcher
 // ----------------------------------------------------
@@ -16,7 +16,6 @@ const buttonUserRegister = require('./config/components/button/button_user_regis
 const buttonCreateCommandThread = require('./config/components/button/log/button_create_command_thread.js');
 const buttonCreateSettingThread = require('./config/components/button/log/button_create_setting_thread.js');
 const buttonSlackAutomation = require('./config/components/modal/slack/button_slack_automation.js');
-
 // ==============================
 // セレクト
 // ==============================
@@ -93,6 +92,19 @@ async function handleInteraction(interaction) {
         const [userId, storeName, positionId, year, month, day] = parts;
         await modalUserInfo.show(interaction, userId, storeName, positionId, year, month, day);
         return true;
+      }
+
+      // 誕生年「次へ」ボタン
+      if (id.startsWith('CONFIG_USER_BIRTH_YEAR_NEXT__')) {
+        return selectBirthYear.handleNext(interaction);
+      }
+      // 誕生月「次へ」ボタン
+      if (id.startsWith('CONFIG_USER_BIRTH_MONTH_NEXT__')) {
+        return selectBirthMonth.handleNext(interaction);
+      }
+      // 誕生日「次へ」ボタン
+      if (id.startsWith('CONFIG_USER_BIRTH_DAY_NEXT__')) {
+        return selectBirthDay.handleNext(interaction);
       }
     }
 

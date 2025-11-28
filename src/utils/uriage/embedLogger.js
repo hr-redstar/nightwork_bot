@@ -1,72 +1,108 @@
 // src/utils/uriage/embedLogger.js
+// ----------------------------------------------------
+// 売上機能向け ログ出力ヘルパー
+// ----------------------------------------------------
 
 const { EmbedBuilder } = require('discord.js');
-const { getUriageConfig } = require('./gcsUriageManager');
+const { readJSON } = require('../gcs');
+const { uriageGlobalConfigPath } = require('./uriageConfigManager');
+const logger = require('../logger');
+
+async function loadGuildConfig(guildId) {
+  try {
+    return (await readJSON(uriageGlobalConfigPath(guildId))) || {};
+  } catch (err) {
+    logger.error('[uriage/embedLogger] guild config 読み込みエラー:', err);
+    return {};
+  }
+}
 
 /**
- * 設定変更や実行ログをEmbed形式で出力する共通関数
- * @param {string} guildId - ギルドID
- * @param {object} logData - ログ内容 { title, fields }
- * @param {import('discord.js').Client} client - Discordクライアント
+ * 実際に embed を送る共通処理
+ * @param {import('discord.js').Guild} guild
+ * @param {'command'|'setting'|'admin'} kind
+ * @param {EmbedBuilder} embed
  */
-async function sendSettingLog(guildId, logData, client) {
-  try {
-    const config = await getUriageConfig(guildId);
-    const logChannelId = config?.logChannelId;
+async function sendLogEmbed(guild, kind, embed) {
+  const guildId = guild.id;
+  const config = await loadGuildConfig(guildId);
 
-    if (!logChannelId) {
-      console.warn(`[LOG] 売上設定ログチャンネル未設定 (${guildId})`);
+  const channelId = config[`${kind}LogChannelId`];
+  const threadId = config[`${kind}LogThreadId`];
+
+  if (!channelId) {
+    logger.warn(`[uriage/embedLogger] ${kind}LogChannelId が未設定です`);
+    return;
+  }
+
+  try {
+    const channel = await guild.channels.fetch(channelId);
+    if (!channel) {
+      logger.warn(`[uriage/embedLogger] ログチャンネル取得失敗: ${channelId}`);
       return;
     }
 
-    // client が未指定なら global または botClient から取得
-    let resolvedClient = client || global.client;
-    if (!resolvedClient) {
+    if (threadId) {
       try {
-        resolvedClient = require('../../botClient').client;
-      } catch {
-        // botClient.js が存在しない場合のエラーは無視
+        const thread = await guild.channels.fetch(threadId);
+        if (thread && thread.isThread()) {
+          await thread.send({ embeds: [embed] });
+          return;
+        }
+      } catch (e) {
+        logger.warn(
+          `[uriage/embedLogger] ログスレッド取得失敗: ${threadId} （チャンネルに直接送信にフォールバック）`,
+        );
       }
     }
 
-    if (!resolvedClient) { console.warn('[LOG] Discord Client が取得できません'); return; }
-
-    const embed = new EmbedBuilder()
-      .setTitle(logData.title || '設定変更ログ')
-      .addFields(logData.fields || [])
-      .setColor(0x00bfa5)
-      .setTimestamp()
-      .setFooter({ text: `実行時刻: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}` });
-
-    const channel = await resolvedClient.channels.fetch(logChannelId);
-    if (!channel) {
-      console.warn(`[LOG] ログ出力先チャンネルが見つかりません (${logChannelId})`);
-      return;
-    }
-
     await channel.send({ embeds: [embed] });
   } catch (err) {
-    console.error('❌ 売上設定ログ送信エラー:', err);
+    logger.error('[uriage/embedLogger] ログ送信エラー:', err);
   }
 }
 
 /**
- * 売上報告・承認ログなどをEmbed形式で出力（別スレッドでも使用可能）
- * @param {import('discord.js').TextChannel} channel - 出力先チャンネル
- * @param {object} options - { title, fields, color }
+ * embed 生成の共通化
  */
-async function sendReportLog(channel, options) {
-  try {
-    const embed = new EmbedBuilder()
-      .setTitle(options.title || '売上報告ログ')
-      .addFields(options.fields || [])
-      .setColor(options.color || 0x00bfa5)
-      .setTimestamp();
+function buildBaseEmbed(interaction, { title, description, fields, color }) {
+  const embed = new EmbedBuilder()
+    .setTitle(title || 'ログ')
+    .setDescription(description || '')
+    .setColor(color ?? 0x0984e3)
+    .setTimestamp();
 
-    await channel.send({ embeds: [embed] });
-  } catch (err) {
-    console.error('❌ 売上報告ログ送信エラー:', err);
+  if (interaction?.user) {
+    embed.setFooter({
+      text: `実行者: ${interaction.user.tag}`,
+      iconURL: interaction.user.displayAvatarURL?.() || undefined,
+    });
   }
+
+  if (Array.isArray(fields) && fields.length) {
+    embed.addFields(fields);
+  }
+
+  return embed;
 }
 
-module.exports = { sendSettingLog, sendReportLog };
+async function sendCommandLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, payload);
+  await sendLogEmbed(interaction.guild, 'command', embed);
+}
+
+async function sendSettingLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, { color: 0x00b894, ...payload });
+  await sendLogEmbed(interaction.guild, 'setting', embed);
+}
+
+async function sendAdminLog(interaction, payload) {
+  const embed = buildBaseEmbed(interaction, { color: 0xd63031, ...payload });
+  await sendLogEmbed(interaction.guild, 'admin', embed);
+}
+
+module.exports = {
+  sendCommandLog,
+  sendSettingLog,
+  sendAdminLog,
+};

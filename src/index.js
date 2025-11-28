@@ -1,4 +1,4 @@
-﻿﻿// src/index.js
+// src/index.js
 
 require('events').EventEmitter.defaultMaxListeners = 20;
 require('dotenv').config();
@@ -10,10 +10,10 @@ const express = require('express');
 const httpLogger = require('./utils/httpLogger');
 const postCastRouter = require('./utils/syut/postCast');
 const { DEV_GUILD_IDS } = require('./utils/config/envConfig');
-const { deployCommands } = require('../scripts/deployGuildCommands'); // この行が正しいことを確認
+const { deployCommands } = require('../scripts/deployGuildCommands'); // コマンド再読み込み確認
 const { initSyutCron } = require('./utils/syut/syutCron');
-console.log("Loading env variables")
-const { 
+const { migrateKeihiConfig } = require('./utils/keihi/keihiMigrator');
+const {
   DISCORD_TOKEN,
   GCS_BUCKET_NAME,
   NODE_ENV,
@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(httpLogger);
-app.use('/', postCastRouter); // ルーターを登録
+app.use('/', postCastRouter); // 出退勤POST ルーター
 
 app.get('/', (req, res) => {
   res.status(200).send('Bot is running.');
@@ -44,9 +44,9 @@ function loadEvents(dir) {
       if (event?.name && event.execute) {
         if (event.once) client.once(event.name, (...args) => event.execute(...args));
         else client.on(event.name, (...args) => event.execute(...args, client));
-        logger.info(`📡 イベント登録: ${event.name}`);
+        logger.info(`📡 イベント読込: ${event.name}`);
+      }
     }
-  }
   }
 }
 
@@ -58,47 +58,69 @@ function loadCommands(dir) {
       const command = require(path.join(dir, file));
       if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
-        logger.info(`✅ コマンド登録: /${command.data.name}`);
+        logger.info(`📝 コマンド読込: /${command.data.name}`);
       } else {
-        logger.warn(`⚠️ [${file}] は data または execute プロパティが不足しています。`);
+        logger.warn(`⚠️ [${file}] に data または execute が定義されていません。`);
       }
     } catch (error) {
-      logger.error(`❌ コマンド読み込み失敗: ${file}`, error);
+      logger.error(`❌ コマンド読込失敗: ${file}`, error);
     }
   }
 }
 
-// 初期化
+// -------------------------
+// メイン処理
+// -------------------------
 (async () => {
   if (!DISCORD_TOKEN) {
-    logger.error('DISCORD_TOKEN が未設定です。.env を確認してください。');
+    logger.error('❌ DISCORD_TOKEN が設定されていません。.env を確認してください。');
     process.exit(1);
   }
 
   if (DEV_GUILD_IDS.length > 0) {
-    console.log('🧪 開発ホワイトリスト有効:', DEV_GUILD_IDS.join(', '));
+    console.log('🧪 開発用ギルドID一覧:', DEV_GUILD_IDS.join(', '));
     console.log('🧪 DEV_GUILD_IDS (raw):', process.env.DEV_GUILD_IDS);
   }
 
   loadCommands(path.join(__dirname, 'commands'));
   loadEvents(path.join(__dirname, 'events'));
 
+  client.once('clientReady', async () => {
+    // for (const [guildId, guild] of client.guilds.cache) {
+    //   try {
+    //     const result = await migrateKeihiConfig(guildId, { dryRun: false });
+
+    //     if (result.migrated) {
+    //       logger.info(
+    //         `[keihiMigrator] ギルド ${guild.name} (${guildId}) の keihi/config.json を新フォーマットへ変換しました。`,
+    //       );
+    //     } else {
+    //       logger.info(
+    //         `[keihiMigrator] ギルド ${guild.name} (${guildId}) はマイグレーション不要でした。`,
+    //       );
+    //     }
+    //   } catch (err) {
+    //     logger.error(
+    //       `[keihiMigrator] ギルド ${guildId} のマイグレーション中にエラー`,
+    //       err,
+    //     );
+    //   }
+    // }
+  });
+
   // --- コマンドデプロイ（開発用） ---
   if (NODE_ENV !== 'production' && GUILD_ID) {
     try {
-      await deployCommands()
+      await deployCommands();
     } catch (e) {
-      logger.warn('スラッシュコマンドのデプロイに失敗しました:', e);
+      logger.warn('⚠️ スラッシュコマンドのデプロイに失敗しました:', e);
     }
   }
 
-  // --- クライアント準備 ---
-  // NOTE: ログイン完了ログは `src/events/ready.js` 側で出力するため、ここでは重複しないようにしている。
-
-  // --- シャットダウン処理 ---
+  // --- シャットダウン ---
   const shutdown = async (signal) => {
     try {
-      logger.info(`受信シグナル: ${signal}. クライアントを終了します...`);
+      logger.info(`🔻 終了シグナル受信: ${signal}. クライアントを終了します...`);
       await client.destroy();
     } finally {
       process.exit(0);
@@ -107,16 +129,16 @@ function loadCommands(dir) {
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-  // --- Discordログイン ---
+  // --- Discord ログイン ---
   try {
     await client.login(DISCORD_TOKEN);
   } catch (e) {
-    logger.error('Discord ログインに失敗しました:', e);
+    logger.error('❌ Discord ログインに失敗しました:', e);
     process.exit(1);
   }
 
-  // --- Express サーバー起動 ---
+  // --- Express 起動 ---
   app.listen(PORT, () => {
-    logger.info(`🚀 Expressサーバーがポート ${PORT} で起動しました`);
+    logger.info(`🌐 Express サーバー起動: ポート ${PORT}`);
   });
 })();

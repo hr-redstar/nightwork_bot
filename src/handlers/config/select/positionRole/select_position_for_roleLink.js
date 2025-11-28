@@ -21,9 +21,18 @@ module.exports = {
     const guildId = interaction.guild.id;
     const config = await loadStoreRoleConfig(guildId);
 
-    if (!config.roles?.length) {
+    // 先に有効な選択肢を生成する
+    const options = (config.roles || [])
+      .filter((role) => role && role.id && role.name) // 無効なデータをフィルタリング
+      .map((role) => ({
+        label: String(role.name).slice(0, 100), // labelは100文字まで
+        value: String(role.id), // valueは100文字まで
+      }))
+      .slice(0, 25); // 選択肢は25個まで
+
+    if (!options.length) {
       return interaction.reply({
-        content: '⚠️ 役職が登録されていません。',
+        content: '⚠️ 紐付け可能な役職が登録されていません。',
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -31,12 +40,7 @@ module.exports = {
     const menu = new StringSelectMenuBuilder()
       .setCustomId('CONFIG_SELECT_POSITION_FOR_ROLE_LINK_VALUE')
       .setPlaceholder('ロールを紐づける役職を選択')
-      .addOptions(
-        config.roles.map((role) => ({
-          label: role.name,
-          value: role.id,
-        }))
-      );
+      .addOptions(options);
 
     const row = new ActionRowBuilder().addComponents(menu);
 

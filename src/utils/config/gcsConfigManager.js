@@ -7,7 +7,7 @@ const { readJSON, saveJSON } = require('../gcs');
 const logger = require('../logger');
 
 function configPath(guildId) {
-  return `GCS/${guildId}/config/config.json`;
+  return `${guildId}/config/config.json`;
 }
 
 // デフォルト構造（足りないキーを補完する用）

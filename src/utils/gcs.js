@@ -9,7 +9,7 @@ const logger = require('./logger');
 
 let bucket = null;
 let isLocalMode = false;
-let localBasePath = path.join(process.cwd(), 'local_data');
+let localBasePath = path.join(process.cwd(), 'local_data', 'GCS');
 
 // -------------------------------
 // GCS 初期化
@@ -143,6 +143,51 @@ async function readFile(filePath) {
   return contents;
 }
 
+// -------------------------------
+// ファイル/ディレクトリ一覧取得
+// -------------------------------
+/**
+ * 指定されたパスのファイルまたはディレクトリの一覧を取得する
+ * @param {string} prefix - GCSのプレフィックスまたはローカルのディレクトリパス
+ * @param {object} [options] - オプション
+ * @param {boolean} [options.directoriesOnly=false] - ディレクトリのみを取得するかどうか
+ * @returns {Promise<string[]>} ファイルパスまたはディレクトリ名の配列
+ */
+async function listFiles(prefix, options = {}) {
+  const { directoriesOnly = false } = options;
+
+  if (isLocalMode) {
+    const localDirPath = path.join(localBasePath, prefix);
+    if (!fs.existsSync(localDirPath)) return [];
+
+    const dirents = fs.readdirSync(localDirPath, { withFileTypes: true });
+    const results = [];
+
+    for (const dirent of dirents) {
+      if (directoriesOnly && dirent.isDirectory()) {
+        results.push(dirent.name);
+      } else if (!directoriesOnly && dirent.isFile()) {
+        // GCSのパス形式に合わせて返す
+        results.push(path.join(prefix, dirent.name).replace(/\\/g, '/'));
+      }
+    }
+    return results;
+  }
+
+  // GCS Mode
+  try {
+    const [files, , apiResponse] = await bucket.getFiles({
+      prefix: prefix,
+      delimiter: directoriesOnly ? '/' : undefined,
+    });
+
+    return directoriesOnly ? (apiResponse.prefixes || []) : files.map(f => f.name);
+  } catch (err) {
+    logger.error('❌ listFiles 失敗:', prefix, err);
+    return [];
+  }
+}
+
 // ====================================================
 // 公開 API
 // ====================================================
@@ -154,4 +199,5 @@ module.exports = {
   exists,
   writeFile,
   readFile,
+  listFiles,
 };

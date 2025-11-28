@@ -1,115 +1,122 @@
 // src/utils/keihi/keihiValidator.js
 // ----------------------------------------------------
-// 経費入力のバリデーション（最新版）
+// 経費機能 向けバリデーション & 権限チェック
 // ----------------------------------------------------
 
 /**
- * 全角 → 半角変換
+ * メンバーが指定ロールを1つでも持っているか
+ * @param {import('discord.js').GuildMember} member
+ * @param {string[]} roleIds
  */
-function toHalfWidth(str) {
-  return str.replace(/[！-～]/g, (s) =>
-    String.fromCharCode(s.charCodeAt(0) - 0xfee0)
-  );
+function hasAnyRole(member, roleIds = []) {
+  if (!member || !Array.isArray(roleIds) || roleIds.length === 0) return false;
+  return member.roles.cache.some((r) => roleIds.includes(r.id));
 }
 
 /**
- * 金額チェック
- * - 数字のみ
- * - カンマ削除
- * - 全角→半角
- * @returns {number|null} 正常なら数値, エラー時 null
+ * 経費申請ボタンを押せるかどうか
+ *   - 店舗ロール（storeRoleIds）※必要であれば
+ *   - 閲覧役職(viewRoleIds)
+ *   - 申請役職(requestRoleIds)
+ *   - 全体承認役職(approverRoleIds)
+ *
+ * @param {import('discord.js').GuildMember} member
+ * @param {{ viewRoleIds?: string[], requestRoleIds?: string[] }} panelConfig
+ * @param {{ approverRoleIds?: string[] }} globalConfig
+ * @param {string[]} [storeRoleIds]
  */
-function validateAmount(amountText) {
-  if (!amountText) return null;
+function canUseKeihiRequestButton(member, panelConfig = {}, globalConfig = {}, storeRoleIds = []) {
+  const { viewRoleIds = [], requestRoleIds = [] } = panelConfig;
+  const { approverRoleIds = [] } = globalConfig;
 
-  // 全角 → 半角
-  let a = toHalfWidth(amountText);
-
-  // カンマ除去
-  a = a.replace(/,/g, '');
-
-  // 数字チェック
-  if (!/^\d+$/.test(a)) return null;
-
-  const amount = Number(a);
-  if (isNaN(amount) || amount <= 0) return null;
-
-  return amount;
+  // 許可されている全てのロールIDを1つの配列にまとめる
+  const allowedRoleIds = [
+    ...storeRoleIds,
+    ...viewRoleIds,
+    ...requestRoleIds,
+    ...approverRoleIds,
+  ];
+  return hasAnyRole(member, allowedRoleIds);
 }
 
 /**
- * 内容チェック（説明）
- * @returns {string|null}
+ * YYYY-MM-DD のざっくりチェック
  */
-function validateDescription(text) {
-  if (!text) return null;
-
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-
-  // 255文字制限など必要ならここに追加
-  return trimmed;
+function isValidDateString(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(dateStr.trim());
+  if (!m) return false;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const dt = new Date(y, mo - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
 }
 
 /**
- * 店舗名チェック
- * @param {string} store
- * @param {string[]} validStoreList
+ * 金額文字列 → 数値（int）
+ * 3,000 → 3000 など
  */
-function validateStore(store, validStoreList) {
-  if (!store || !Array.isArray(validStoreList)) return false;
-  return validStoreList.includes(store);
+function parseAmount(amountStr) {
+  if (typeof amountStr !== 'string' && typeof amountStr !== 'number') return NaN;
+  const s = String(amountStr).replace(/,/g, '').trim();
+  if (!s) return NaN;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return NaN;
+  return Math.round(n);
 }
 
 /**
- * URLチェック（画像）
+ * 経費申請フォームのバリデーション
+ * @param {{ date?: string, department?: string, item?: string, amount?: string|number, note?: string }} form
+ * @returns {{ ok: boolean, errors: string[], normalized: object }}
  */
-function validateImageUrl(url) {
-  if (!url) return true; // そもそも画像添付なし → OK
+function validateKeihiForm(form = {}) {
+  const errors = [];
 
-  try {
-    const u = new URL(url);
-    return u.protocol === 'http:' || u.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
-/**
- * フルバリデーション
- */
-function validateKeihiInput({ amount, description, store, storeList, imageUrl }) {
-  const validatedAmount = validateAmount(amount);
-  if (validatedAmount === null) {
-    return { ok: false, reason: '金額が不正です。数字のみ入力してください。' };
+  const date = (form.date || '').trim();
+  if (!date) {
+    errors.push('日付は必須です。');
+  } else if (!isValidDateString(date)) {
+    errors.push('日付は YYYY-MM-DD 形式で入力してください。');
   }
 
-  const validatedDesc = validateDescription(description);
-  if (validatedDesc === null) {
-    return { ok: false, reason: '内容の入力が不正です。空白のみは不可です。' };
+  const amountNum = parseAmount(form.amount);
+  if (!form.amount && form.amount !== 0) {
+    errors.push('金額は必須です。');
+  } else if (Number.isNaN(amountNum) || amountNum <= 0) {
+    errors.push('金額は1以上の数値で入力してください。');
   }
 
-  if (!validateStore(store, storeList)) {
-    return { ok: false, reason: '店舗の選択が不正です。' };
+  const department = (form.department || '').trim();
+  if (!department) {
+    errors.push('部署を入力してください。');
   }
 
-  if (!validateImageUrl(imageUrl)) {
-    return { ok: false, reason: '画像URLが不正です。' };
+  const item = (form.item || '').trim();
+  if (!item) {
+    errors.push('経費項目を選択してください。');
   }
+
+  const note = (form.note || '').trim();
 
   return {
-    ok: true,
-    amount: validatedAmount,
-    description: validatedDesc,
-    store,
-    imageUrl: imageUrl || null,
+    ok: errors.length === 0,
+    errors,
+    normalized: {
+      date,
+      department,
+      item,
+      amount: amountNum,
+      note,
+    },
   };
 }
 
 module.exports = {
-  validateAmount,
-  validateDescription,
-  validateStore,
-  validateImageUrl,
-  validateKeihiInput,
+  hasAnyRole,
+  canUseKeihiRequestButton,
+  isValidDateString,
+  parseAmount,
+  validateKeihiForm,
 };

@@ -121,9 +121,8 @@ module.exports = {
       `SNS：${sns}\n住所：${address}\n備考：${memo}\n`;
 
     await sendSettingLog(interaction.guild, {
-      user: interaction.user,
-      message: logMsg,
-      type: 'ユーザー情報更新',
+      title: '👤 ユーザー情報更新',
+      description: logMsg,
     });
 
     await interaction.reply({
