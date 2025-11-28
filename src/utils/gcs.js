@@ -9,7 +9,7 @@ const logger = require('./logger');
 
 let bucket = null;
 let isLocalMode = false;
-let localBasePath = path.join(process.cwd(), 'local_data', 'GCS');
+let localBasePath = path.join(process.cwd(), 'local_data');
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME;
 const PUBLIC_BASE_URL =
@@ -96,6 +96,34 @@ async function saveJSON(filePath, data) {
     return true;
   } catch (err) {
     logger.error('❌ saveJSON 失敗:', filePath, err);
+    return false;
+  }
+}
+
+// -------------------------------
+// テキスト保存
+// -------------------------------
+/**
+ * 任意テキストを GCS / ローカルに保存
+ * @param {string} objectPath
+ * @param {string} text
+ * @param {string} [contentType]
+ */
+async function saveText(objectPath, text, contentType = 'text/plain; charset=utf-8') {
+  if (isLocalMode) {
+    const localPath = path.join(localBasePath, objectPath);
+    const dir = path.dirname(localPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    fs.writeFileSync(localPath, text);
+    return true;
+  }
+
+  try {
+    await bucket.file(objectPath).save(text, { contentType });
+    return true;
+  } catch (err) {
+    logger.error('❌ saveText 失敗:', objectPath, err);
     return false;
   }
 }
@@ -212,6 +240,7 @@ module.exports = {
   isLocalMode: () => isLocalMode,
   readJSON,
   saveJSON,
+  saveText,
   exists,
   writeFile,
   readFile,
