@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// src/handlers/configBotHandlers.js
+﻿﻿﻿﻿// src/handlers/configBotHandler.js
 // ----------------------------------------------------
 // 設定パネルのボタン / セレクト / モーダル dispatcher
 // ----------------------------------------------------
@@ -156,10 +156,12 @@ async function handleInteraction(interaction) {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: '⚠️ 設定パネル処理中にエラーが発生しました。',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
 }
 
-module.exports = handleInteraction;
+module.exports = {
+  handleInteraction,
+};

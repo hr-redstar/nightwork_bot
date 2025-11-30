@@ -1,125 +1,85 @@
 // src/handlers/chat_gptBotHandlers.js
-// ----------------------------------------------------
-// ChatGPT 設定パネル用の dispatcher
-//   - ChatGPT設定パネルのボタン / セレクト / モーダル を振り分け
-//   - configBotHandlers と同じスタイル
-// ----------------------------------------------------
-
-const logger = require('../utils/logger');
-
-// IDS 定義
 const { IDS } = require('./chat_gpt/ids');
-
-// 今日のchat gpt 設定フロー
 const {
   handleTodaySettingButton,
-  handleTodayStoreChannelSelect,
-  handleTodaySettingModal,
+  handleTodayStoreSelect,
 } = require('./chat_gpt/todaySettingFlow');
-
 const { handleTodaySettingEditButton } = require('./chat_gpt/todayEditFlow');
-const { handleAnswerChannelButton } = require('./chat_gpt/answerChannelFlow');
+const {
+  handleAnswerChannelButton,
+  handleAnswerStoreSelect,
+  handleAnswerChannelSelect,
+  handleAnswerChannelModal,
+} = require('./chat_gpt/answerChannelFlow');
 const { handleUsageButton } = require('./chat_gpt/usageFlow');
+const {
+  handleConversationStartButton,
+  handleConversationPromptModal,
+  handlePromptSettingButton,
+  handlePromptEditModal,
+} = require('./chat_gpt/conversationPanel');
 
-// =====================================================
-// handleInteraction（ChatGPT用 dispatcher）
-// =====================================================
+// handleTodayRunButton は未定義のため、一時的にダミー関数を定義します。
+// TODO: 正しいファイルを require するように修正してください。
+const handleTodayRunButton = async (interaction) =>
+  interaction.reply({ content: 'この機能は現在開発中です。', ephemeral: true });
 
-/**
- * ChatGPT関連の interaction dispatcher
- * configBotHandlers と同じく、処理したら true、未処理なら false を返す
- *
- * @param {import('discord.js').Interaction} interaction
- * @returns {Promise<boolean>}
- */
-async function handleInteraction(interaction) {
-  try {
-    const id = interaction.customId;
+async function handleChatGPTBot(interaction) {
+  const { customId: id } = interaction;
 
-    // customId が無い interaction（スラッシュコマンドなど）はここでは扱わない
-    if (!id) return false;
+  // BUTTON
+  if (interaction.isButton()) {
+    if (id === IDS.BTN_TODAY_SETTING) {
+      await handleTodaySettingButton(interaction);
+      return true;
+    }
+    if (id === IDS.BTN_TODAY_EDIT) return await handleTodaySettingEditButton(interaction);
+    if (id === IDS.BTN_ANSWER_CHANNEL) return await handleAnswerChannelButton(interaction);
+    if (id === IDS.BTN_USAGE) return await handleUsageButton(interaction);
+    if (id.startsWith(IDS.BTN_TODAY_RUN_PREFIX)) return await handleTodayRunButton(interaction);
 
-    // --------------------------------
-    // BUTTON
-    // --------------------------------
-    if (interaction.isButton()) {
-      // 今日のchat gpt設定
-      if (id === IDS.BTN_TODAY_SETTING) {
-        await handleTodaySettingButton(interaction);
-        return true;
-      }
-
-      // 今日のchat gpt設定編集（※まだ実装してなければ後で追加）
-      if (id === IDS.BTN_TODAY_EDIT) {
-        await handleTodaySettingEditButton(interaction);
-        return true;
-      }
-
-      // chatgpt回答チャンネル設定（※後で実装）
-      if (id === IDS.BTN_ANSWER_CHANNEL) {
-        await handleAnswerChannelButton(interaction);
-        return true;
-      }
-
-      // chat gpt使用率（※後で実装）
-      if (id === IDS.BTN_USAGE) {
-        await handleUsageButton(interaction);
-        return true;
-      }
-
-      // 「今日のchat gpt」実行ボタン（チャンネルに設置されるやつ）
-      //  customId: chatgpt_today_run_<channelId>
-      if (id.startsWith(IDS.BTN_TODAY_RUN_PREFIX)) {
-        // ここで実行フローに飛ばす
-        // 例: await handleTodayRunButton(interaction);
-        // まだ実装していなければ、TODOとして残しておく
-        // TODO: 今日のchat gpt 実行ボタン処理
-        return false;
-      }
+    if (id === IDS.BTN_CONVO_START) {
+      await handleConversationStartButton(interaction);
+      return true;
     }
 
-    // --------------------------------
-    // SELECT MENUS
-    // --------------------------------
-    if (interaction.isAnySelectMenu()) {
-      // 今日のchat gpt設定：店舗 + チャンネル選択
-      if (id === IDS.SEL_TODAY_STORE_CHANNEL) {
-        await handleTodayStoreChannelSelect(interaction);
-        return true;
-      }
-
-      // 回答チャンネル設定のセレクト等は、後でここに追加
-      // 例:
-      // if (id === IDS.SEL_ANSWER_STORE_CHANNEL) { ... }
+    if (id === IDS.BTN_CONVO_PROMPT_SETTING) {
+      await handlePromptSettingButton(interaction);
+      return true;
     }
-
-    // --------------------------------
-    // MODALS
-    // --------------------------------
-    if (interaction.isModalSubmit()) {
-      // 今日のchat gpt設定モーダル
-      if (id.startsWith(IDS.MODAL_TODAY_SETTING)) {
-        await handleTodaySettingModal(interaction);
-        return true;
-      }
-
-      // 設定編集 / 回答チャンネル設定のモーダルは後で追加
-      // if (id.startsWith(IDS.MODAL_TODAY_EDIT)) { ... }
-      // if (id.startsWith(IDS.MODAL_ANSWER_CHANNEL)) { ... }
-    }
-
-    // どれにも該当しなければ未処理
-    return false;
-  } catch (err) {
-    logger.error('[chat_gptBotHandlers] エラー:', err);
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: '⚠️ ChatGPT設定パネル処理中にエラーが発生しました。',
-        ephemeral: true,
-      }).catch(() => {});
-    }
-    return true; // エラーだが「ここで処理した」とみなす
   }
+
+  // SELECT_MENU
+  if (interaction.isAnySelectMenu()) {
+    if (id === IDS.SEL_TODAY_STORE) {
+      await handleTodayStoreSelect(interaction);
+      return true;
+    }
+
+    // isStringSelectMenu と isChannelSelectMenu の両方で呼ばれる可能性がある
+    if (id === IDS.SEL_ANSWER_STORE) {
+      return await handleAnswerStoreSelect(interaction);
+    }
+
+    if (id.startsWith(IDS.SEL_ANSWER_CHANNEL_PREFIX)) return await handleAnswerChannelSelect(interaction);
+  }
+
+  // MODAL
+  if (interaction.isModalSubmit()) {
+    if (id.startsWith(IDS.MODAL_ANSWER_CHANNEL_PREFIX)) return await handleAnswerChannelModal(interaction);
+
+    if (id === IDS.MODAL_CONVO_PROMPT) {
+      await handleConversationPromptModal(interaction);
+      return true;
+    }
+
+    if (id === IDS.MODAL_CONVO_PROMPT_EDIT) {
+      await handlePromptEditModal(interaction);
+      return true;
+    }
+  }
+
+  return false;
 }
 
-module.exports = handleInteraction;
+module.exports = { handleChatGPTBot };

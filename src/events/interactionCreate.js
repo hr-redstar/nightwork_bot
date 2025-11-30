@@ -10,7 +10,9 @@ const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
 
 const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
-const { handleKeihiInteraction } = require('../handlers/keihi/keihiBotHandlers');
+const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
+const { handleInteraction: handleChatGPTBot } = require('../handlers/chat_gptBotHandler');
+const { handleInteraction: handleConfigInteraction } = require('../handlers/configBotHandler.js');
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -75,6 +77,16 @@ module.exports = {
             return handleKeihiInteraction(interaction);
           }
 
+        // --- ChatGPT ---
+        if (customId.startsWith('chatgpt_')) {
+          return handleChatGPTBot(interaction);
+        }
+
+        // --- 設定機能 ---
+        if (customId.startsWith('config_')) {
+          return handleConfigInteraction(interaction);
+        }
+
         return;
       }
 
@@ -90,6 +102,17 @@ module.exports = {
 
           // --- 経費統一ルール keihi_ ---
           if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
+
+        // --- ChatGPT ---
+        if (customId.startsWith('chatgpt_')) {
+          return handleChatGPTBot(interaction);
+        }
+
+        // --- 設定機能 ---
+        if (customId.startsWith('config_')) {
+          return handleConfigInteraction(interaction);
+        }
+
         return;
       }
 
@@ -105,6 +128,17 @@ module.exports = {
 
           // --- 経費モーダル（新仕様 keihi_）---
           if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
+
+        // --- ChatGPT ---
+        if (customId.startsWith('chatgpt_')) {
+          return handleChatGPTBot(interaction);
+        }
+
+        // --- 設定機能 ---
+        if (customId.startsWith('config_')) {
+          return handleConfigInteraction(interaction);
+        }
+
         return;
       }
 
@@ -114,7 +148,7 @@ module.exports = {
       if (!interaction.replied && !interaction.deferred) {
         return await interaction.reply({
           content: '⚠️ 未対応の操作です。',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     } catch (err) {

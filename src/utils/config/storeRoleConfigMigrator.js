@@ -1,13 +1,13 @@
-// src/utils/config/migrateStoreRoleConfig.js
+// src/utils/Migrator/storeRoleConfigMigrator.js
 // ----------------------------------------------------
 // 店舗・役職・ロール設定の全ギルド自動マイグレーション
 // ----------------------------------------------------
 
 const fs = require("fs");
 const path = require("path");
-const logger = require("../logger");
-const { getGuildConfig, saveGuildConfig } = require('./gcsConfigManager');
-const { loadStoreRoleConfig, saveStoreRoleConfig } = require('./storeRoleConfigManager');
+const logger = require("../logger"); // ../logger は正しい
+const { getGuildConfig } = require('../config/gcsConfigManager');
+const { loadStoreRoleConfig, saveStoreRoleConfig } = require('../config/storeRoleConfigManager');
 
 function getAllGuildDirectories(basePath) {
   if (!fs.existsSync(basePath)) return [];
@@ -22,15 +22,12 @@ async function migrateGuild(guildId) {
   const newConfig = await loadStoreRoleConfig(guildId);
   // 既に店舗情報があればマイグレーション済みとみなす
   if (newConfig && newConfig.stores && newConfig.stores.length > 0) {
-    logger.info(`[migrate] ${guildId} → 既に店舗情報が存在するためスキップ`);
+    // logger.info(`[migrate] ${guildId} → 既に店舗情報が存在するためスキップ`);
     return;
   }
 
   // 2. 古い設定ファイル(config.json)を読み込む
-  // gcsConfigManagerは `GCS/` を付けてしまうので、直接パスを生成して読み込む
-  const oldConfigPath = `${guildId}/config/config.json`;
-  const { readJSON } = require('../gcs');
-  const oldConfig = await readJSON(oldConfigPath);
+  const oldConfig = await getGuildConfig(guildId);
   if (!oldConfig || !oldConfig.stores || oldConfig.stores.length === 0) {
     logger.warn(`[migrate] ${guildId} → 古い設定(config.json)に店舗情報が見つからないためスキップ`);
     return;

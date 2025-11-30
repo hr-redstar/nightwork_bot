@@ -1,7 +1,9 @@
 // src/handlers/message/exportTextChannelMessages.js
 // ----------------------------------------------------
-// テキストチャンネルの全メッセージを取得して GCS に日付ごと保存
-// ＋ 直近の日付分 JSON を添付して返す
+// テキストチャンネルの全メッセージを取得して
+//  - GCS / local_data に日付ごと JSON で保存
+//  - 全メッセージまとめ TXT を保存
+//  - TXT をメッセージに添付（＋リンク表示）
 // ----------------------------------------------------
 
 const {
@@ -10,7 +12,12 @@ const {
   PermissionFlagsBits,
 } = require('discord.js');
 const logger = require('../../utils/logger');
-const { saveChannelMessages } = require('../../utils/logs/gcsMessageLog');
+const {
+  saveChannelMessages,   // 日別 JSON 保存
+  saveChannelTextLog,    // まとめ TXT 保存
+  getMessageLogUrl,      // JSON 公開 URL（今は主に案内用）
+  getMessageTxtUrl,      // TXT 公開 URL
+} = require('../../utils/logs/gcsMessageLog');
 
 /**
  * 指定テキストチャンネルの全メッセージをファイル化して保存する
@@ -138,33 +145,88 @@ async function exportTextChannelMessages(interaction) {
   }
 
   // ------------------------------
-  // 直近の日付分を JSON 添付で返す
+  // JSON リンク（最大20日分）※任意
   // ------------------------------
-  const latestDate = dates[dates.length - 1];
-  const latestPayload = {
-    guildId,
-    channelId,
-    channelName,
-    date: latestDate,
-    count: byDate[latestDate].length,
-    messages: byDate[latestDate],
-  };
+  const MAX_LINKS = 20;
+  const limitedDates = dates.slice(-MAX_LINKS);
 
-  const jsonString = JSON.stringify(latestPayload, null, 2);
-  const attachment = new AttachmentBuilder(
-    Buffer.from(jsonString, 'utf8'),
-    {
-      name: `messages-${channelName}-${latestDate}.json`,
-    },
-  );
+  const linkLines = limitedDates.map((date) => {
+    const url = getMessageLogUrl(guildId, channelId, date);
+    return `- ${date}: ${url}`;
+  });
+
+  let linksDescription = '';
+  if (linkLines.length > 0) {
+    linksDescription = [
+      '',
+      '📥 **日別 JSON ダウンロードリンク** (最新から最大 20 日分)',
+      ...linkLines,
+      dates.length > MAX_LINKS
+        ? `... 他 ${dates.length - MAX_LINKS} 日分は GCS / local_data から直接参照してください。`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  let txtUrl = '';
+  let attachment = null;
+  let txtNote = '';
+
+  try {
+    // ------------------------------
+    // 全メッセージを 1 本の TXT にまとめる
+    // ------------------------------
+    const txtLines = plainMessages.map((msg) => {
+      const time = msg.createdAt.replace('T', ' ').replace('Z', '');
+      const header = `[${time}] ${msg.authorName} (${msg.authorId})`;
+      const body =
+        msg.content && msg.content.trim().length > 0
+          ? msg.content
+          : '(本文なし)';
+      const attachLines =
+        msg.attachments && msg.attachments.length > 0
+          ? [
+              '  Attachments:',
+              ...msg.attachments.map(
+                (att) => `  - ${att.name} (${att.url})`,
+              ),
+            ]
+          : [];
+      return [header, body, ...attachLines].join('\n');
+    });
+
+    const txtContent = txtLines.join('\n\n') || '(メッセージなし)';
+
+    // GCS / ローカル に TXT 保存
+    await saveChannelTextLog(guildId, channelId, txtContent);
+
+    // 公開 URL（本番 GCS 用。ローカルモードではとりあえず形式だけ）
+    txtUrl = getMessageTxtUrl(guildId, channelId);
+
+    // Discord 添付用
+    const txtBuffer = Buffer.from(txtContent, 'utf8');
+    attachment = new AttachmentBuilder(txtBuffer, {
+      name: `messages-${channelName}-all.txt`,
+    });
+  } catch (err) {
+    logger.error(
+      `[exportTextChannelMessages] TXT処理エラー: guild=${guildId} channel=${channelId}`,
+      err,
+    );
+    txtNote = '\n\n⚠️ TXTファイルの作成または保存中にエラーが発生しました。';
+  }
 
   await interaction.editReply({
     content: [
       `✅ <#${channelId}> のメッセージを **${messages.length} 件** ファイル化しました。`,
-      `- GCS: \`GCS/${guildId}/メッセージログ/${channelId}/YYYY-MM-DD.json\` 形式で日別保存`,
-      `- 直近の日付分の JSON を添付しています`,
+      `- JSON(日別): \`GCS/${guildId}/メッセージログ/${channelId}/YYYY-MM-DD.json\` に保存しました`,
+      `- まとめ TXT: \`GCS/${guildId}/メッセージログ/${channelId}/メッセージ用txt/messages.txt\` に保存しました`,
+      `- TXT ダウンロードリンク: ${txtUrl}`,
+      linksDescription,
+      txtNote,
     ].join('\n'),
-    files: [attachment],
+    files: attachment ? [attachment] : [],
   });
 
   logger.info(

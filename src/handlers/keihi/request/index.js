@@ -21,14 +21,11 @@ const {
 } = require('./roleConfig');
 const { IDS: KEIHI_IDS } = require('./ids');
 
-const {
-  REQUEST_ITEM_SELECT_PREFIX,
-  REQUEST_MODAL_PREFIX,
-  handleRequestStart,
-  handleRequestItemSelect,
-  handleRequestModalSubmit,
-} = require('./requestFlow');
-const { handleApproveButton, handleModifyButton, handleDeleteButton, handleModifyModalSubmit, APPROVE_PREFIX, MODIFY_PREFIX, DELETE_PREFIX, MODIFY_MODAL_PREFIX } = require('./statusActions');
+const { IDS: REQ_IDS } = require('./requestIds');
+const { handleRequestStart, handleRequestItemSelect } = require('./requestStart');
+const { handleRequestModalSubmit } = require('./requestModal');
+const { IDS: STATUS_IDS } = require('./statusIds');
+const { handleApproveButton, handleModifyButton, handleDeleteButton, handleModifyModalSubmit } = require('./statusActions');
 
 /**
  * 経費申請まわりのインタラクションをまとめて処理
@@ -70,13 +67,13 @@ async function handleKeihiRequestInteraction(interaction) {
     }
 
     // ② ステータス操作ボタン（承認 / 修正 / 削除）
-    if (customId.startsWith(`${APPROVE_PREFIX}::`)) {
+    if (customId.startsWith(`${STATUS_IDS.APPROVE}::`)) {
       return handleApproveButton(interaction);
     }
-    if (customId.startsWith(`${MODIFY_PREFIX}::`)) {
+    if (customId.startsWith(`${STATUS_IDS.MODIFY}::`)) {
       return handleModifyButton(interaction);
     }
-    if (customId.startsWith(`${DELETE_PREFIX}::`)) {
+    if (customId.startsWith(`${STATUS_IDS.DELETE}::`)) {
       return handleDeleteButton(interaction);
     }
 
@@ -96,26 +93,29 @@ async function handleKeihiRequestInteraction(interaction) {
     }
 
     // 経費項目（申請フロー）
-    if (customId.startsWith(`${REQUEST_ITEM_SELECT_PREFIX}:`)) {
+    if (customId.startsWith(`${REQ_IDS.REQUEST_ITEM_SELECT}:`)) {
       return handleRequestItemSelect(interaction);
     }
     return;
   }
 
   // ---------------- モーダル ----------------
-  if (interaction.type === InteractionType.ModalSubmit) {
+  if (interaction.isModalSubmit()) {
     // 経費項目登録モーダル
     if (customId.startsWith(`keihi_request:modal_item_config::`)) {
       return handleItemConfigModalSubmit(interaction);
     }
 
+    const modalPrefix =
+      (REQ_IDS && REQ_IDS.REQUEST_MODAL) || 'keihi_request_request_modal';
+
     // 経費申請モーダル
-    if (customId.startsWith(`keihi_request_request_modal::`)) {
+    if (customId.startsWith(`${modalPrefix}::`)) {
       return handleRequestModalSubmit(interaction);
     }
 
     // 修正モーダル
-    if (customId.startsWith(`${MODIFY_MODAL_PREFIX}::`)) {
+    if (customId.startsWith(`${STATUS_IDS.MODIFY_MODAL}::`)) {
       return handleModifyModalSubmit(interaction);
     }
   }

@@ -1,4 +1,4 @@
-﻿﻿// src/handlers/keihiBotHandlers.js
+// src/handlers/keihiBotHandler.js
 // ----------------------------------------------------
 // 経費機能 全体エントリ
 //   - 設定パネル系（/設定経費 ボタン/セレクト）
@@ -39,6 +39,7 @@ async function handleInteraction(interaction) {
         if (
             id.startsWith('keihi_item:') ||
             id.startsWith('keihi_view_role_config:') ||
+            id.startsWith('keihi_request_request_item:') || // ★ この行を追加
             id.startsWith('keihi_request_role_config:') ||
             id.startsWith('keihi_request:') ||
             id.startsWith('keihi_approve:') ||

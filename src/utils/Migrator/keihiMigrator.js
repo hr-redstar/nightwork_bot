@@ -13,9 +13,9 @@
 //     - panels[storeId] = { channelId, messageId, viewRoleIds, requestRoleIds, items }
 // ----------------------------------------------------
 
-const { readJSON, saveJSON } = require('../gcs');
+const gcs = require('../gcs');
 const logger = require('../logger');
-const { keihiGlobalConfigPath } = require('./keihiConfigManager');
+const { keihiGlobalConfigPath } = require('../keihi/keihiConfigManager');
 
 // ベース構造
 function createDefaultKeihiConfig() {
@@ -108,7 +108,7 @@ async function migrateKeihiConfig(guildId, options = {}) {
 
   let raw;
   try {
-    raw = (await readJSON(path)) || {};
+    raw = (await gcs.readJSON(path)) || {};
   } catch (err) {
     logger.warn(`[keihiMigrator] 読み込み失敗: ${path}`, err);
     return { migrated: false, path, before: null, after: null };
@@ -130,7 +130,7 @@ async function migrateKeihiConfig(guildId, options = {}) {
 
   if (!dryRun) {
     try {
-      await saveJSON(path, migrated);
+      await gcs.saveJSON(path, migrated);
       logger.info(`[keihiMigrator] keihi/config.json を新フォーマットにマイグレートしました: ${path}`);
     } catch (err) {
       logger.error(`[keihiMigrator] 保存時にエラー: ${path}`, err);

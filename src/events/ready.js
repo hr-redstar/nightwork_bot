@@ -5,7 +5,7 @@ const { initializeGCS } = require('../utils/gcs');
 const { initSyutCron } = require('../utils/syut/syutCron');
 
 // ★ マイグレーション追加 ★
-const { migrateAllGuilds } = require('../utils/config/migrateStoreRoleConfig');
+// const { migrateAllGuilds } = require('../utils/Migrator/storeRoleConfigMigrator');
 
 module.exports = {
   name: Events.ClientReady,
@@ -40,12 +40,12 @@ module.exports = {
       }
 
       // ⭐⭐⭐ ここでマイグレーション実行 ⭐⭐⭐
-      try {
-        logger.info('🔧 全ギルド設定マイグレーション開始…');
-        await migrateAllGuilds();
-      } catch (e) {
-        logger.error('[ready] マイグレーション中にエラー:', e);
-      }
+      // try {
+      //   logger.info('🔧 全ギルド設定マイグレーション開始…');
+      //   await migrateAllGuilds();
+      // } catch (e) {
+      //   logger.error('[ready] マイグレーション中にエラー:', e);
+      // }
 
       // === 出退勤cron起動 ===
       try {

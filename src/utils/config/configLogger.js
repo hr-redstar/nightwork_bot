@@ -1,16 +1,13 @@
 // src/utils/config/configLogger.js
 
 const { EmbedBuilder } = require('discord.js');
-const { readJSON } = require('../gcs');
+const gcs = require('../gcs');
 const logger = require('../logger');
-
-function guildConfigPath(guildId) {
-  return `${guildId}/config/config.json`;
-}
+const { configPath: guildConfigPath } = require('../config/gcsConfigManager');
 
 async function loadGuildConfig(guildId) {
   try {
-    return (await readJSON(guildConfigPath(guildId))) || {};
+    return (await gcs.readJSON(guildConfigPath(guildId))) || {};
   } catch (err) {
     logger.error('[keihi/embedLogger] guild config 読み込みエラー:', err);
     return {};

@@ -8,16 +8,16 @@
 // ----------------------------------------------------
 
 const { EmbedBuilder } = require('discord.js');
-const { readJSON } = require('../gcs');
+const gcs = require('../gcs');
 const { keihiGlobalConfigPath } = require('./keihiConfigManager'); // ★ インポートを追加
 const logger = require('../logger');
 
 async function loadGuildConfig(guildId) {
   try {
-    // GCS/{guildId}/config/config.json -> {guildId}/keihi/config.json を参照するように変更
-    // keihiConfigManager の loadKeihiConfig を使うのがより望ましいですが、
-    // ログ機能は独立させたいという意図を尊重し、パスのみ修正します。
-    return (await readJSON(keihiGlobalConfigPath(guildId))) || {};
+    // 経費機能のログチャンネル設定は、経費機能のグローバル設定ファイルから読み込む
+    // keihiConfigManager の loadKeihiConfig を使うのが理想だが、
+    // 循環参照を避けるため、ここではパスを直接組み立てて readJSON を呼ぶ
+    return (await gcs.readJSON(keihiGlobalConfigPath(guildId))) || {};
   } catch (err) {
     logger.error('[keihi/embedLogger] guild config 読み込みエラー:', err);
     return {};

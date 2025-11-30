@@ -1,5 +1,5 @@
 // src/utils/config/configUtils.js
-const { sendConfigPanel } = require('../../handlers/config/configPanel');
+const { sendConfigPanel } = require('../../handlers/config/panel/configPanel');
 const logger = require('../logger');
 
 /**

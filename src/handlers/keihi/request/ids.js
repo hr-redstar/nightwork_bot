@@ -11,9 +11,6 @@ exports.IDS = {
     VIEW_ROLES: 'view_roles',
     REQUEST_ROLES: 'request_roles',
     REQUEST: 'request',
-    APPROVE: 'approve',
-    MODIFY: 'modify',
-    DELETE: 'delete',
   },
 
   // --- インタラクションID プレフィックス ---
@@ -22,9 +19,6 @@ exports.IDS = {
     BUTTON: `${PREFIX}:btn`,
     VIEW_ROLE_SELECT: `${PREFIX}:sel_view_roles`,
     REQUEST_ROLE_SELECT: `${PREFIX}:sel_req_roles`,
-    REQUEST_ITEM_SELECT: `${PREFIX}:sel_req_item`,
     ITEM_CONFIG_MODAL: `${PREFIX}:modal_item_config`, // `::storeId`
-    REQUEST_MODAL: `${PREFIX}:modal_request`,         // `::storeId:itemIndex`
-    MODIFY_MODAL: `${PREFIX}:modal_modify`,           // `::storeId:no`
   },
 };

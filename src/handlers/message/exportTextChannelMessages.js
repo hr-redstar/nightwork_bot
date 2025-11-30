@@ -1,9 +1,9 @@
 // src/handlers/message/exportTextChannelMessages.js
 // ----------------------------------------------------
 // テキストチャンネルの全メッセージを取得して
-//  - GCS に日付ごと JSON で保存
-//  - 全メッセージまとめ TXT を GCS に保存
-//  - TXT をメッセージに添付（大きすぎる場合は GCS リンクのみ）
+//  - GCS / local_data に日付ごと JSON で保存
+//  - 全メッセージまとめ TXT を保存
+//  - TXT をメッセージに添付（＋リンク表示）
 // ----------------------------------------------------
 
 const {
@@ -15,8 +15,8 @@ const logger = require('../../utils/logger');
 const {
   saveChannelMessages,   // 日別 JSON 保存
   saveChannelTextLog,    // まとめ TXT 保存
-  getMessageLogUrl,      // 日別 JSON の公開 URL
-  getMessageTxtUrl,      // まとめ TXT の公開 URL
+  getMessageLogUrl,      // JSON 公開 URL（今は主に案内用）
+  getMessageTxtUrl,      // TXT 公開 URL
 } = require('../../utils/logs/gcsMessageLog');
 
 /**
@@ -68,13 +68,11 @@ async function exportTextChannelMessages(interaction) {
     const fetchOptions = { limit: 100 };
     if (lastId) fetchOptions.before = lastId;
 
-    // 新しい順で最大100件
     const batch = await targetChannel.messages.fetch(fetchOptions);
     if (batch.size === 0) break;
 
     batch.forEach((m) => messages.push(m));
 
-    // このバッチの一番古いメッセージ ID を基準に次を取得
     const oldest = batch.last();
     lastId = oldest.id;
 
@@ -114,7 +112,6 @@ async function exportTextChannelMessages(interaction) {
       size: att.size,
       contentType: att.contentType,
     })),
-    // 引用元など、最低限だけ保持（必要なら増やす）
     referencedMessageId: m.reference?.messageId ?? null,
   }));
 
@@ -143,9 +140,9 @@ async function exportTextChannelMessages(interaction) {
   }
 
   // ------------------------------
-  // GCS JSON ダウンロードリンク一覧（最大20日分）
+  // JSON リンク（最大20日分）※任意
   // ------------------------------
-  const MAX_LINKS = 20;
+  const MAX_LINKS = 5; // 表示するリンク数を5に減らす
   const limitedDates = dates.slice(-MAX_LINKS);
 
   const linkLines = limitedDates.map((date) => {
@@ -157,57 +154,62 @@ async function exportTextChannelMessages(interaction) {
   if (linkLines.length > 0) {
     linksDescription = [
       '',
-      '📥 **日別 JSON ダウンロードリンク** (最新から最大 20 日分)',
+      `📥 **日別 JSON ダウンロードリンク** (最新から最大 ${MAX_LINKS} 日分)`,
       ...linkLines,
       dates.length > MAX_LINKS
-        ? `... 他 ${dates.length - MAX_LINKS} 日分は GCS から直接参照してください。`
+        ? `... 他 ${dates.length - MAX_LINKS} 日分は GCS / local_data から直接参照してください。`
         : '',
     ]
       .filter(Boolean)
       .join('\n');
   }
 
-  // ------------------------------
-  // 全メッセージを 1 本の TXT にまとめる
-  // ------------------------------
-  const txtLines = plainMessages.map((msg) => {
-    const time = msg.createdAt.replace('T', ' ').replace('Z', '');
-    const header = `[${time}] ${msg.authorName} (${msg.authorId})`;
-    const body =
-      msg.content && msg.content.trim().length > 0
-        ? msg.content
-        : '(本文なし)';
-    const attachLines =
-      msg.attachments && msg.attachments.length > 0
-        ? [
-            '  Attachments:',
-            ...msg.attachments.map(
-              (att) => `  - ${att.name} (${att.url})`,
-            ),
-          ]
-        : [];
-    return [header, body, ...attachLines].join('\n');
-  });
+  let txtUrl = '';
+  let attachment = null;
+  let txtNote = '';
 
-  const txtContent = txtLines.join('\n\n') || '(メッセージなし)';
+  try {
+    // ------------------------------
+    // 全メッセージを 1 本の TXT にまとめる
+    // ------------------------------
+    const txtLines = plainMessages.map((msg) => {
+      const time = msg.createdAt.replace('T', ' ').replace('Z', '');
+      const header = `[${time}] ${msg.authorName} (${msg.authorId})`;
+      const body =
+        msg.content && msg.content.trim().length > 0
+          ? msg.content
+          : '(本文なし)';
+      const attachLines =
+        msg.attachments && msg.attachments.length > 0
+          ? [
+              '  Attachments:',
+              ...msg.attachments.map(
+                (att) => `  - ${att.name} (${att.url})`,
+              ),
+            ]
+          : [];
+      return [header, body, ...attachLines].join('\n');
+    });
 
-  // GCS に TXT 保存（gcs/ギルドID/メッセージログ/チャンネルID/メッセージ用txt/messages.txt）
-  await saveChannelTextLog(guildId, channelId, txtContent);
-  const txtUrl = getMessageTxtUrl(guildId, channelId);
+    const txtContent = txtLines.join('\n\n') || '(メッセージなし)';
 
-  // Discord 添付用（大きすぎる場合は添付しない）
-  const txtBuffer = Buffer.from(txtContent, 'utf8');
-  const files = [];
-  let sizeNote = '';
-  if (txtBuffer.length <= 7 * 1024 * 1024) {
-    files.push(
-      new AttachmentBuilder(txtBuffer, {
-        name: `messages-${channelName}-all.txt`,
-      }),
+    // GCS / ローカル に TXT 保存
+    await saveChannelTextLog(guildId, channelId, txtContent);
+
+    // 公開 URL（本番 GCS 用。ローカルモードではとりあえず形式だけ）
+    txtUrl = getMessageTxtUrl(guildId, channelId);
+
+    // Discord 添付用
+    const txtBuffer = Buffer.from(txtContent, 'utf8');
+    attachment = new AttachmentBuilder(txtBuffer, {
+      name: `messages-${channelName}-all.txt`,
+    });
+  } catch (err) {
+    logger.error(
+      `[exportTextChannelMessages] TXT処理エラー: guild=${guildId} channel=${channelId}`,
+      err,
     );
-  } else {
-    sizeNote =
-      '\n⚠️ ログが大きすぎるため、Discord への txt 添付は省略しました。GCS の TXT リンクからダウンロードしてください。';
+    txtNote = '\n\n⚠️ TXTファイルの作成または保存中にエラーが発生しました。';
   }
 
   await interaction.editReply({
@@ -217,11 +219,11 @@ async function exportTextChannelMessages(interaction) {
       `- まとめ TXT: \`GCS/${guildId}/メッセージログ/${channelId}/メッセージ用txt/messages.txt\` に保存しました`,
       `- TXT ダウンロードリンク: ${txtUrl}`,
       linksDescription,
-      sizeNote,
+      txtNote,
     ]
       .filter(Boolean)
       .join('\n'),
-    files,
+    files: attachment ? [attachment] : [],
   });
 
   logger.info(

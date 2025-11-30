@@ -13,7 +13,7 @@
 //   - panels
 // ----------------------------------------------------
 
-const { readJSON, saveJSON } = require('../gcs');
+const gcs = require('../gcs');
 const logger = require('../logger');
 
 /**
@@ -63,7 +63,7 @@ function createDefaultKeihiConfig() {
 async function loadKeihiConfig(guildId) {
   const path = keihiGlobalConfigPath(guildId);
   try {
-    const raw = (await readJSON(path)) || {};
+    const raw = (await gcs.readJSON(path)) || {};
     const base = createDefaultKeihiConfig();
 
     // ベースに raw をマージ（旧フィールドも全部残す）
@@ -115,7 +115,7 @@ async function loadKeihiConfig(guildId) {
 async function saveKeihiConfig(guildId, config) {
   const path = keihiGlobalConfigPath(guildId);
   try {
-    await saveJSON(path, config);
+    await gcs.saveJSON(path, config);
   } catch (err) {
     logger.error('[keihiConfigManager] keihi/config.json 保存失敗', err);
     throw err;
@@ -140,7 +140,7 @@ function keihiStoreConfigPath(guildId, storeId) {
 async function loadKeihiStoreConfig(guildId, storeId) {
   const path = keihiStoreConfigPath(guildId, storeId);
   try {
-    const config = (await readJSON(path)) || {};
+    const config = (await gcs.readJSON(path)) || {};
     return config;
   } catch (err) {
     logger.warn(
@@ -160,7 +160,7 @@ async function saveKeihiStoreConfig(guildId, storeId, newConfig) {
   try {
     const existingConfig = await loadKeihiStoreConfig(guildId, storeId);
     const mergedConfig = { ...existingConfig, ...newConfig };
-    await saveJSON(path, mergedConfig);
+    await gcs.saveJSON(path, mergedConfig);
   } catch (err) {
     logger.error(`[keihiConfigManager] ${path} 保存失敗`, err);
     throw err;

@@ -6,13 +6,12 @@ const path = require('path');
 const fs = require('fs');
 const client = require('./botClient');
 const logger = require('./utils/logger');
+const gcs = require('./utils/gcs'); // ★ GCSモジュールをインポート
 // const express = require('express');
 // const httpLogger = require('./utils/httpLogger');
 // const postCastRouter = require('./utils/syut/postCast');
 const { DEV_GUILD_IDS } = require('./utils/config/envConfig');
 const { deployCommands } = require('../scripts/deployGuildCommands');
-const { initSyutCron } = require('./utils/syut/syutCron');
-const { migrateKeihiConfig } = require('./utils/keihi/keihiMigrator');
 const {
   DISCORD_TOKEN,
   GCS_BUCKET_NAME,
@@ -77,6 +76,9 @@ function loadCommands(dir) {
     process.exit(1);
   }
 
+  // --- GCS 初期化 ---
+  gcs.initializeGCS(); // ★ GCSを初期化
+
   if (DEV_GUILD_IDS.length > 0) {
     console.log('🧪 開発用ギルドID一覧:', DEV_GUILD_IDS.join(', '));
     console.log('🧪 DEV_GUILD_IDS (raw):', process.env.DEV_GUILD_IDS);
@@ -84,29 +86,6 @@ function loadCommands(dir) {
 
   loadCommands(path.join(__dirname, 'commands'));
   loadEvents(path.join(__dirname, 'events'));
-
-  client.once('clientReady', async () => {
-    // for (const [guildId, guild] of client.guilds.cache) {
-    //   try {
-    //     const result = await migrateKeihiConfig(guildId, { dryRun: false });
-
-    //     if (result.migrated) {
-    //       logger.info(
-    //         `[keihiMigrator] ギルド ${guild.name} (${guildId}) の keihi/config.json を新フォーマットへ変換しました。`,
-    //       );
-    //     } else {
-    //       logger.info(
-    //         `[keihiMigrator] ギルド ${guild.name} (${guildId}) はマイグレーション不要でした。`,
-    //       );
-    //     }
-    //   } catch (err) {
-    //     logger.error(
-    //       `[keihiMigrator] ギルド ${guildId} のマイグレーション中にエラー`,
-    //       err,
-    //     );
-    //   }
-    // }
-  });
 
   // --- コマンドデプロイ（開発用） ---
   if (NODE_ENV !== 'production' && GUILD_ID) {

@@ -9,11 +9,13 @@ const logger = require('./logger');
 
 let bucket = null;
 let isLocalMode = false;
-let localBasePath = path.join(process.cwd(), 'local_data');
+let localBasePath = path.join(process.cwd(), 'local_data', 'GCS');
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME;
 const PUBLIC_BASE_URL =
   process.env.GCS_PUBLIC_BASE_URL || `https://storage.googleapis.com/${BUCKET_NAME}/`;
+
+const ENABLE_GCS_DEBUG = process.env.GCS_DEBUG === '1';
 
 // -------------------------------
 // GCS 初期化
@@ -24,7 +26,7 @@ function initializeGCS() {
   const keyFilename = process.env.GCP_SERVICE_KEY;
 
   if (!projectId || !bucketName || !keyFilename) {
-    logger.info('💾 ローカル保存モード有効（GCS無効 or 設定なし）');
+    logger.info('💾 ローカル保存モード有効（GCS 無効 または 設定なし）');
     isLocalMode = true;
     return;
   }
@@ -39,9 +41,9 @@ function initializeGCS() {
     bucket = storage.bucket(bucketName);
     isLocalMode = false;
 
-    logger.info('☁️ GCS モード有効');
+    logger.info('☁️ GCS モード有効（クラウド保存を使用）');
   } catch (err) {
-    logger.error('❌ GCS 初期化エラー → ローカルモードに切替: ', err);
+    logger.error('❌ GCS 初期化エラー → ローカル保存モードに切り替えます: ', err);
     isLocalMode = true;
   }
 }
@@ -56,12 +58,30 @@ function initializeGCS() {
 async function readJSON(filePath) {
   if (isLocalMode) {
     const localPath = path.join(localBasePath, filePath);
+    if (ENABLE_GCS_DEBUG) {
+      logger.info(
+        `[gcs.js] [DEBUG] readJSON (ローカル): 読み込みパス "${localPath}"`
+      );
+    }
     if (!fs.existsSync(localPath)) return null;
-    const raw = fs.readFileSync(localPath, 'utf-8');
-    return JSON.parse(raw);
+    try {
+      const raw = fs.readFileSync(localPath, 'utf-8');
+      return JSON.parse(raw);
+    } catch (parseError) {
+      logger.error(
+        `[gcs.js] [ERROR] JSON.parse に失敗しました: "${localPath}"`,
+        parseError,
+      );
+      return null;
+    }
   }
 
   try {
+    if (ENABLE_GCS_DEBUG) {
+      logger.info(
+        `[gcs.js] [DEBUG] readJSON (GCS): 読み込みパス "gs://${BUCKET_NAME}/${filePath}"`
+      );
+    }
     const file = bucket.file(filePath);
     const exists = await file.exists();
     if (!exists[0]) return null;
@@ -101,13 +121,13 @@ async function saveJSON(filePath, data) {
 }
 
 // -------------------------------
-// テキスト保存
+// テキスト保存（汎用）
 // -------------------------------
 /**
  * 任意テキストを GCS / ローカルに保存
- * @param {string} objectPath
- * @param {string} text
- * @param {string} [contentType]
+ * @param {string} objectPath 保存先パス（バケット内 or ローカル）
+ * @param {string} text       保存するテキスト
+ * @param {string} [contentType] Content-Type（GCS用）
  */
 async function saveText(objectPath, text, contentType = 'text/plain; charset=utf-8') {
   if (isLocalMode) {
@@ -146,7 +166,7 @@ async function exists(filePath) {
 }
 
 // -------------------------------
-// 汎用書き込み
+// 汎用バイナリ書き込み
 // -------------------------------
 async function writeFile(filePath, buffer) {
   if (isLocalMode) {
@@ -162,7 +182,7 @@ async function writeFile(filePath, buffer) {
 }
 
 // -------------------------------
-// 汎用読み込み
+// 汎用バイナリ読み込み
 // -------------------------------
 async function readFile(filePath) {
   if (isLocalMode) {
@@ -176,31 +196,44 @@ async function readFile(filePath) {
 }
 
 // -------------------------------
-// ファイル/ディレクトリ一覧取得
+// ファイル / ディレクトリ一覧取得
 // -------------------------------
 /**
- * 指定されたパスのファイルまたはディレクトリの一覧を取得する
- * @param {string} prefix - GCSのプレフィックスまたはローカルのディレクトリパス
- * @param {object} [options] - オプション
- * @param {boolean} [options.directoriesOnly=false] - ディレクトリのみを取得するかどうか
- * @returns {Promise<string[]>} ファイルパスまたはディレクトリ名の配列
+ * 指定されたパス配下のファイルまたはディレクトリ一覧を取得する
+ *
+ * @param {string} prefix - GCS のプレフィックス または ローカルのディレクトリ相当
+ * @param {object} [options]
+ * @param {boolean} [options.directoriesOnly=false] - true の場合はディレクトリ名のみ返す
+ * @returns {Promise<string[]>} ファイルパス または ディレクトリ名の配列
  */
 async function listFiles(prefix, options = {}) {
   const { directoriesOnly = false } = options;
 
   if (isLocalMode) {
+    // prefix は 'GCS/...' の形式で渡される。localBasePath は '.../local_data'
     const localDirPath = path.join(localBasePath, prefix);
+    logger.info(
+      `[gcs.js] [DEBUG] listFiles(ローカル): 読み込みディレクトリ "${localDirPath}"`
+    );
+
     if (!fs.existsSync(localDirPath)) return [];
 
     const dirents = fs.readdirSync(localDirPath, { withFileTypes: true });
     const results = [];
 
     for (const dirent of dirents) {
-      if (directoriesOnly && dirent.isDirectory()) {
-        results.push(dirent.name);
-      } else if (!directoriesOnly && dirent.isFile()) {
-        // GCSのパス形式に合わせて返す
-        results.push(path.join(prefix, dirent.name).replace(/\\/g, '/'));
+      if (directoriesOnly) {
+        // ディレクトリのみ欲しい場合
+        if (dirent.isDirectory()) {
+          results.push(dirent.name);
+        }
+      } else {
+        // ファイル一覧が欲しい場合
+        // ここでは GCS モードと同じく「prefix からの相対パス」を返すイメージ
+        // 例: listFiles('GCS/123/logs/') → '2025-11-25.json'
+        if (dirent.isFile()) {
+          results.push(path.join(prefix, dirent.name).replace(/\\/g, '/'));
+        }
       }
     }
     return results;
@@ -213,7 +246,15 @@ async function listFiles(prefix, options = {}) {
       delimiter: directoriesOnly ? '/' : undefined,
     });
 
-    return directoriesOnly ? (apiResponse.prefixes || []) : files.map(f => f.name);
+    if (directoriesOnly) {
+      // "prefix/xxx/" → "xxx" のように末尾ディレクトリ名だけ返す
+      return (apiResponse.prefixes || []).map((p) =>
+        p.replace(prefix, '').replace(/\/$/, ''),
+      );
+    }
+
+    // ファイルの場合は prefix を除いた相対パスを返す
+    return files.map(f => f.name.substring(prefix.length));
   } catch (err) {
     logger.error('❌ listFiles 失敗:', prefix, err);
     return [];
@@ -222,13 +263,17 @@ async function listFiles(prefix, options = {}) {
 
 /**
  * GCS オブジェクトの公開 URL を組み立てる
- *   例) PUBLIC_BASE_URL=https://storage.googleapis.com/my-bucket/
- *       objectPath=GCS/12345/メッセージログ/67890/2025-11-29.json
- *       → https://storage.googleapis.com/my-bucket/GCS/12345/メッセージログ/67890/2025-11-29.json
+ *
+ * 例:
+ *   PUBLIC_BASE_URL = https://storage.googleapis.com/my-bucket/
+ *   objectPath      = GCS/12345/メッセージログ/67890/2025-11-29.json
+ *   → https://storage.googleapis.com/my-bucket/GCS/12345/メッセージログ/67890/2025-11-29.json
+ *
  * @param {string} objectPath GCS 内のオブジェクトパス
+ * @returns {string} 公開 URL
  */
 function buildPublicUrl(objectPath) {
-  // 日本語パスもそのまま使えるが、気になる場合は encodeURI でエンコード
+  // 日本語パスも基本そのまま使えるが、念のため encodeURI でエンコード
   return `${PUBLIC_BASE_URL}${encodeURI(objectPath)}`;
 }
 
