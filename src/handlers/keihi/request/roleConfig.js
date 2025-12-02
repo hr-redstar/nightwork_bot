@@ -19,8 +19,8 @@ const {
 } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { sendSettingLog } = require('../../../utils/config/configLogger');
-const { upsertStorePanelMessage } = require('./panel');
 const { IDS: KEIHI_IDS } = require('./ids');
+const { refreshPanelAndSave } = require('./helpers');
 
 // ----------------------------------------------------
 // 共通: 店舗_役職_ロール.json から「役職リスト」を options 化
@@ -30,10 +30,7 @@ function buildPositionOptions(storeRoleConfig) {
 
   return positions.map((p, index) => {
     const id = String(p.id ?? p.positionId ?? index);
-    const name =
-      p.name ??
-      p.label ??
-      `役職${index + 1}`;
+    const name = p.name ?? p.label ?? `役職${index + 1}`;
 
     return {
       label: String(name),
@@ -72,7 +69,7 @@ async function openViewRolesSelect(interaction, storeId) {
     keihiConfig.panels?.[storeId]?.viewRolePositionIds || [];
 
   const select = new StringSelectMenuBuilder()
-    .setCustomId(`${KEIHI_IDS.PREFIX.VIEW_ROLE_SELECT}:${storeId}`)
+    .setCustomId(`${KEIHI_IDS.PREFIX.VIEW_ROLE_SELECT}:${storeId}`) // keihi_request:sel_view_roles:{storeId}
     .setPlaceholder('スレッド閲覧が可能な役職を選択（複数可）')
     .setMinValues(0)
     .setMaxValues(optionsData.length);
@@ -125,7 +122,7 @@ async function openRequestRolesSelect(interaction, storeId) {
     keihiConfig.panels?.[storeId]?.requestRolePositionIds || [];
 
   const select = new StringSelectMenuBuilder()
-    .setCustomId(`${KEIHI_IDS.PREFIX.REQUEST_ROLE_SELECT}:${storeId}`)
+    .setCustomId(`${KEIHI_IDS.PREFIX.REQUEST_ROLE_SELECT}:${storeId}`) // keihi_request:sel_req_roles:{storeId}
     .setPlaceholder('経費申請が可能な役職を選択（複数可）')
     .setMinValues(0)
     .setMaxValues(optionsData.length);
@@ -154,17 +151,18 @@ async function handleViewRoleSelect(interaction) {
   const { customId, values, guild } = interaction;
   const guildId = guild.id;
 
-  // customId: keihi_request_view_role_select:外部IT会社
+  // customId: keihi_request:sel_view_roles:{storeId}
   const storeId = customId.split(':').pop();
-  
+
   // 3秒制限対策
   await interaction.deferUpdate();
 
   const selectedPositionIds = values; // ['店長', '黒服', ... の positionId 想定]
 
-  const [keihiConfig, storeRoleConfig] = await Promise.all([
+  const [keihiConfig, storeRoleConfig, oldStoreConfig] = await Promise.all([
     loadKeihiConfig(guildId),
     loadStoreRoleConfig(guildId).catch(() => null),
+    loadKeihiStoreConfig(guildId, storeId).catch(() => ({})),
   ]);
 
   if (!keihiConfig.panels) keihiConfig.panels = {};
@@ -192,15 +190,15 @@ async function handleViewRoleSelect(interaction) {
   keihiConfig.panels[storeId].viewRoleIds = viewRoleIds;
   await saveKeihiConfig(guildId, keihiConfig);
 
-  // 店舗別 config (GCS/ギルドID/keihi/店舗名/config.json) にも保存
-  const storeConfig = { storeId }; // 保存時にマージされるので storeId だけでOK
+  // 店舗別 config (GCS/ギルドID/keihi/店舗ID/config.json) にも保存（他項目を保持）
+  const storeConfig = oldStoreConfig || {};
+  storeConfig.storeId = storeId;
   storeConfig.viewRolePositionIds = selectedPositionIds;
   storeConfig.viewRoleIds = viewRoleIds;
   await saveKeihiStoreConfig(guildId, storeId, storeConfig);
 
-  // 💸 経費申請パネルを再描画 (GCSから最新の設定を読み込んでから実行)
-  const updatedKeihiConfig = await loadKeihiConfig(guildId);
-  await upsertStorePanelMessage(guild, storeId, updatedKeihiConfig, storeRoleConfig);
+  // 💸 経費申請パネルを再描画 & messageId も更新
+  await refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig);
 
   const roleMentions =
     viewRoleIds.length > 0
@@ -230,16 +228,17 @@ async function handleRequestRoleSelect(interaction) {
   const { customId, values, guild } = interaction;
   const guildId = guild.id;
 
-  // customId: keihi_request_request_role_select:外部IT会社
+  // customId: keihi_request:sel_req_roles:{storeId}
   const storeId = customId.split(':').pop();
-  
+
   await interaction.deferUpdate();
 
   const selectedPositionIds = values;
 
-  const [keihiConfig, storeRoleConfig] = await Promise.all([
+  const [keihiConfig, storeRoleConfig, oldStoreConfig] = await Promise.all([
     loadKeihiConfig(guildId),
     loadStoreRoleConfig(guildId).catch(() => null),
+    loadKeihiStoreConfig(guildId, storeId).catch(() => ({})),
   ]);
 
   if (!keihiConfig.panels) keihiConfig.panels = {};
@@ -262,18 +261,20 @@ async function handleRequestRoleSelect(interaction) {
     ),
   ];
 
+  // グローバル設定に保存
   keihiConfig.panels[storeId].requestRolePositionIds = selectedPositionIds;
   keihiConfig.panels[storeId].requestRoleIds = requestRoleIds;
   await saveKeihiConfig(guildId, keihiConfig);
 
-  const storeConfig = { storeId }; // 保存時にマージされるので storeId だけでOK
+  // 店舗別 config にも保存（他項目を保持）
+  const storeConfig = oldStoreConfig || {};
+  storeConfig.storeId = storeId;
   storeConfig.requestRolePositionIds = selectedPositionIds;
   storeConfig.requestRoleIds = requestRoleIds;
   await saveKeihiStoreConfig(guildId, storeId, storeConfig);
 
-  // 💸 経費申請パネルを再描画 (GCSから最新の設定を読み込んでから実行)
-  const updatedKeihiConfig = await loadKeihiConfig(guildId);
-  await upsertStorePanelMessage(guild, storeId, updatedKeihiConfig, storeRoleConfig);
+  // 💸 経費申請パネルを再描画 & messageId 更新
+  await refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig);
 
   const roleMentions =
     requestRoleIds.length > 0

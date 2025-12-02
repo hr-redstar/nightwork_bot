@@ -25,7 +25,12 @@ function hasAnyRole(member, roleIds = []) {
  * @param {{ approverRoleIds?: string[] }} globalConfig
  * @param {string[]} [storeRoleIds]
  */
-function canUseKeihiRequestButton(member, panelConfig = {}, globalConfig = {}, storeRoleIds = []) {
+function canUseKeihiRequestButton(
+  member,
+  panelConfig = {},
+  globalConfig = {},
+  storeRoleIds = [],
+) {
   const { viewRoleIds = [], requestRoleIds = [] } = panelConfig;
   const { approverRoleIds = [] } = globalConfig;
 
@@ -36,6 +41,7 @@ function canUseKeihiRequestButton(member, panelConfig = {}, globalConfig = {}, s
     ...requestRoleIds,
     ...approverRoleIds,
   ];
+
   return hasAnyRole(member, allowedRoleIds);
 }
 
@@ -55,11 +61,15 @@ function isValidDateString(dateStr) {
 
 /**
  * 金額文字列 → 数値（int）
- * 3,000 → 3000 など
+ *  例: "3,000" / "３,０００" → 3000
  */
 function parseAmount(amountStr) {
   if (typeof amountStr !== 'string' && typeof amountStr !== 'number') return NaN;
-  const s = String(amountStr).replace(/,/g, '').trim();
+  // 半角・全角カンマと空白を削除
+  const s = String(amountStr)
+    .replace(/[,，]/g, '')
+    .replace(/\s+/g, '')
+    .trim();
   if (!s) return NaN;
   const n = Number(s);
   if (!Number.isFinite(n)) return NaN;
@@ -68,8 +78,11 @@ function parseAmount(amountStr) {
 
 /**
  * 経費申請フォームのバリデーション
+ *  ※ 現在は request/helpers.js 側の validateAndGetData をメインで使用中。
+ *    こちらを使う場合は UI 側の必須項目と揃えること。
+ *
  * @param {{ date?: string, department?: string, item?: string, amount?: string|number, note?: string }} form
- * @returns {{ ok: boolean, errors: string[], normalized: object }}
+ * @returns {{ ok: boolean, errors: string[], normalized: { date: string, department: string, item: string, amount: number, note: string } }}
  */
 function validateKeihiForm(form = {}) {
   const errors = [];

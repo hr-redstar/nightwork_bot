@@ -19,8 +19,8 @@ const {
 } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { sendSettingLog } = require('../../../utils/config/configLogger');
-const { upsertStorePanelMessage } = require('./panel');
 const { IDS: KEIHI_IDS } = require('./ids');
+const { refreshPanelAndSave } = require('./helpers');
 
 // ----------------------------------------------------
 // ボタン押下 → モーダル表示
@@ -32,7 +32,7 @@ const { IDS: KEIHI_IDS } = require('./ids');
  */
 async function openItemConfigModal(interaction, storeId) {
   const modal = new ModalBuilder()
-    .setCustomId(`${KEIHI_IDS.PREFIX.ITEM_CONFIG_MODAL}::${storeId}`)
+    .setCustomId(`${KEIHI_IDS.PREFIX.ITEM_CONFIG_MODAL}::${storeId}`) // 例: keihi_request:modal_item_config::外部IT会社
     .setTitle(`経費項目登録：${storeId}`);
 
   const input = new TextInputBuilder()
@@ -41,8 +41,9 @@ async function openItemConfigModal(interaction, storeId) {
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(true)
     .setPlaceholder(
-      '例：\n① 交通費 タクシー代、電車・バス代、営業移動費、配達交通費など\n'
-      + '② 備品・消耗品費 名刺、文房具、バインダー、店舗備品、のぼり、テープ、電池など\n…',
+      '例：\n'
+        + '① 交通費 タクシー代、電車・バス代、営業移動費、配達交通費など\n'
+        + '② 備品・消耗品費 名刺、文房具、バインダー、店舗備品、のぼり、テープ、電池など\n…',
     );
 
   const row = new ActionRowBuilder().addComponents(input);
@@ -59,19 +60,22 @@ async function openItemConfigModal(interaction, storeId) {
  * @param {import('discord.js').ModalSubmitInteraction} interaction
  */
 async function handleItemConfigModalSubmit(interaction) {
-  const customId = interaction.customId; // keihi_request_item_config_modal::店舗名
+  const customId = interaction.customId; // 例: keihi_request:modal_item_config::店舗ID or 店舗名
 
-  // ["keihi_request_item_config_modal", "外部IT会社"] の形
   const [prefix, storeId] = customId.split('::');
 
+  // 想定外の customId は無視
   if (prefix !== KEIHI_IDS.PREFIX.ITEM_CONFIG_MODAL || !storeId) {
-    return; // 想定外なら何もしない
+    return;
   }
 
   const guild = interaction.guild;
+  if (!guild) {
+    return;
+  }
   const guildId = guild.id;
 
-  // 3秒制限回避
+  // 3秒制限回避（エフェメラルで defer）
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const rawText = interaction.fields.getTextInputValue('items') || '';
@@ -106,14 +110,14 @@ async function handleItemConfigModalSubmit(interaction) {
   keihiConfig.panels[storeId].items = items;
   await saveKeihiConfig(guildId, keihiConfig);
 
-  // 店舗別 config (GCS/ギルドID/keihi/店舗名/config.json) にも保存
+  // 店舗別 config (GCS/ギルドID/keihi/店舗ID/config.json) にも保存
   const storeConfig = oldStoreConfig || {};
   storeConfig.storeId = storeId;
   storeConfig.items = items;
   await saveKeihiStoreConfig(guildId, storeId, storeConfig);
 
-  // 店舗別経費申請パネルを更新
-  await upsertStorePanelMessage(guild, storeId, keihiConfig, storeRoleConfig);
+  // 店舗別経費申請パネルを再描画し、messageId も含めて config を更新
+  await refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig);
 
   // 変更差分ログ
   const added = items.filter((i) => !beforeItems.includes(i));

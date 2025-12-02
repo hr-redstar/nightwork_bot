@@ -2,11 +2,9 @@
 // ----------------------------------------------------
 // 経費「申請パネル」側のインタラクション集約
 //   - ボタン（経費項目登録 / 閲覧役職 / 申請役職 / 経費申請）
-//   - セレクト（閲覧役職 / 申請役職）
-//   - モーダル（経費項目登録）
+//   - セレクト（閲覧役職 / 申請役職 / 経費項目選択）
+//   - モーダル（経費項目登録 / 経費申請 / 修正）
 // ----------------------------------------------------
-
-const { InteractionType } = require('discord.js');
 
 const {
   openItemConfigModal,
@@ -19,13 +17,18 @@ const {
   handleViewRoleSelect,
   handleRequestRoleSelect,
 } = require('./roleConfig');
-const { IDS: KEIHI_IDS } = require('./ids');
 
 const { IDS: REQ_IDS } = require('./requestIds');
+const { STATUS_IDS } = require('./statusIds');
+
 const { handleRequestStart, handleRequestItemSelect } = require('./requestStart');
 const { handleRequestModalSubmit } = require('./requestModal');
-const { IDS: STATUS_IDS } = require('./statusIds');
-const { handleApproveButton, handleModifyButton, handleDeleteButton, handleModifyModalSubmit } = require('./statusActions');
+const {
+  handleApproveButton,
+  handleModifyButton,
+  handleDeleteButton,
+  handleModifyModalSubmit,
+} = require('./statusActions');
 
 /**
  * 経費申請まわりのインタラクションをまとめて処理
@@ -83,12 +86,12 @@ async function handleKeihiRequestInteraction(interaction) {
   // ---------------- セレクトメニュー ----------------
   if (interaction.isStringSelectMenu()) {
     // 閲覧役職
-    if (customId.startsWith(`${KEIHI_IDS.PREFIX.VIEW_ROLE_SELECT}:`)) {
+    if (customId.startsWith('keihi_request:sel_view_roles:')) {
       return handleViewRoleSelect(interaction);
     }
 
     // 申請役職
-    if (customId.startsWith(`${KEIHI_IDS.PREFIX.REQUEST_ROLE_SELECT}:`)) {
+    if (customId.startsWith('keihi_request:sel_req_roles:')) {
       return handleRequestRoleSelect(interaction);
     }
 
@@ -102,7 +105,7 @@ async function handleKeihiRequestInteraction(interaction) {
   // ---------------- モーダル ----------------
   if (interaction.isModalSubmit()) {
     // 経費項目登録モーダル
-    if (customId.startsWith(`keihi_request:modal_item_config::`)) {
+    if (customId.startsWith('keihi_request:modal_item_config::')) {
       return handleItemConfigModalSubmit(interaction);
     }
 

@@ -1,5 +1,12 @@
 // src/handlers/keihi/request/requestIds.js
+// ----------------------------------------------------
 // 経費申請フローで使う customId プレフィックスを集約
+// ----------------------------------------------------
+//
+// 使い方イメージ：
+//   経費項目セレクト : `${REQ_IDS.REQUEST_ITEM_SELECT}:${storeId}`
+//   申請モーダル     : `${REQ_IDS.REQUEST_MODAL}::${storeId}`
+//
 
 const IDS = {
   // 経費項目セレクト

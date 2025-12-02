@@ -3,14 +3,17 @@
 // 経費データの GCS / ローカル保存ヘルパー
 //   - 店舗ごとの config.json
 //   - 日別 / 月別 / 年別 の集計・一覧
+// パス形式:
+//   {guildId}/keihi/...   （GCS クライアント側で local_data/GCS を付与）
 // ----------------------------------------------------
 
 const gcs = require('../gcs');
 const logger = require('../logger');
-const { keihiGlobalConfigPath } = require('./keihiConfigManager');
+// 店舗 config のパスは keihiConfigManager 側で定義
+const { keihiStoreConfigPath } = require('./keihiConfigManager');
 
 // =====================================
-// パス生成ヘルパー
+// 日付ヘルパー
 // =====================================
 
 /**
@@ -46,10 +49,14 @@ function resolveYmd(dateOrStr) {
   return resolveYmd(now);
 }
 
+// =====================================
+// パス生成
+// =====================================
+
 /**
  * 店舗ごとの 日別データ
- *   GCS/ギルドID/keihi/店舗名/年/月/日/年月日.json
- *   例) GCS/123456789012345678/keihi/店舗A/2025/11/25/20251125.json
+ *   {guildId}/keihi/店舗名/年/月/日/年月日.json
+ *   例) 123456789012345678/keihi/店舗A/2025/11/25/20251125.json
  */
 function keihiStoreDailyPath(guildId, storeId, dateOrStr) {
   const { yyyy, mm, dd } = resolveYmd(dateOrStr);
@@ -59,8 +66,7 @@ function keihiStoreDailyPath(guildId, storeId, dateOrStr) {
 
 /**
  * 店舗ごとの 月別データ
- *   GCS/ギルドID/keihi/店舗名/年/月/年月.json
- *   例) GCS/123456789012345678/keihi/店舗A/2025/11/202511.json
+ *   {guildId}/keihi/店舗名/年/月/年月.json
  */
 function keihiStoreMonthlyPath(guildId, storeId, dateOrStr) {
   const { yyyy, mm } = resolveYmd(dateOrStr);
@@ -70,8 +76,7 @@ function keihiStoreMonthlyPath(guildId, storeId, dateOrStr) {
 
 /**
  * 店舗ごとの 年別データ
- *   GCS/ギルドID/keihi/店舗名/年/年.json
- *   例) GCS/123456789012345678/keihi/店舗A/2025/2025.json
+ *   {guildId}/keihi/店舗名/年/年.json
  */
 function keihiStoreYearlyPath(guildId, storeId, dateOrStr) {
   const { yyyy } = resolveYmd(dateOrStr);
@@ -79,15 +84,8 @@ function keihiStoreYearlyPath(guildId, storeId, dateOrStr) {
   return `${guildId}/keihi/${storeId}/${yyyy}/${file}`;
 }
 
-/**
- * 店舗ごとの設定ファイルパス（keihiConfigManagerからインポート）
- *   GCS/ギルドID/keihi/店舗名/config.json
- */
-const { keihiStoreConfigPath } = require('./keihiConfigManager');
-
-
 // =====================================
-// 読み書きラッパー
+// 店舗 config 読み書き
 // =====================================
 
 /**
@@ -100,24 +98,29 @@ function createDefaultStoreConfig(storeId) {
       channelId: null,
       messageId: null, // 経費申請パネルのメッセージID
     },
-    viewRoleIds: [], // 閲覧役職
-    requestRoleIds: [], // 申請役職
-    items: [], // 経費項目（店舗別に持ちたい場合）
+    viewRoleIds: [],    // 閲覧役職 (ロールID配列)
+    requestRoleIds: [], // 申請役職 (ロールID配列)
+    items: [],          // 経費項目（店舗別に持ちたい場合）
   };
 }
 
 /**
  * 店舗別 config.json 読み込み
- *   - 閲覧役職 / 申請役職 / パネルID などを格納想定
+ *   - 閲覧役職 / 申請役職 / パネルID など
  */
 async function loadKeihiStoreConfig(guildId, storeId) {
   const path = keihiStoreConfigPath(guildId, storeId);
   try {
     const raw = (await gcs.readJSON(path)) || {};
     const base = createDefaultStoreConfig(storeId);
-    // lodash の deepmerge などを使うのが理想ですが、ここではシンプルに実装します
-    raw.panel = { ...base.panel, ...(raw.panel || {}) };
-    return { ...base, ...raw };
+
+    const panel = { ...base.panel, ...(raw.panel || {}) };
+
+    return {
+      ...base,
+      ...raw,
+      panel,
+    };
   } catch (err) {
     logger.warn(
       `[gcsKeihiManager] store config 読み込み失敗: ${path} → デフォルトを返します`,
@@ -142,15 +145,18 @@ async function loadStoreConfig(guildId, storeId) {
  */
 async function saveKeihiStoreConfig(guildId, storeId, data) {
   const path = keihiStoreConfigPath(guildId, storeId);
+  const base = createDefaultStoreConfig(storeId);
+
   const saveData = {
-    ...createDefaultStoreConfig(storeId),
+    ...base,
     ...data,
     panel: {
-      ...createDefaultStoreConfig(storeId).panel,
+      ...base.panel,
       ...(data.panel || {}),
     },
     lastUpdated: new Date().toISOString(),
   };
+
   try {
     await gcs.saveJSON(path, saveData);
   } catch (err) {
@@ -166,11 +172,10 @@ async function saveStoreConfig(guildId, storeId, config) {
   return saveKeihiStoreConfig(guildId, storeId, config);
 }
 
-/**
- * 店舗・日付ごとの経費データを読み込み
- *   - 中身の構造は用途に応じて自由にしてOK
- *   - 例: { lastNo: 3, requests: [...] }
- */
+// =====================================
+// 日 / 月 / 年 データ
+// =====================================
+
 async function loadKeihiDailyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreDailyPath(guildId, storeId, dateOrStr);
   try {
@@ -181,11 +186,9 @@ async function loadKeihiDailyData(guildId, storeId, dateOrStr) {
   }
 }
 
-/**
- * 店舗・日付ごとの経費データを保存
- */
 async function saveKeihiDailyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreDailyPath(guildId, storeId, dateOrStr);
+  logger.debug(`[gcsKeihiManager] 日別データを保存: ${path}`);
   try {
     await gcs.saveJSON(path, data);
   } catch (err) {
@@ -194,9 +197,6 @@ async function saveKeihiDailyData(guildId, storeId, dateOrStr, data) {
   }
 }
 
-/**
- * 店舗・月別データ読み込み
- */
 async function loadKeihiMonthlyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreMonthlyPath(guildId, storeId, dateOrStr);
   try {
@@ -207,11 +207,9 @@ async function loadKeihiMonthlyData(guildId, storeId, dateOrStr) {
   }
 }
 
-/**
- * 店舗・月別データ保存
- */
 async function saveKeihiMonthlyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreMonthlyPath(guildId, storeId, dateOrStr);
+  logger.debug(`[gcsKeihiManager] 月別データを保存: ${path}`);
   try {
     await gcs.saveJSON(path, data);
   } catch (err) {
@@ -220,9 +218,6 @@ async function saveKeihiMonthlyData(guildId, storeId, dateOrStr, data) {
   }
 }
 
-/**
- * 店舗・年別データ読み込み
- */
 async function loadKeihiYearlyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreYearlyPath(guildId, storeId, dateOrStr);
   try {
@@ -233,11 +228,9 @@ async function loadKeihiYearlyData(guildId, storeId, dateOrStr) {
   }
 }
 
-/**
- * 店舗・年別データ保存
- */
 async function saveKeihiYearlyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreYearlyPath(guildId, storeId, dateOrStr);
+  logger.debug(`[gcsKeihiManager] 年別データを保存: ${path}`);
   try {
     await gcs.saveJSON(path, data);
   } catch (err) {
@@ -247,10 +240,7 @@ async function saveKeihiYearlyData(guildId, storeId, dateOrStr, data) {
 }
 
 // =====================================
-// 互換用の "storeData" ラッパー
-//   既存コードで getKeihiStoreData(guildId, storeId)
-//   みたいに使っている前提を吸収するため
-//   → とりあえず「日別ファイル」にぶら下げる
+// 既存コード互換ラッパー
 // =====================================
 
 /**
@@ -258,7 +248,6 @@ async function saveKeihiYearlyData(guildId, storeId, dateOrStr, data) {
  *   - dateOrStr を指定しない場合は「今日」の daily を読む
  */
 async function getKeihiStoreData(guildId, storeId, dateOrStr) {
-  // 既存コードでは第3引数がないことが多いので、デフォルト = 今日
   return loadKeihiDailyData(guildId, storeId, dateOrStr);
 }
 

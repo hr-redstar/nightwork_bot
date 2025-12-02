@@ -17,9 +17,7 @@ const {
 const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { resolveStoreName } = require('../setting/panel');
-const {
-  collectAllowedRoleIdsForRequest,
-} = require('./helpers.js');
+const { collectAllowedRoleIdsForRequest } = require('./helpers.js');
 const { IDS: REQ_IDS } = require('./requestIds');
 
 // ----------------------------------------------------
@@ -32,10 +30,22 @@ const { IDS: REQ_IDS } = require('./requestIds');
  */
 async function handleRequestStart(interaction, storeId) {
   const guild = interaction.guild;
+  if (!guild) {
+    await interaction.reply({
+      content: 'ギルド情報が取得できませんでした。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
   const guildId = guild.id;
   const member = interaction.member;
 
-  const keihiConfig = await loadKeihiConfig(guildId);
+  // keihiConfig と storeRoleConfig を同時に読み込み
+  const [keihiConfig, storeRoleConfig] = await Promise.all([
+    loadKeihiConfig(guildId),
+    loadStoreRoleConfig(guildId).catch(() => null),
+  ]);
+
   const panelConfig = keihiConfig.panels?.[storeId];
 
   if (!panelConfig || !panelConfig.channelId) {
@@ -46,7 +56,12 @@ async function handleRequestStart(interaction, storeId) {
     return;
   }
 
-  const { allowedRoleIds } = collectAllowedRoleIdsForRequest(keihiConfig, storeId);
+  // 役職ロール設定（storeRoleConfig）も考慮した許可ロール一覧を取得
+  const { allowedRoleIds } = collectAllowedRoleIdsForRequest(
+    keihiConfig,
+    storeId,
+    storeRoleConfig,
+  );
 
   // メンバーの所持ロール
   const memberRoleIds = new Set(member.roles.cache.keys());
@@ -55,7 +70,8 @@ async function handleRequestStart(interaction, storeId) {
   if (!hasPermission) {
     await interaction.reply({
       content:
-        'この店舗で経費申請を行う権限がありません。\nスレッド閲覧役職 / 申請役職 / 承認役職のいずれかを付与してください。',
+        'この店舗で経費申請を行う権限がありません。\n' +
+        'スレッド閲覧役職 / 申請役職 / 承認役職のいずれかを付与してください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -77,7 +93,7 @@ async function handleRequestStart(interaction, storeId) {
     .setMinValues(1)
     .setMaxValues(1);
 
-  items.forEach((item, index) => {
+  items.forEach((item) => {
     let label;
     if (typeof item === 'string') {
       label = item;
@@ -111,9 +127,16 @@ async function handleRequestStart(interaction, storeId) {
  */
 async function handleRequestItemSelect(interaction) {
   const { customId, values, guild } = interaction;
+  if (!guild) {
+    await interaction.reply({
+      content: 'ギルド情報が取得できませんでした。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
   const guildId = guild.id;
 
-  const [, storeId] = customId.split(':');
+  const [, storeId] = customId.split(':'); // `${REQ_IDS.REQUEST_ITEM_SELECT}:${storeId}`
 
   const keihiConfig = await loadKeihiConfig(guildId);
   const storeRoleConfig = await loadStoreRoleConfig(guildId).catch(() => null);
@@ -138,7 +161,7 @@ async function handleRequestItemSelect(interaction) {
   const todayStr = `${yyyy}-${mm}-${dd}`;
 
   const modal = new ModalBuilder()
-    .setCustomId(`${REQ_IDS.REQUEST_MODAL}::${storeId}`) // モーダルIDには店舗名のみ
+    .setCustomId(`${REQ_IDS.REQUEST_MODAL}::${storeId}`) // モーダルIDには店舗IDのみ
     .setTitle(`経費申請：${storeName}`);
 
   const dateInput = new TextInputBuilder()

@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "dev": "nodemon src/index.js",
     "deploy:guild": "node scripts/deployGuildCommands.js",
-    "deploy:global": "node scripts/deployGlobalCommands.js"
+    "deploy:global": "node scripts/deployGlobalCommands.js",
+    "migrate:gcs": "node scripts/migrateLocalToGcs.js"
   },
   "dependencies": {
     "@discordjs/builders": "^1.6.0",

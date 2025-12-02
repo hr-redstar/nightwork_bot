@@ -51,16 +51,31 @@ function getPositionName(storeRoleConfig, positionId) {
  * @returns {string}
  */
 function formatRoleLines(storeRoleConfig, positionIds, roleIds) {
+  // positionId が無い場合は、単純にロールIDを列挙
   if (!positionIds || !positionIds.length) {
-    return roleIds.length > 0 ? roleIds.map(id => `<@&${id}>`).join(' ') : '未設定';
+    return roleIds && roleIds.length > 0
+      ? roleIds.map((id) => `<@&${id}>`).join(' ')
+      : '未設定';
   }
-  return positionIds.map(posId => `${getPositionName(storeRoleConfig, posId)}: <@&${(storeRoleConfig.positionRoles || {})[posId] || '未紐付'}>`).join('\n');
+
+  const positionRoles =
+    (storeRoleConfig && (storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap)) || {};
+
+  return positionIds
+    .map((posId) => {
+      const roleId = positionRoles[posId];
+      const posName = getPositionName(storeRoleConfig, posId);
+      return roleId
+        ? `${posName}: <@&${roleId}>`
+        : `${posName}: 未紐付`;
+    })
+    .join('\n');
 }
 
 /**
  * 店舗ごとの経費申請パネルの Embed を構築する
  * @param {import('discord.js').Guild} guild
- * @param {string} storeName
+ * @param {string} storeId
  * @param {any} keihiConfig
  * @param {any} storeRoleConfig
  */
@@ -85,11 +100,11 @@ function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
     let text;
     if (typeof item === 'string') {
       text = item;
-    }
-    else if (item && typeof item === 'object' && item.name) {
-      text = item.price != null
-        ? `${item.name}（${item.price}円）`
-        : `${item.name}`;
+    } else if (item && typeof item === 'object' && item.name) {
+      text =
+        item.price != null
+          ? `${item.name}（${item.price}円）`
+          : `${item.name}`;
     } else {
       text = String(item);
     }
@@ -104,7 +119,11 @@ function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
     .addFields(
       {
         name: '👁️ スレッド閲覧役職',
-        value: formatRoleLines(storeRoleConfig, panelConfig.viewRolePositionIds, viewRoleIds),
+        value: formatRoleLines(
+          storeRoleConfig,
+          panelConfig.viewRolePositionIds,
+          viewRoleIds,
+        ),
       },
       {
         name: '📝 申請役職',
@@ -116,11 +135,17 @@ function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
       },
       {
         name: '📌 経費項目',
-        value: itemLines.length > 0 ? itemLines.join('\n') : '未設定（まず「経費項目登録」を行ってください）',
+        value:
+          itemLines.length > 0
+            ? itemLines.join('\n')
+            : '未設定（まず「経費項目登録」を行ってください）',
       },
     )
     .setTimestamp()
-    .setFooter({ text: guild.client.user.username, iconURL: guild.client.user.displayAvatarURL() });
+    .setFooter({
+      text: guild.client.user.username,
+      iconURL: guild.client.user.displayAvatarURL(),
+    });
 
   return embed;
 }
@@ -172,17 +197,27 @@ async function upsertStorePanelMessage(guild, storeId, keihiConfig, storeRoleCon
         await oldMessage.delete();
       } catch (err) {
         // メッセージが見つからない(10008)場合は無視して進む
-        if (err.code !== 10008) { // Unknown Message
-          logger.warn(`[keihi/panel] 古いパネル (ID: ${panelConfig.messageId}) の削除に失敗`, err);
+        if (err.code !== 10008) {
+          // Unknown Message
+          logger.warn(
+            `[keihi/request/panel] 古いパネル (ID: ${panelConfig.messageId}) の削除に失敗`,
+            err,
+          );
         }
       }
     }
 
     const sent = await channel.send({ embeds: [embed], components: [row1, row2] });
-    keihiConfig.panels[storeId].messageId = sent.id; // ここで config を更新
+
+    // keihiConfig.panels の存在は上で確認済みだが念のため
+    if (!keihiConfig.panels) keihiConfig.panels = {};
+    if (!keihiConfig.panels[storeId]) keihiConfig.panels[storeId] = panelConfig || {};
+
+    keihiConfig.panels[storeId].messageId = sent.id; // ここで config を更新（保存は呼び出し側）
+
     return sent;
   } catch (err) {
-    logger.error(`[keihi/panel] 店舗ID ${storeId} のパネル更新失敗`, err);
+    logger.error(`[keihi/request/panel] 店舗ID ${storeId} のパネル更新失敗`, err);
     return null;
   }
 }

@@ -7,7 +7,7 @@
 async function handleUsageButton(interaction) {
   await interaction.reply({
     content: 'この機能は現在開発中です。',
-    ephemeral: true,
+    flags: require('discord.js').MessageFlags.Ephemeral,
   });
 }
 

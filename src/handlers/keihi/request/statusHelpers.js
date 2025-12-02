@@ -4,7 +4,7 @@
 // ----------------------------------------------------
 
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { IDS } = require('./statusIds');
+const { STATUS_IDS } = require('./statusIds');
 
 /**
  * Embedから特定のフィールド値を取得する
@@ -56,7 +56,8 @@ function checkStatusActionPermission(action, member, embed, approverRoleIds) {
     if (!isApprover) {
       return { hasPermission: false, message: 'この経費申請を承認する権限がありません。' };
     }
-  } else { // modify, delete
+  } else {
+    // modify, delete
     const originalInputUserMention = getEmbedFieldValue(embed, '入力者');
     const originalInputUserId = originalInputUserMention.match(/<@!?(\d+)>/)?.[1] || null;
     const isOriginalRequester = originalInputUserId === member.id;
@@ -79,9 +80,24 @@ function checkStatusActionPermission(action, member, embed, approverRoleIds) {
  */
 function buildStatusButtons(storeId, threadId, messageId, status) {
   return new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`${IDS.APPROVE}::${storeId}::${threadId}::${messageId}::${status}`).setLabel('承認').setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`${IDS.MODIFY}::${storeId}::${threadId}::${messageId}::${status}`).setLabel('修正').setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId(`${IDS.DELETE}::${storeId}::${threadId}::${messageId}::${status}`).setLabel('削除').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId(
+        `${STATUS_IDS.APPROVE}::${storeId}::${threadId}::${messageId}::${status}`,
+      )
+      .setLabel('承認')
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(
+        `${STATUS_IDS.MODIFY}::${storeId}::${threadId}::${messageId}::${status}`,
+      )
+      .setLabel('修正')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(
+        `${STATUS_IDS.DELETE}::${storeId}::${threadId}::${messageId}::${status}`,
+      )
+      .setLabel('削除')
+      .setStyle(ButtonStyle.Danger),
   );
 }
 

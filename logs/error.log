@@ -1,0 +1,119 @@
+[[31merror[39m 2025-11-30 19:27:47] [31m⚠️ Promise未処理拒否: Error: Cannot find module './setting/index.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-30 19:28:13] [31m⚠️ Promise未処理拒否: Error: Cannot find module './setting/index.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-30 19:28:58] [31m⚠️ Promise未処理拒否: Error: Cannot find module './setting/index.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-30 19:34:00] [31m⚠️ Promise未処理拒否: Error: Cannot find module './setting/index.js'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-30 19:39:17] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/keihiBotHandlers'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-11-30 19:41:41] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-01 00:30:40] [31m⚠️ Promise未処理拒否: TypeError: gcs.initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 00:30:50] [31m⚠️ Promise未処理拒否: TypeError: gcs.initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 00:35:31] [31m⚠️ Promise未処理拒否: TypeError: gcs.initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 00:49:48] [31m⚠️ Promise未処理拒否: TypeError: gcs.initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 00:53:02] [31m⚠️ Promise未処理拒否: TypeError: gcs.initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 01:23:46] [31m⚠️ Promise未処理拒否: TypeError: initializeGCS is not a function[39m
+[[31merror[39m 2025-12-01 06:04:56] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 06:59:26] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 07:02:44] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 07:40:31] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 08:03:21] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 09:22:30] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 09:41:01] [31m💥 Discordクライアントエラー: Cannot read properties of undefined (reading 'APPROVE')[39m
+[[31merror[39m 2025-12-01 23:19:32] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../../utils/keihi/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-01 23:20:19] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-01 23:20:48] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-01 23:21:14] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 00:10:21] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 00:45:32] [31m⚠️ Promise未処理拒否: Error: Cannot find module '../utils/keihi/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 00:47:52] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 00:51:20] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:12:12] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:13:35] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:13:38] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:13:39] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:13:59] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 01:14:57] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+[[31merror[39m 2025-12-02 04:13:10] [31m💥 Discordクライアントエラー: KEIHI_CSV_BUTTON_PREFIX is not defined[39m
+[[31merror[39m 2025-12-02 05:52:02] [31m⚠️ Promise未処理拒否: Error: Cannot find module './keihi/report/storeCsvExport'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
