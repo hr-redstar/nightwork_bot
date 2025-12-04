@@ -13,7 +13,7 @@ const { handleKeihiRequestInteraction } = require('./request');
  */
 async function handleKeihiInteraction(interaction) {
   // スラッシュコマンドなど customId を持たないものは無視
-  if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) {
+  if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit() && !interaction.isChannelSelectMenu()) {
     return;
   }
 

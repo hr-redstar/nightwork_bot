@@ -16,15 +16,15 @@ const { sendSettingLog } = require('../../configLogger');
 const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_USER_INFO_MODAL',
+  customId: 'config_user_info_modal',
 
   /**
    * モーダルを開く
    */
   async show(interaction, userId, storeName, positionId, year, month, day, isExtra = false) {
-    const customId = isExtra
-      ? `CONFIG_USER_INFO_MODAL_EXTRA_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`
-      : `CONFIG_USER_INFO_MODAL_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`;
+    const customId = isExtra // isExtra は現在使われていないようですが、念のため残します
+      ? `config_user_info_modal_extra_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`
+      : `config_user_info_modal_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`;
 
     // --- 既存のユーザー情報を読み込む ---
     const userInfo = await readUserInfo(interaction.guild.id, userId);
@@ -73,13 +73,13 @@ module.exports = {
    * モーダル送信後 → ユーザー情報を保存
    */
   async handle(interaction) {
-    // CONFIG_USER_INFO_MODAL or CONFIG_USER_INFO_MODAL_EXTRA
+    // config_user_info_modal or config_user_info_modal_extra
     const id = interaction.customId;
 
     // EXTRA が前に付くケースを排除して分解
-    const raw = id
-      .replace('CONFIG_USER_INFO_MODAL_EXTRA_', '')
-      .replace('CONFIG_USER_INFO_MODAL_', '');
+    const raw = id // 'config_user_info_modal_...'
+      .replace('config_user_info_modal_extra_', '')
+      .replace('config_user_info_modal_', '');
 
     const parts = raw.split('_');
 

@@ -8,6 +8,7 @@ const {
   StringSelectMenuBuilder,
   EmbedBuilder,
 } = require('discord.js');
+const { MessageFlags } = require('discord.js');
 
 const logger = require('../../../utils/logger');
 const { buildRoleSelectOptions } = require('../../../utils/config/roleSelectHelper');
@@ -30,7 +31,7 @@ async function handleViewRoleButton(interaction) {
   if (roleOptions.length === 0) {
     await interaction.reply({
       content: '役職設定が見つかりません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -47,7 +48,7 @@ async function handleViewRoleButton(interaction) {
   await interaction.reply({
     content: `店舗「${storeName}」の売上報告パネルで閲覧可能な役職を選択してください。`,
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -76,17 +77,20 @@ async function handleViewRolesSelect(interaction) {
 
   // 設定ログ
   try {
-    const embed = new EmbedBuilder()
-      .setTitle('売上報告パネル 閲覧役職設定')
-      .setDescription(`店舗「${storeName}」の閲覧役職を設定しました。`)
-      .addFields(
-        { name: '閲覧役職ID', value: selectedRoleIds.join('\n') || '（なし）' },
-        { name: '設定者', value: `<@${user.id}>`, inline: true },
-        { name: '設定日時', value: new Date().toLocaleString('ja-JP'), inline: true },
-      )
-      .setColor('#9b59b6');
+    const description = [`👁️ 店舗「${storeName}」の閲覧役職が更新されました`];
+    if (selectedRoleIds.length > 0) {
+      for (const roleId of selectedRoleIds) {
+        description.push(`➕ 追加: <@&${roleId}>`);
+      }
+    } else {
+      description.push('➖ なし');
+    }
 
-    await sendSettingLog(guildId, embed);
+    await sendSettingLog(interaction, {
+      title: '👁️ 役職ロール紐づけ変更',
+      description: description.join('\n'),
+      color: 0x9b59b6,
+    });
   } catch (err) {
     logger.error('[reportPanelRolesFlow] 閲覧役職ログ出力エラー:', err);
   }
@@ -105,7 +109,7 @@ async function handleRequestRoleButton(interaction) {
   if (roleOptions.length === 0) {
     await interaction.reply({
       content: '役職設定が見つかりません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -122,7 +126,7 @@ async function handleRequestRoleButton(interaction) {
   await interaction.reply({
     content: `店舗「${storeName}」の売上報告を申請できる役職を選択してください。`,
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -150,17 +154,20 @@ async function handleRequestRolesSelect(interaction) {
 
   // 設定ログ
   try {
-    const embed = new EmbedBuilder()
-      .setTitle('売上報告パネル 申請役職設定')
-      .setDescription(`店舗「${storeName}」の申請役職を設定しました。`)
-      .addFields(
-        { name: '申請役職ID', value: selectedRoleIds.join('\n') || '（なし）' },
-        { name: '設定者', value: `<@${user.id}>`, inline: true },
-        { name: '設定日時', value: new Date().toLocaleString('ja-JP'), inline: true },
-      )
-      .setColor('#1abc9c');
+    const description = [`📝 店舗「${storeName}」の申請役職が更新されました`];
+    if (selectedRoleIds.length > 0) {
+      for (const roleId of selectedRoleIds) {
+        description.push(`➕ 追加: <@&${roleId}>`);
+      }
+    } else {
+      description.push('➖ なし');
+    }
 
-    await sendSettingLog(guildId, embed);
+    await sendSettingLog(interaction, {
+      title: '📝 役職ロール紐づけ変更',
+      description: description.join('\n'),
+      color: 0x1abc9c,
+    });
   } catch (err) {
     logger.error('[reportPanelRolesFlow] 申請役職ログ出力エラー:', err);
   }

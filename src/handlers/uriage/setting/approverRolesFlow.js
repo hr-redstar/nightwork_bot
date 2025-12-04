@@ -24,11 +24,12 @@ async function handleApproverRolesButton(interaction) {
   const roleOptions = await buildRoleSelectOptions(guildId);
 
   if (roleOptions.length === 0) {
+    const { MessageFlags } = require('discord.js');
     await interaction.reply({
       content:
         '役職設定が見つかりません。\n' +
         '先に `/設定店舗情報` や 役職設定を行ってください。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -42,10 +43,11 @@ async function handleApproverRolesButton(interaction) {
 
   const row = new ActionRowBuilder().addComponents(select);
 
+  const { MessageFlags } = require('discord.js');
   await interaction.reply({
     content: '売上の「承認」を行える役職を選択してください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -73,17 +75,20 @@ async function handleApproverRolesSelect(interaction) {
 
   // 設定ログ出力
   try {
-    const embed = new EmbedBuilder()
-      .setTitle('売上 承認役職設定')
-      .setDescription('売上報告の承認を行える役職を設定しました。')
-      .addFields(
-        { name: '承認役職ID', value: selectedRoleIds.join('\n') || '（なし）' },
-        { name: '設定者', value: `<@${user.id}>`, inline: true },
-        { name: '設定日時', value: new Date().toLocaleString('ja-JP'), inline: true },
-      )
-      .setColor('#f1c40f');
+    const description = ['🛡️ 売上承認役職が更新されました'];
+    if (selectedRoleIds.length > 0) {
+      for (const roleId of selectedRoleIds) {
+        description.push(`➕ 追加: <@&${roleId}>`);
+      }
+    } else {
+      description.push('➖ なし');
+    }
 
-    await sendSettingLog(guildId, embed);
+    await sendSettingLog(interaction, {
+      title: '🛡️ 役職ロール紐づけ変更',
+      description: description.join('\n'),
+      color: 0xf1c40f,
+    });
   } catch (err) {
     logger.error('[approverRolesFlow] 設定ログ出力エラー:', err);
   }

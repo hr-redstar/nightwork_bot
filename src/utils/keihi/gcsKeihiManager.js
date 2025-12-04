@@ -7,7 +7,7 @@
 //   {guildId}/keihi/...   （GCS クライアント側で local_data/GCS を付与）
 // ----------------------------------------------------
 
-const gcs = require('../gcs');
+const { readJSON, saveJSON } = require('../gcs');
 const logger = require('../logger');
 // 店舗 config のパスは keihiConfigManager 側で定義
 const { keihiStoreConfigPath } = require('./keihiConfigManager');
@@ -111,7 +111,7 @@ function createDefaultStoreConfig(storeId) {
 async function loadKeihiStoreConfig(guildId, storeId) {
   const path = keihiStoreConfigPath(guildId, storeId);
   try {
-    const raw = (await gcs.readJSON(path)) || {};
+    const raw = (await readJSON(path)) || {};
     const base = createDefaultStoreConfig(storeId);
 
     const panel = { ...base.panel, ...(raw.panel || {}) };
@@ -158,7 +158,7 @@ async function saveKeihiStoreConfig(guildId, storeId, data) {
   };
 
   try {
-    await gcs.saveJSON(path, saveData);
+    await saveJSON(path, saveData);
   } catch (err) {
     logger.error(`[gcsKeihiManager] store config 保存失敗: ${path}`, err);
     throw err;
@@ -179,7 +179,7 @@ async function saveStoreConfig(guildId, storeId, config) {
 async function loadKeihiDailyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreDailyPath(guildId, storeId, dateOrStr);
   try {
-    return (await gcs.readJSON(path)) || {};
+    return (await readJSON(path)) || {};
   } catch (err) {
     logger.warn(`[gcsKeihiManager] daily 読み込み失敗: ${path}`, err);
     return {};
@@ -190,7 +190,7 @@ async function saveKeihiDailyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreDailyPath(guildId, storeId, dateOrStr);
   logger.debug(`[gcsKeihiManager] 日別データを保存: ${path}`);
   try {
-    await gcs.saveJSON(path, data);
+    await saveJSON(path, data);
   } catch (err) {
     logger.error(`[gcsKeihiManager] daily 保存失敗: ${path}`, err);
     throw err;
@@ -200,7 +200,7 @@ async function saveKeihiDailyData(guildId, storeId, dateOrStr, data) {
 async function loadKeihiMonthlyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreMonthlyPath(guildId, storeId, dateOrStr);
   try {
-    return (await gcs.readJSON(path)) || {};
+    return (await readJSON(path)) || {};
   } catch (err) {
     logger.warn(`[gcsKeihiManager] monthly 読み込み失敗: ${path}`, err);
     return {};
@@ -211,7 +211,7 @@ async function saveKeihiMonthlyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreMonthlyPath(guildId, storeId, dateOrStr);
   logger.debug(`[gcsKeihiManager] 月別データを保存: ${path}`);
   try {
-    await gcs.saveJSON(path, data);
+    await saveJSON(path, data);
   } catch (err) {
     logger.error(`[gcsKeihiManager] monthly 保存失敗: ${path}`, err);
     throw err;
@@ -221,7 +221,7 @@ async function saveKeihiMonthlyData(guildId, storeId, dateOrStr, data) {
 async function loadKeihiYearlyData(guildId, storeId, dateOrStr) {
   const path = keihiStoreYearlyPath(guildId, storeId, dateOrStr);
   try {
-    return (await gcs.readJSON(path)) || {};
+    return (await readJSON(path)) || {};
   } catch (err) {
     logger.warn(`[gcsKeihiManager] yearly 読み込み失敗: ${path}`, err);
     return {};
@@ -232,7 +232,7 @@ async function saveKeihiYearlyData(guildId, storeId, dateOrStr, data) {
   const path = keihiStoreYearlyPath(guildId, storeId, dateOrStr);
   logger.debug(`[gcsKeihiManager] 年別データを保存: ${path}`);
   try {
-    await gcs.saveJSON(path, data);
+    await saveJSON(path, data);
   } catch (err) {
     logger.error(`[gcsKeihiManager] yearly 保存失敗: ${path}`, err);
     throw err;

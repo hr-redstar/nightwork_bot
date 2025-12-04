@@ -9,9 +9,10 @@ const { postChatGptSettingPanel } = require('./panel');
  */
 async function handleSettingChatGpt(interaction) {
   if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+    const { MessageFlags } = require('discord.js');
     return interaction.reply({
       content: 'このコマンドは管理者のみ使用できます。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 

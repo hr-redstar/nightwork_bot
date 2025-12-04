@@ -9,7 +9,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const logger = require('./logger');
-const { Storage } = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage'); // eslint-disable-line no-unused-vars
 
 const USE_GCS =
   process.env.USE_GCS === 'true' || process.env.GCS_ENABLED === 'true';
@@ -18,24 +18,26 @@ const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME || '';
 // ローカル保存先ルート: local_data/gcs/
 const LOCAL_GCS_ROOT = path.resolve(process.cwd(), 'local_data', 'gcs');
 
-let storage = null;
-let bucket = null;
+// USE_GCS が const だと再代入できないため let に変更
+let useGcsMode = USE_GCS;
+let storage = null; // eslint-disable-line no-unused-vars
+let bucket = null; // eslint-disable-line no-unused-vars
 
-if (USE_GCS) {
+if (useGcsMode) {
   if (!GCS_BUCKET_NAME) {
-    logger.error(
-      '[gcs.js] USE_GCS=true ですが GCS_BUCKET_NAME が未設定のため、ローカルモードにフォールバックします。'
+    logger.warn(
+      '[gcs.js] USE_GCS=true ですが GCS_BUCKET_NAME が未設定のため、ローカルモードにフォールバックします。',
     );
+    useGcsMode = false; // GCS を無効化
   } else {
     storage = new Storage();
     bucket = storage.bucket(GCS_BUCKET_NAME);
-    logger.info(`[gcs.js] GCS モード有効: bucket="${GCS_BUCKET_NAME}"`);
   }
 }
 
-if (!bucket) {
+if (useGcsMode) {
   logger.info(
-    '[gcs.js] ローカルモード: local_data/gcs 以下に保存します。'
+    `[gcs.js] GCS モード有効: bucket="${GCS_BUCKET_NAME}"`,
   );
 }
 
@@ -63,7 +65,7 @@ function toLocalPath(objectPath) {
 async function readJSON(objectPath) {
   const { logicalPath, filePath } = toLocalPath(objectPath);
 
-  if (bucket) {
+  if (useGcsMode && bucket) {
     logger.debug(
       `[gcs.js] readJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );
@@ -107,7 +109,7 @@ async function saveJSON(objectPath, data) {
   const { logicalPath, filePath } = toLocalPath(objectPath);
   const json = JSON.stringify(data ?? {}, null, 2);
 
-  if (bucket) {
+  if (useGcsMode && bucket) {
     logger.debug(
       `[gcs.js] saveJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );

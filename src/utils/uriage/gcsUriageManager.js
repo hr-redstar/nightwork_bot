@@ -148,6 +148,143 @@ async function readUriageDailyRecords(guildId, storeKey, dateKey) {
   }
 }
 
+// ---------- 新 API: daily/monthly/yearly の読み書き ----------
+async function loadUriageDailyData(guildId, dateStr) {
+  const path = `${guildId}/uriage/daily/${dateStr}.json`;
+  try {
+    const raw = (await readJSON(path)) || [];
+    return Array.isArray(raw) ? raw : raw.records ?? [];
+  } catch (err) {
+    logger.warn(`[gcsUriageManager] loadUriageDailyData 失敗: ${path}`, err);
+    return [];
+  }
+}
+
+async function saveUriageDailyData(guildId, dateStr, records) {
+  const path = `${guildId}/uriage/daily/${dateStr}.json`;
+  await saveJSON(path, records);
+}
+
+async function loadUriageMonthlyData(guildId, yyyymm) {
+  const path = `${guildId}/uriage/monthly/${yyyymm}.json`;
+  try {
+    const raw = (await readJSON(path)) || [];
+    return Array.isArray(raw) ? raw : raw.records ?? [];
+  } catch (err) {
+    logger.warn(`[gcsUriageManager] loadUriageMonthlyData 失敗: ${path}`, err);
+    return [];
+  }
+}
+
+async function saveUriageMonthlyData(guildId, yyyymm, records) {
+  const path = `${guildId}/uriage/monthly/${yyyymm}.json`;
+  await saveJSON(path, records);
+}
+
+async function loadUriageYearlyData(guildId, yyyy) {
+  const path = `${guildId}/uriage/yearly/${yyyy}.json`;
+  try {
+    const raw = (await readJSON(path)) || [];
+    return Array.isArray(raw) ? raw : raw.records ?? [];
+  } catch (err) {
+    logger.warn(`[gcsUriageManager] loadUriageYearlyData 失敗: ${path}`, err);
+    return [];
+  }
+}
+
+async function saveUriageYearlyData(guildId, yyyy, records) {
+  const path = `${guildId}/uriage/yearly/${yyyy}.json`;
+  await saveJSON(path, records);
+}
+
+// ---------- 新 API: appendUriageRecord（daily/monthly/yearly を同時に更新） ----------
+function getYyyyMmFromDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-');
+  if (parts.length < 2) return null;
+  const [yyyy, mm] = parts;
+  return `${yyyy}${mm}`;
+}
+
+function getYyyyFromDate(dateStr) {
+  if (!dateStr) return null;
+  const [yyyy] = dateStr.split('-');
+  return yyyy;
+}
+
+async function appendUriageRecord(guildId, record) {
+  const { date } = record;
+  if (!date) {
+    logger.warn('[gcsUriageManager] appendUriageRecord: date が未定義');
+    return;
+  }
+
+  const yyyymm = getYyyyMmFromDate(date);
+  const yyyy = getYyyyFromDate(date);
+
+  // daily
+  const daily = await loadUriageDailyData(guildId, date);
+  daily.push(record);
+  await saveUriageDailyData(guildId, date, daily);
+
+  // monthly
+  if (yyyymm) {
+    const monthly = await loadUriageMonthlyData(guildId, yyyymm);
+    monthly.push(record);
+    await saveUriageMonthlyData(guildId, yyyymm, monthly);
+  }
+
+  // yearly
+  if (yyyy) {
+    const yearly = await loadUriageYearlyData(guildId, yyyy);
+    yearly.push(record);
+    await saveUriageYearlyData(guildId, yyyy, yearly);
+  }
+}
+
+/**
+ * 売上レコードを1件更新する
+ *  - 日別 / 月別 / 年別 の全てを同じ内容で更新
+ * @param {string} guildId
+ * @param {string} dateStr   - "YYYY-MM-DD"
+ * @param {string} recordId  - 保存時の record.id（今回は threadMessage.id）
+ * @param {object} patch     - 上書きしたいプロパティ（{ status: 'approved', ... } など）
+ */
+async function updateUriageRecord(guildId, dateStr, recordId, patch) {
+  const yyyymm = getYyyyMmFromDate(dateStr);
+  const yyyy = getYyyyFromDate(dateStr);
+
+  const applyPatch = (records) => {
+    if (!Array.isArray(records)) return records;
+
+    const idx = records.findIndex((r) => r.id === recordId);
+    if (idx === -1) return records;
+
+    const old = records[idx] || {};
+    records[idx] = { ...old, ...patch };
+    return records;
+  };
+
+  // 日別
+  const daily = await loadUriageDailyData(guildId, dateStr);
+  const dailyPatched = applyPatch(daily);
+  await saveUriageDailyData(guildId, dateStr, dailyPatched);
+
+  // 月別
+  if (yyyymm) {
+    const monthly = await loadUriageMonthlyData(guildId, yyyymm);
+    const monthlyPatched = applyPatch(monthly);
+    await saveUriageMonthlyData(guildId, yyyymm, monthlyPatched);
+  }
+
+  // 年別
+  if (yyyy) {
+    const yearly = await loadUriageYearlyData(guildId, yyyy);
+    const yearlyPatched = applyPatch(yearly);
+    await saveUriageYearlyData(guildId, yyyy, yearlyPatched);
+  }
+}
+
 module.exports = {
   // パス生成
   storeBasePath,
@@ -161,4 +298,12 @@ module.exports = {
   // 日別データ
   appendUriageDailyRecord,
   readUriageDailyRecords,
+  // 新 API
+  loadUriageDailyData,
+  saveUriageDailyData,
+  loadUriageMonthlyData,
+  saveUriageMonthlyData,
+  loadUriageYearlyData,
+  saveUriageYearlyData,
+  appendUriageRecord,
 };

@@ -18,7 +18,7 @@ const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
 const nextStep = require('./select_user_choosePosition.js');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_STORE',
+  customId: 'config_user_select_store',
 
   /**
    * 店舗選択メニューを表示
@@ -64,7 +64,7 @@ module.exports = {
 
     // --- 店舗選択メニュー ---
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`CONFIG_USER_SELECT_STORE_${userId}`)
+      .setCustomId(`config_user_select_store_${userId}`)
       .setPlaceholder('所属する店舗を選択してください')
       .setMinValues(1)
       .setMaxValues(1)
@@ -82,7 +82,7 @@ module.exports = {
     // --- 自動推定が成功した場合、「次へ」ボタンを追加 ---
     if (defaultStore) {
       const nextButton = new ButtonBuilder()
-        .setCustomId(`CONFIG_USER_GOTO_POSITION_${userId}_${defaultStore}`) // GOTO
+        .setCustomId(`config_user_goto_position_${userId}_${defaultStore}`) // GOTO
         .setLabel('この店舗で決定')
         .setStyle(ButtonStyle.Success);
       
@@ -107,7 +107,7 @@ module.exports = {
     const customId = interaction.customId; 
     // → CONFIG_USER_SELECT_STORE_<userId>
 
-    const userId = customId.replace('CONFIG_USER_SELECT_STORE_', '');
+    const userId = customId.replace('config_user_select_store_', '');
     const storeName = interaction.values[0];
 
     return nextStep.show(interaction, userId, storeName);

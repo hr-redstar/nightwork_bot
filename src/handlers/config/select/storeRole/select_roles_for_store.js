@@ -15,7 +15,7 @@ const { sendSettingLog } = require('../../configLogger');
 const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_ROLES_FOR_STORE',
+  customId: 'config_select_roles_for_store',
 
   async show(interaction, storeName) {
     const guildId = interaction.guild.id;
@@ -23,7 +23,7 @@ module.exports = {
     const selected = config.storeRoles?.[storeName] || [];
 
     const menu = new RoleSelectMenuBuilder()
-      .setCustomId(`CONFIG_SELECT_ROLES_FOR_STORE_VALUE_${storeName}`)
+      .setCustomId(`config_select_roles_for_store_value_${storeName}`)
       .setPlaceholder('紐づけたいロールを選択')
       .setMinValues(0)
       .setMaxValues(25)
@@ -39,7 +39,7 @@ module.exports = {
 
   async handle(interaction) {
     const customId = interaction.customId;
-    const storeName = customId.replace('CONFIG_SELECT_ROLES_FOR_STORE_VALUE_', '');
+    const storeName = customId.replace('config_select_roles_for_store_value_', '');
 
     const selectedRoles = interaction.values;
     const guildId = interaction.guild.id;

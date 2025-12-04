@@ -10,6 +10,7 @@ const {
   StringSelectMenuBuilder,
   RoleSelectMenuBuilder,
 } = require('discord.js');
+const { MessageFlags } = require('discord.js');
 const { IDS } = require('./ids');
 const {
   loadStoreRoleConfig,
@@ -34,7 +35,7 @@ async function openApproverRoleSelector(interaction) {
   if (stores.length === 0) {
     return interaction.reply({
       content: '店舗情報が登録されていません。\n先に /設定店舗情報 などで店舗を登録してください。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -53,7 +54,7 @@ async function openApproverRoleSelector(interaction) {
   return interaction.reply({
     content: '承認役職を設定する店舗を選択してください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

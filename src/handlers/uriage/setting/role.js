@@ -9,9 +9,10 @@
  * @param {import('discord.js').Interaction} interaction
  */
 async function openUriageRoleSetting(interaction) {
+  const { MessageFlags } = require('discord.js');
   return interaction.reply({
     content: '売上の閲覧役職 / 申請役職の設定機能はまだ実装されていません。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

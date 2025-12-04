@@ -18,6 +18,7 @@ function defaultGuildConfig() {
     commandLogThread: null,
     settingLogThread: null,
     slackWebhookUrl: null,
+    commandExecutorRoleId: null,
     // 必要ならここに増やしていく
   };
 }

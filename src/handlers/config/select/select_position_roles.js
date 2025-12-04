@@ -18,7 +18,7 @@ const { sendConfigPanel } = require('../configPanel');
 const { sendSettingLog } = require('../configLogger');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_POSITION_ROLES',
+  customId: 'config_select_position_roles',
 
   async show(interaction, positionId) {
     const roles = await getRoleObjects(interaction.guild.id);
@@ -35,7 +35,7 @@ module.exports = {
     const positionName = config.roles.find((r) => r.id === positionId)?.name || positionId;
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`CONFIG_SELECT_POSITION_ROLES_${positionId}`)
+      .setCustomId(`config_select_position_roles_${positionId}`)
       .setPlaceholder(`${positionName} に紐づけるロールを選択`)
       .setMinValues(0)
       .setMaxValues(roles.length)
@@ -57,8 +57,8 @@ module.exports = {
   async handle(interaction) {
     const customId = interaction.customId;
 
-    // CONFIG_SELECT_POSITION_ROLES_<positionId>
-    const positionId = customId.replace('CONFIG_SELECT_POSITION_ROLES_', '');
+    // config_select_position_roles_<positionId>
+    const positionId = customId.replace('config_select_position_roles_', '');
 
     const selectedRoleIds = interaction.values; // Array of roleId
     const guildId = interaction.guild.id;

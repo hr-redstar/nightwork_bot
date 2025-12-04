@@ -269,7 +269,7 @@ async function updateKeihiStatsOnApprove({
     // デフォルトは埋め込みに入っている文字列そのまま
     requesterName = inputUser;
     // メンバー情報が取れたら表示名/ユーザー名優先
-    if (member) {
+    if (requesterMember) {
       requesterName =
         requesterMember.displayName ||
         requesterMember.nickname ||

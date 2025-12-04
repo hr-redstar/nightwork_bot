@@ -16,7 +16,6 @@ const { listFiles, getPublicUrl } = require('../../../utils/gcs');
 function keihiCsvBasePrefix(guildId, storeId) {
   return `GCS/${guildId}/keihi/csv/${storeId}/`;
 }
-
 /**
  * CSV ファイル名から期間種別を判定して整形
  * 想定パターン:
@@ -27,48 +26,27 @@ function keihiCsvBasePrefix(guildId, storeId) {
 function parseCsvPeriod(fileName) {
   const base = fileName.replace(/\.csv$/i, '');
 
-  // YYYY-MM-DD
-  let m = base.match(/^(\d{4})[-_](\d{2})[-_](\d{2})$/);
+  // YYYY-MM-DD or YYYYMMDD
+  let m = base.match(/^(\d{4})[-_]?(\d{2})[-_]?(\d{2})$/);
   if (m) {
     const [_, y, mo, d] = m;
-    return {
-      kind: 'date',
-      key: `${y}-${mo}-${d}`,
-      label: `${y}-${mo}-${d}`,
-    };
+    // YYYYMMDD の形式で、セパレータがない場合のみを対象とする
+    if (base.length === 8 && !base.includes('-') && !base.includes('_')) {
+      return { kind: 'date', key: `${y}-${mo}-${d}`, label: `${y}-${mo}-${d}` };
+    }
+    // YYYY-MM-DD or YYYY_MM_DD
+    if (base.length === 10) {
+      return { kind: 'date', key: `${y}-${mo}-${d}`, label: `${y}-${mo}-${d}` };
+    }
   }
 
-  // YYYYMMDD
-  m = base.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (m) {
-    const [_, y, mo, d] = m;
-    return {
-      kind: 'date',
-      key: `${y}-${mo}-${d}`,
-      label: `${y}-${mo}-${d}`,
-    };
-  }
-
-  // YYYY-MM
-  m = base.match(/^(\d{4})[-_](\d{2})$/);
+  // YYYY-MM or YYYYMM
+  m = base.match(/^(\d{4})[-_]?(\d{2})$/);
   if (m) {
     const [_, y, mo] = m;
-    return {
-      kind: 'month',
-      key: `${y}-${mo}`,
-      label: `${y}-${mo}`,
-    };
-  }
-
-  // YYYYMM
-  m = base.match(/^(\d{4})(\d{2})$/);
-  if (m) {
-    const [_, y, mo] = m;
-    return {
-      kind: 'month',
-      key: `${y}-${mo}`,
-      label: `${y}-${mo}`,
-    };
+    if (base.length === 6 || base.length === 7) {
+      return { kind: 'month', key: `${y}-${mo}`, label: `${y}-${mo}` };
+    }
   }
 
   // YYYYQn

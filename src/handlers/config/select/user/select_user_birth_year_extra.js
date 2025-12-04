@@ -11,7 +11,7 @@ const {
 const nextStep = require('./select_user_birth_month.js');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA',
+  customId: 'config_user_select_birth_year_extra',
 
   /**
    * 年選択（1981〜1957）を表示
@@ -23,7 +23,7 @@ module.exports = {
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId(
-        `CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_${userId}_${storeName}_${positionId}`
+        `config_user_select_birth_year_extra_${userId}_${storeName}_${positionId}`
       )
       .setPlaceholder('生まれた年を選択してください（1981〜1957）')
       .setMinValues(1)
@@ -44,7 +44,7 @@ module.exports = {
   async handle(interaction) {
     // CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_user_store_position
     const raw = interaction.customId.replace(
-      'CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_',
+      'config_user_select_birth_year_extra_',
       ''
     );
 

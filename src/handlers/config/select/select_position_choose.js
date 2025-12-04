@@ -12,21 +12,22 @@ const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigMa
 const nextStep = require('./select_position_roles.js');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_POSITION',
+  customId: 'config_select_position',
 
   async show(interaction) {
     const config = await loadStoreRoleConfig(interaction.guild.id);
     const positions = config.roles; // [{id,name}]
 
     if (!positions.length) {
+      const { MessageFlags } = require('discord.js');
       return interaction.reply({
         content: '⚠️ 先に役職を登録してください。',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId('CONFIG_SELECT_POSITION')
+      .setCustomId('config_select_position')
       .setPlaceholder('対象の役職を選択してください')
       .addOptions(
         positions.map((p) => ({
@@ -37,10 +38,12 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(menu);
 
+    const { MessageFlags } = require('discord.js');
+
     await interaction.reply({
       content: '👔 ロールを紐づける **役職** を選択してください。',
       components: [row],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   },
 

@@ -1,9 +1,10 @@
-﻿﻿﻿﻿// src/handlers/configBotHandler.js
+﻿﻿// src/handlers/configBotHandler.js
 // ----------------------------------------------------
 // 設定パネルのボタン / セレクト / モーダル dispatcher
 // ----------------------------------------------------
 
 const logger = require('../utils/logger');
+const { MessageFlags } = require('discord.js');
 
 // ==============================
 // ボタン
@@ -16,6 +17,8 @@ const buttonUserRegister = require('./config/components/button/button_user_regis
 const buttonCreateCommandThread = require('./config/components/button/log/button_create_command_thread.js');
 const buttonCreateSettingThread = require('./config/components/button/log/button_create_setting_thread.js');
 const buttonSlackAutomation = require('./config/components/modal/slack/button_slack_automation.js');
+const { handleCommandRole } = require('./config/commandRoleHandler.js');
+
 // ==============================
 // セレクト
 // ==============================
@@ -70,24 +73,27 @@ async function handleInteraction(interaction) {
       if (id === 'config_command_thread') { await buttonCreateCommandThread.handle(interaction); return true; }
       if (id === 'config_setting_thread') { await buttonCreateSettingThread.handle(interaction); return true; }
 
+
+      if (id === 'config_command_role') { await handleCommandRole(interaction); return true; }
+
       if (id === 'config_slack_auto') { await buttonSlackAutomation.handle(interaction); return true; }
 
       // --- ユーザー登録フローの「次へ」ボタン ---
-      if (id.startsWith('CONFIG_USER_GOTO_POSITION_')) {
-        const parts = id.replace('CONFIG_USER_GOTO_POSITION_', '').split('_');
+      if (id.startsWith('config_user_goto_position_')) {
+        const parts = id.replace('config_user_goto_position_', '').split('_');
         const userId = parts[0];
         const storeName = parts.slice(1).join('_');
-        await selectUserChoosePosition.show(interaction, userId, storeName);
+        await selectUserChoosePosition.show(interaction, userId, storeName); 
         return true;
       }
-      if (id.startsWith('CONFIG_USER_GOTO_BIRTH_YEAR_')) {
-        const parts = id.replace('CONFIG_USER_GOTO_BIRTH_YEAR_', '').split('_');
+      if (id.startsWith('config_user_goto_birth_year_')) {
+        const parts = id.replace('config_user_goto_birth_year_', '').split('_');
         const [userId, storeName, positionId] = parts;
         await selectBirthYear.show(interaction, userId, storeName, positionId);
         return true;
       }
-      if (id.startsWith('CONFIG_USER_GOTO_USERINFO_')) {
-        const raw = id.replace('CONFIG_USER_GOTO_USERINFO_', '');
+      if (id.startsWith('config_user_goto_userinfo_')) {
+        const raw = id.replace('config_user_goto_userinfo_', '');
         const parts = raw.split('_');
         const [userId, storeName, positionId, year, month, day] = parts;
         await modalUserInfo.show(interaction, userId, storeName, positionId, year, month, day);
@@ -95,15 +101,15 @@ async function handleInteraction(interaction) {
       }
 
       // 誕生年「次へ」ボタン
-      if (id.startsWith('CONFIG_USER_BIRTH_YEAR_NEXT__')) {
+      if (id.startsWith('config_user_birth_year_next__')) {
         return selectBirthYear.handleNext(interaction);
       }
       // 誕生月「次へ」ボタン
-      if (id.startsWith('CONFIG_USER_BIRTH_MONTH_NEXT__')) {
+      if (id.startsWith('config_user_birth_month_next__')) {
         return selectBirthMonth.handleNext(interaction);
       }
       // 誕生日「次へ」ボタン
-      if (id.startsWith('CONFIG_USER_BIRTH_DAY_NEXT__')) {
+      if (id.startsWith('config_user_birth_day_next__')) {
         return selectBirthDay.handleNext(interaction);
       }
     }
@@ -112,42 +118,46 @@ async function handleInteraction(interaction) {
     // SELECT MENUS
     // --------------------------------
     if (interaction.isAnySelectMenu()) {
-      if (id === 'CONFIG_SELECT_STORE_FOR_STORE_ROLE_VALUE') {
-        await selectStoreForStoreRole.handle(interaction); return true;
+      if (id === 'config_command_role_select') {
+        // このセレクトメニューはcollectorで処理済み
+        return false;
       }
-      if (id.startsWith('CONFIG_SELECT_ROLES_FOR_STORE_VALUE_')) {
+      if (id === 'config_select_store_for_store_role_value') { 
+         await selectStoreForStoreRole.handle(interaction); return true;
+      }
+      if (id.startsWith('config_select_roles_for_store_value_')) {
         await selectRolesForStore.handle(interaction); return true;
       }
 
-      if (id === 'CONFIG_SELECT_POSITION_FOR_ROLE_LINK_VALUE') {
+      if (id === 'config_select_position_for_role_link_value') {
         await selectPositionForRoleLink.handle(interaction); return true;
       }
-      if (id.startsWith('CONFIG_SELECT_ROLES_FOR_POSITION_VALUE_')) {
+      if (id.startsWith('config_select_roles_for_position_value_')) {
         await selectRolesForPosition.handle(interaction); return true;
       }
 
-      if (id === 'CONFIG_USER_SELECT_MEMBER') { await selectUserChooseMember.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_STORE_')) { await selectUserChooseStore.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_POSITION_')) { await selectUserChoosePosition.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_BIRTH_YEAR_')) { await selectBirthYear.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_')) { await selectBirthYear.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_BIRTH_MONTH_')) { await selectBirthMonth.handle(interaction); return true; }
-      if (id.startsWith('CONFIG_USER_SELECT_BIRTH_DAY_')) { await selectBirthDay.handle(interaction); return true; }
+      if (id === 'config_user_select_member') { await selectUserChooseMember.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_store_')) { await selectUserChooseStore.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_position_')) { await selectUserChoosePosition.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_birth_year_')) { await selectBirthYear.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_birth_year_extra_')) { await selectBirthYear.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_birth_month_')) { await selectBirthMonth.handle(interaction); return true; }
+      if (id.startsWith('config_user_select_birth_day_')) { await selectBirthDay.handle(interaction); return true; }
 
-      if (id === 'CONFIG_SELECT_GLOBAL_LOG_VALUE') { await selectGlobalLog.handle(interaction); return true; }
-      if (id === 'CONFIG_SELECT_ADMIN_LOG_VALUE') { await selectAdminLog.handle(interaction); return true; }
+      if (id === 'config_select_global_log_value') { await selectGlobalLog.handle(interaction); return true; }
+      if (id === 'config_select_admin_log_value') { await selectAdminLog.handle(interaction); return true; }
     }
 
     // --------------------------------
     // MODALS
     // --------------------------------
     if (interaction.isModalSubmit()) {
-      if (id === 'modal_store_edit' || id === 'CONFIG_STORE_EDIT_MODAL') { await modalStoreEdit.handle(interaction); return true; }
-      if (id === 'modal_role_edit' || id === 'CONFIG_ROLE_EDIT_MODAL') { await modalRoleEdit.handle(interaction); return true; }
+      if (id === 'config_store_edit_modal') {  await modalStoreEdit.handle(interaction); return true; }
+      if (id === 'config_role_edit_modal') { await modalRoleEdit.handle(interaction); return true; }
 
-      if (id.startsWith('CONFIG_USER_INFO_MODAL_')) { await modalUserInfo.handle(interaction); return true; }
+      if (id.startsWith('config_user_info_modal_')) { await modalUserInfo.handle(interaction); return true; }
 
-      if (id === 'CONFIG_SLACK_WEBHOOK_MODAL_SUBMIT') { await modalSlackWebhook.handle(interaction); return true; }
+      if (id === 'config_slack_webhook_modal_submit') { await modalSlackWebhook.handle(interaction); return true; }
     }
 
     return false; // 未処理

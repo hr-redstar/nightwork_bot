@@ -27,7 +27,7 @@ async function show(interaction) {
   const currentStores = cfg.stores || [];
 
   const modal = new ModalBuilder()
-    .setCustomId('CONFIG_STORE_EDIT_MODAL')
+    .setCustomId('config_store_edit_modal')
     .setTitle('店舗名編集');
 
   const input = new TextInputBuilder()
@@ -100,12 +100,25 @@ async function handle(interaction) {
 
   // ---------- 設定ログ出力 ----------
   try {
-    await sendSettingLog(guildId, {
-      type: 'config',
-      action: '店舗名編集',
-      userId,
-      before: { stores: beforeCfg.stores || [] },
-      after: { stores: newStores },
+    // 削除と追加を計算
+    const oldSet = new Set(beforeCfg.stores || []);
+    const newSet = new Set(newStores);
+    const added = newStores.filter(s => !oldSet.has(s));
+    const deleted = (beforeCfg.stores || []).filter(s => !newSet.has(s));
+
+    let descriptionParts = ['🏪 店舗一覧が更新されました'];
+
+    if (added.length > 0) {
+      descriptionParts.push('➕ 追加: ' + added.join(', '));
+    }
+    if (deleted.length > 0) {
+      descriptionParts.push('➖ 削除: ' + deleted.join(', '));
+    }
+
+    await sendSettingLog(interaction, {
+      title: '🏪 店舗設定変更',
+      description: descriptionParts.join('\n'),
+      color: 0x00b894,
     });
   } catch {
     // ログ出力失敗は致命的ではないので握りつぶす

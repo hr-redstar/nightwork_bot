@@ -1,32 +1,39 @@
-// src/handlers/uriage/setting/ids.js
-// -----------------------------------------
-// 売上 設定系 コンポーネントID
-// -----------------------------------------
+// 売上報告系で使う ID 一括管理
 
-const PREFIX = 'uriage:setting:';
+const IDS = {
+  BUTTON: {
+    // 売上報告モーダルを開くボタン（売上報告パネルのボタン）
+    REPORT_OPEN: 'uriage_report_open',
+  },
 
-const IDS = Object.freeze({
-  PREFIX,
+  MODAL: {
+    // 売上報告モーダル
+    REPORT: 'uriage_report_modal',
+    // 修正用モーダル
+    EDIT: 'uriage_report_edit_modal',
+  },
 
-  // メイン設定パネル
-  PANEL_MESSAGE: `${PREFIX}panel`,
+  FIELDS: {
+    DATE: 'uriage_report_date',
+    TOTAL: 'uriage_report_total',
+    CASH: 'uriage_report_cash',
+    CARD: 'uriage_report_card',
+    URIKAKE: 'uriage_report_urikake',
+    EXPENSE: 'uriage_report_expense',
+  },
 
-  // ボタン
-  BTN_OPEN_PANEL_LOCATION: `${PREFIX}btnPanelLocation`,  // 売上報告パネル設置
-  BTN_OPEN_APPROVER_ROLE: `${PREFIX}btnApproverRole`,    // 承認役職
-  BTN_OPEN_CSV_EXPORT: `${PREFIX}btnCsvExport`,          // 売上csv発行
+  // 設定パネル用ボタン ID（panel.js で使用）
+  BTN_OPEN_PANEL_LOCATION: 'uriage_setting_panel_location',
+  BTN_OPEN_APPROVER_ROLE: 'uriage_setting_approver_role',
+  BTN_OPEN_CSV_EXPORT: 'uriage_setting_csv_export',
 
-  // セレクト（パネル設置）
-  SELECT_STORE_FOR_PANEL: `${PREFIX}selectStoreForPanel`,
-  SELECT_CHANNEL_FOR_PANEL: `${PREFIX}selectChannelForPanel`,
-
-  // セレクト（承認役職）
-  SELECT_STORE_FOR_APPROVER: `${PREFIX}selectStoreForApprover`,
-  SELECT_ROLE_FOR_APPROVER: `${PREFIX}selectRoleForApprover`,
-
-  // セレクト（CSV発行）
-  SELECT_STORE_FOR_CSV: `${PREFIX}selectStoreForCsv`,
-  SELECT_CSV_TYPE: `${PREFIX}selectCsvType`, // `${SELECT_CSV_TYPE}:${storeKey}`
-});
+  // セレクト ID
+  SELECT_STORE_FOR_PANEL: 'uriage_setting_select_store_panel',
+  SELECT_STORE_FOR_APPROVER: 'uriage_setting_select_store_approver',
+  SELECT_STORE_FOR_CSV: 'uriage_setting_select_store_csv',
+  SELECT_CSV_TYPE: 'uriage_setting_select_csv_type',
+  SELECT_CHANNEL_FOR_PANEL: 'uriage_setting_select_channel_panel',
+  SELECT_ROLE_FOR_APPROVER: 'uriage_setting_select_role_approver',
+};
 
 module.exports = { IDS };

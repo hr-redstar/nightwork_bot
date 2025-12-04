@@ -241,9 +241,17 @@ async function handleRequestModalSubmit(interaction) {
     }
 
     // 10. ユーザーへの最終応答
-    await interaction.editReply({
+    const replyMsg = await interaction.editReply({
       content: `店舗「${storeName}」で経費申請を登録しました。\nスレッド: ${threadMessage.url}`,
     });
+
+    // 1分後にメッセージを削除する
+    setTimeout(() => {
+      replyMsg.delete().catch((e) => {
+        // 既に削除されている場合などは無視
+        console.debug('メッセージ削除エラー（無視）:', e.message);
+      });
+    }, 60 * 1000); // 60秒 = 1分
 
     // 11. 経費申請パネルを再送信して最新化
     try {

@@ -9,9 +9,10 @@
  * @param {import('discord.js').Interaction} interaction
  */
 async function sendUriageSettingDetailPanel(interaction) {
+  const { MessageFlags } = require('discord.js');
   return interaction.reply({
     content: '売上の詳細設定パネル機能はまだ実装されていません。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

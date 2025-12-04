@@ -14,7 +14,7 @@ const nextStep = require('../../components/modal/modal_user_info.js');
 const { readUserInfo } = require('../../../../utils/config/gcsUserInfo.js');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_BIRTH_DAY',
+  customId: 'config_user_select_birth_day',
 
   /**
    * 日選択メニュー表示（1〜31）
@@ -37,8 +37,8 @@ module.exports = {
 
     const components = [];
     const baseCustomId = isExtra
-      ? `CONFIG_USER_SELECT_BIRTH_DAY_EXTRA_${userId}_${storeName}_${positionId}_${year}_${month}`
-      : `CONFIG_USER_SELECT_BIRTH_DAY_${userId}_${storeName}_${positionId}_${year}_${month}`;
+      ? `config_user_select_birth_day_extra_${userId}_${storeName}_${positionId}_${year}_${month}`
+      : `config_user_select_birth_day_${userId}_${storeName}_${positionId}_${year}_${month}`;
 
     // 選択肢が25を超える場合はメニューを分割する
     if (dayOptions.length > 25) {
@@ -65,7 +65,7 @@ module.exports = {
     if (userInfo?.birthday) {
       const [savedYear, savedMonth, savedDay] = userInfo.birthday.split('-');
       const nextButton = new ButtonBuilder()
-        .setCustomId(`CONFIG_USER_GOTO_USERINFO_${userId}_${storeName}_${positionId}_${savedYear}_${savedMonth}_${savedDay}`)
+        .setCustomId(`config_user_goto_userinfo_${userId}_${storeName}_${positionId}_${savedYear}_${savedMonth}_${savedDay}`)
         .setLabel('この生年月日で決定')
         .setStyle(ButtonStyle.Success);
       
@@ -87,8 +87,8 @@ module.exports = {
    * 日選択後 → Step4-4（SNS・住所・備考 モーダル）
    */
   async handle(interaction) {
-    const isExtra = interaction.customId.includes('_EXTRA_'); // EXTRAフローか判定
-    const prefix = isExtra ? 'CONFIG_USER_SELECT_BIRTH_DAY_EXTRA_' : 'CONFIG_USER_SELECT_BIRTH_DAY_';
+    const isExtra = interaction.customId.includes('_extra_'); // EXTRAフローか判定
+    const prefix = isExtra ? 'config_user_select_birth_day_extra_' : 'config_user_select_birth_day_';
     const baseCustomId = interaction.customId.replace(/_(\d)$/, ''); // _1 or _2 を除去
     const customIdParts = baseCustomId.replace(prefix, '').split('_');
 

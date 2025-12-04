@@ -8,26 +8,19 @@
 const { IDS } = require('./ids');
 const { sendUriageSettingPanel } = require('./panel');
 const {
-  openPanelLocationSelector,
-  handleStoreSelectForPanel,
-  handleChannelSelectForPanel,
-} = require('./panelLocation');
+  handleUriageReportPanelButton,
+  handleUriageStoreSelectForPanel,
+  handleUriageChannelSelectForPanel,
+} = require('./requestFlow');
 const {
   openApproverRoleSelector,
   handleApproverStoreSelect,
   handleApproverRoleSelect,
 } = require('./approverRoles');
 const {
-  openUriageCsvExport,
-  handleUriageCsvStoreSelect,
-  handleUriageCsvTypeSelect,
+  openCsvExportFlow,
+  handleCsvExportSelection,
 } = require('./csv');
-const {
-  handleSetApproverButton,
-  handleApproverRolesSelect,
-} = require('./role');
-const { handleStoreDetailSetting } = require('./store');
-const { handleItemSetting } = require('./item');
 
 /**
  * /設定売上 コマンド
@@ -47,29 +40,29 @@ async function handleUriageSettingInteraction(interaction) {
   // ボタン
   if (interaction.isButton()) {
     if (customId === IDS.BTN_OPEN_PANEL_LOCATION) {
-      return openPanelLocationSelector(interaction);
+      return handleUriageReportPanelButton(interaction);
     }
     if (customId === IDS.BTN_OPEN_APPROVER_ROLE) {
       return openApproverRoleSelector(interaction);
     }
     if (customId === IDS.BTN_OPEN_CSV_EXPORT) {
-      return openUriageCsvExport(interaction);
+      return openCsvExportFlow(interaction);
     }
   }
 
   // StringSelect
   if (interaction.isStringSelectMenu()) {
     if (customId === IDS.SELECT_STORE_FOR_PANEL) {
-      return handleStoreSelectForPanel(interaction);
+      return handleUriageStoreSelectForPanel(interaction);
     }
     if (customId === IDS.SELECT_STORE_FOR_APPROVER) {
       return handleApproverStoreSelect(interaction);
     }
     if (customId === IDS.SELECT_STORE_FOR_CSV) {
-      return handleUriageCsvStoreSelect(interaction);
+      return handleCsvExportSelection(interaction);
     }
     if (customId.startsWith(`${IDS.SELECT_CSV_TYPE}:`)) {
-      return handleUriageCsvTypeSelect(interaction);
+      return handleCsvExportSelection(interaction);
     }
   }
 
@@ -79,7 +72,7 @@ async function handleUriageSettingInteraction(interaction) {
     interaction.isChannelSelectMenu()
   ) {
     if (customId.startsWith(`${IDS.SELECT_CHANNEL_FOR_PANEL}:`)) {
-      return handleChannelSelectForPanel(interaction);
+      return handleUriageChannelSelectForPanel(interaction);
     }
   }
 
@@ -89,7 +82,7 @@ async function handleUriageSettingInteraction(interaction) {
     interaction.isRoleSelectMenu()
   ) {
     if (customId.startsWith(`${IDS.SELECT_ROLE_FOR_APPROVER}:`)) {
-      return handleApproverRolesSelect(interaction);
+      return handleApproverRoleSelect(interaction);
     }
   }
 

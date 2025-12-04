@@ -111,11 +111,19 @@ async function handleRequestStart(interaction, storeId) {
 
   const row = new ActionRowBuilder().addComponents(select);
 
-  await interaction.reply({
+  const replyMsg = await interaction.reply({
     content: '経費項目を選択してください。',
     components: [row],
     flags: MessageFlags.Ephemeral,
   });
+
+  // 1分後にメッセージを削除する
+  setTimeout(() => {
+    replyMsg.delete().catch((e) => {
+      // 既に削除されている場合などは無視
+      console.debug('メッセージ削除エラー（無視）:', e.message);
+    });
+  }, 60 * 1000); // 60秒 = 1分
 }
 
 // ----------------------------------------------------

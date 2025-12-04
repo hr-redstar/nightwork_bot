@@ -2,6 +2,7 @@
  * 既存パネルを最も安全で可能な方法で上書き更新するユーティリティ
  */
 const logger = require('./logger');
+const { MessageFlags } = require('discord.js');
 
 /**
  * @typedef {Object} UpdateOptions
@@ -68,7 +69,7 @@ async function updatePanel(interaction, embeds = [], components = [], content = 
 
     // 4) まだ何も返していないなら reply
     if (typeof interaction.reply === 'function' && !interaction.replied) {
-      await interaction.reply({ ...payload, ephemeral: !!opts.ephemeralOnFail });
+      await interaction.reply({ ...payload, flags: opts.ephemeralOnFail ? MessageFlags.Ephemeral : 0 });
       logger.debug('[panelUpdater] interaction.reply() 成功(フォールバック)');
       return { ok: true, via: 'reply' };
     }
@@ -79,8 +80,8 @@ async function updatePanel(interaction, embeds = [], components = [], content = 
     logger.error(`❌ [panelUpdater] 更新失敗: ${err?.message || err}`);
     // 最後の保険: 失敗をユーザーに伝える（ephemeral）
     try {
-      if (!interaction.replied && opts.ephemeralOnFail && typeof interaction.reply === 'function') {
-        await interaction.reply({ content: '⚠️ パネル更新に失敗しました。', ephemeral: true });
+        if (!interaction.replied && opts.ephemeralOnFail && typeof interaction.reply === 'function') {
+        await interaction.reply({ content: '⚠️ パネル更新に失敗しました。', flags: MessageFlags.Ephemeral });
       } else if (interaction.deferred && typeof interaction.editReply === 'function') {
         await interaction.editReply({ content: '⚠️ パネル更新に失敗しました。' });
       }

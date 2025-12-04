@@ -4,6 +4,7 @@ const {
   ActionRowBuilder,
   ComponentType,
   EmbedBuilder,
+  MessageFlags,
 } = require('discord.js');
 const dayjs = require('dayjs');
 const { readKujiConfig, saveKujiResult } = require('../../utils/kuzibiki/kuzibikiStorage');
@@ -30,7 +31,7 @@ async function handleKuzibikiExecute(interaction) {
   const settings = config.settings || [];
 
   if (settings.length === 0) {
-    await interaction.reply({ content: '⚠️ くじ引き設定が空です。先に「くじ引き設定」を登録してください。', ephemeral: true });
+    await interaction.reply({ content: '⚠️ くじ引き設定が空です。先に「くじ引き設定」を登録してください。', flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -49,7 +50,7 @@ async function handleKuzibikiExecute(interaction) {
   await interaction.reply({
     content: '🎰 くじ引き回数を選んでください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 
   const collector = interaction.channel.createMessageComponentCollector({
@@ -103,7 +104,7 @@ async function handleKuzibikiExecute(interaction) {
 
     await i.update({ content: `✅ くじ引きを実行しました。結果はスレッドに出力しました。`, components: [] });
     // 実行者がすぐ飛べるようにフォローアップ
-    await interaction.followUp({ content: `🧵 スレッドへ移動: ${msg.url}`, ephemeral: true });
+    await interaction.followUp({ content: `🧵 スレッドへ移動: ${msg.url}`, flags: MessageFlags.Ephemeral });
 
     collector.stop();
   });

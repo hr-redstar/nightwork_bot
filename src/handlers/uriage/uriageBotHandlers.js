@@ -3,7 +3,7 @@
 // ----------------------------------------------------
 
 const { handleUriageSettingInteraction } = require('./setting/index');
-const { handleUriageReportInteraction } = require('./report/index');
+const { handleInteraction: handleUriageReportInteraction } = require('./report/index');
 
 /**
  * 売上関連のインタラクションをすべて処理する

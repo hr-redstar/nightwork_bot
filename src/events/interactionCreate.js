@@ -9,7 +9,7 @@ const logger = require('../utils/logger');
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
 
-const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
+// const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
 const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
 const { handleInteraction: handleChatGPTBot } = require('../handlers/chat_gptBotHandler');
 const { handleInteraction: handleConfigInteraction } = require('../handlers/configBotHandler.js');

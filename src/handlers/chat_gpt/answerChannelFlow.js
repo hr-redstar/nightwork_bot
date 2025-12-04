@@ -9,6 +9,7 @@ const {
   TextInputBuilder,
   TextInputStyle,
   EmbedBuilder,
+  MessageFlags,
 } = require('discord.js');
 
 const logger = require('../../utils/logger');
@@ -41,7 +42,7 @@ async function handleAnswerChannelButton(interaction) {
     await interaction.reply({
       content: '店舗を選択してください。',
       components: [row],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -59,7 +60,7 @@ async function handleAnswerChannelButton(interaction) {
       '店舗_役職_ロール.json に店舗が登録されていないため、\n' +
       '先にチャンネルを選択し、その後のモーダルで店舗名とAPIキーを入力してください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -90,7 +91,7 @@ async function handleAnswerChannelSelect(interaction) {
   if (!channel) {
     return interaction.reply({
       content: 'チャンネルが選択されていません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -181,17 +182,15 @@ async function handleAnswerChannelModal(interaction) {
 
   // 設定ログを送信
   try {
-    const embed = new EmbedBuilder()
-      .setTitle('ChatGPT 回答チャンネル設定')
-      .setDescription(
-        `店舗「${storeName}」の回答チャンネルを <#${channelId}> に設定しました。`
-      )
-      .addFields(
+    await sendSettingLog(interaction, {
+      title: 'ChatGPT 回答チャンネル設定',
+      description: `店舗「${storeName}」の回答チャンネルを <#${channelId}> に設定しました。`,
+      fields: [
         { name: '設定者', value: `<@${user.id}>`, inline: true },
-        { name: '設定日時', value: new Date().toLocaleString('ja-JP'), inline: true }
-      )
-      .setColor('#2ecc71');
-    await sendSettingLog(guildId, embed);
+        { name: '設定日時', value: new Date().toLocaleString('ja-JP'), inline: true },
+      ],
+      color: 0x2ecc71,
+    });
   } catch (err) {
     logger.error('[answerChannelFlow] 設定ログの送信に失敗しました:', err);
   }
@@ -202,7 +201,7 @@ async function handleAnswerChannelModal(interaction) {
     content:
       `店舗「${storeName}」のChatGPT回答チャンネルを <#${channelId}> に設定しました。\n` +
       '対象チャンネルに会話開始用のパネルを設置しました。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 
   // 設定パネルを更新

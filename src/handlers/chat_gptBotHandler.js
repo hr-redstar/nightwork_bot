@@ -21,8 +21,9 @@ const {
 
 // handleTodayRunButton は未定義のため、一時的にダミー関数を定義します。
 // TODO: 正しいファイルを require するように修正してください。
+const { MessageFlags } = require('discord.js');
 const handleTodayRunButton = async (interaction) =>
-  interaction.reply({ content: 'この機能は現在開発中です。', ephemeral: true });
+  interaction.reply({ content: 'この機能は現在開発中です。', flags: MessageFlags.Ephemeral });
 
 async function handleInteraction(interaction) {
   const { customId: id } = interaction;

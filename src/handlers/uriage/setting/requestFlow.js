@@ -11,12 +11,17 @@ const {
   StringSelectMenuBuilder,
   ChannelSelectMenuBuilder,
   ChannelType,
+  MessageFlags,
 } = require('discord.js');
 
 const logger = require('../../../utils/logger');
 const { buildStoreSelectOptions } = require('../../../utils/config/storeSelectHelper');
-// もし IDS ファイルを使っているならそこから import してもOK
-// const { IDS } = require('./ids');
+const {
+  loadUriageStoreConfig,
+  saveUriageStoreConfig,
+} = require('../../../utils/uriage/gcsUriageManager');
+const { postUriageReportPanel } = require('../report/reportPanel');
+const { IDS } = require('./ids');
 
 /**
  * 「売上報告パネル設置」ボタン押下 → 店舗リスト表示
@@ -32,13 +37,13 @@ async function handleUriageReportPanelButton(interaction) {
       content:
         '店舗設定が見つかりません。\n' +
         '先に `/設定店舗情報` などで店舗を登録してください。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
   const storeSelect = new StringSelectMenuBuilder()
-    .setCustomId('URIAGE_SELECT_STORE_FOR_REPORT_PANEL') // IDS を使うなら差し替え
+    .setCustomId(IDS.SELECT_STORE_FOR_PANEL) // IDS を使うなら差し替え
     .setPlaceholder('売上報告パネルを設置する店舗を選択してください')
     .addOptions(storeOptions);
 
@@ -47,7 +52,7 @@ async function handleUriageReportPanelButton(interaction) {
   await interaction.reply({
     content: '売上報告パネルを設置する店舗を選択してください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -65,7 +70,7 @@ async function handleUriageStoreSelectForPanel(interaction) {
 
   // この後はチャンネルセレクトへ
   const channelSelect = new ChannelSelectMenuBuilder()
-    .setCustomId(`URIAGE_SELECT_CHANNEL_FOR_REPORT_PANEL__${storeName}`)
+    .setCustomId(`${IDS.SELECT_CHANNEL_FOR_PANEL}:${storeName}`)
     .setPlaceholder('売上報告パネルを設置するテキストチャンネルを選択してください')
     .addChannelTypes(ChannelType.GuildText);
 
@@ -88,25 +93,44 @@ async function handleUriageChannelSelectForPanel(interaction) {
   if (!channel) {
     await interaction.reply({
       content: 'チャンネルが選択されていません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  // TODO: ここで GCS に「店舗名と売上報告パネルチャンネル」を保存する処理を挟む
-  // 例: await saveUriageReportPanelConfig(guildId, { storeName, channelId: channel.id });
+  await interaction.deferUpdate();
 
-  // TODO: 実際に「売上報告パネル 店舗名」をそのチャンネルに送信する処理
-  // 例: await postUriageReportPanel(channel, storeName);
+  try {
+    const guildId = interaction.guild.id;
 
-  await interaction.update({
-    content:
-      `店舗「${storeName}」の売上報告パネルを <#${channel.id}> に設置しました。`,
-    components: [],
-  });
+    // ① 店舗別 config を読み込み、パネル情報を保存
+    const config = await loadUriageStoreConfig(guildId, storeName);
+    config.reportPanelChannelId = channel.id;
+    // 実際のメッセージIDは下の postUriageReportPanel で取得したら更新
+    await saveUriageStoreConfig(guildId, storeName, config);
 
-  // TODO: ここで /設定売上 パネル自体を更新する処理があるなら呼ぶ
-  // 例: await postUriageSettingPanel(interaction.channel);
+    // ② 「売上報告パネル 店舗名」をそのチャンネルに送信
+    const panelMessage = await postUriageReportPanel(channel, storeName);
+
+    // ③ パネルメッセージIDを保存
+    config.reportPanelMessageId = panelMessage.id;
+    await saveUriageStoreConfig(guildId, storeName, config);
+
+    logger.info(
+      `[uriage/requestFlow] 売上報告パネル設置完了: guild=${guildId}, store=${storeName}, ch=${channel.id}, msg=${panelMessage.id}`,
+    );
+
+    await interaction.followUp({
+      content: `✅ 店舗「${storeName}」の売上報告パネルを <#${channel.id}> に設置しました。`,
+      flags: MessageFlags.Ephemeral,
+    });
+  } catch (err) {
+    logger.error('[uriage/requestFlow] パネル設置エラー:', err);
+    await interaction.followUp({
+      content: '売上報告パネルの設置に失敗しました。',
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 module.exports = {

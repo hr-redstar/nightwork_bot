@@ -6,14 +6,14 @@
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 
 module.exports = {
-  customId: 'CONFIG_STORE_ADD_MODAL',
+  customId: 'config_store_add_modal',
 
   /**
    * モーダルを表示
    */
   show(interaction) {
     const modal = new ModalBuilder()
-      .setCustomId('CONFIG_STORE_ADD_MODAL')
+      .setCustomId('config_store_add_modal')
       .setTitle('🏪 店舗を追加');
 
     const input = new TextInputBuilder()
@@ -38,9 +38,11 @@ module.exports = {
 
     await addStore(interaction.guild.id, storeName);
 
+    const { MessageFlags } = require('discord.js');
+
     await interaction.reply({
       content: `🏪 店舗 **${storeName}** を追加しました！`,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   },
 };

@@ -14,14 +14,14 @@ const { sendAdminLog } = require('../../../configLogger');
 const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_SLACK_WEBHOOK_MODAL',
+  customId: 'config_slack_webhook_modal',
 
   async show(interaction) {
     const guildId = interaction.guild.id;
     const config = await getGuildConfig(guildId);
 
     const modal = new ModalBuilder()
-      .setCustomId('CONFIG_SLACK_WEBHOOK_MODAL_SUBMIT')
+      .setCustomId('config_slack_webhook_modal_submit')
       .setTitle('🤖 Slack Webhook 設定');
 
     const input = new TextInputBuilder()

@@ -1,5 +1,5 @@
 // src/handlers/syut/syutPanel_Kuro.js
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { getTodayAttendance } = require('../../utils/syut/gcsSyut');
 
@@ -41,7 +41,7 @@ function formatAttendanceList(attendanceData) {
  */
 async function createBlackPanel(interaction, storeName, channelId) {
   const ch = interaction.guild.channels.cache.get(channelId);
-  if (!ch) return interaction.reply({ content: '⚠️ チャンネルが見つかりません。', ephemeral: true });
+  if (!ch) return interaction.reply({ content: '⚠️ チャンネルが見つかりません。', flags: MessageFlags.Ephemeral });
 
   // パネルを送信
   const message = await ch.send({ content: 'パネルを準備中...' });
@@ -53,7 +53,7 @@ async function createBlackPanel(interaction, storeName, channelId) {
   cfg.syutBlackPanelMessages[storeName] = message.id; // パネルメッセージIDを保存
   await setGuildConfig(interaction.guild.id, cfg);
 
-  await interaction.reply({ content: '✅ 黒服出退勤パネルを設置しました。', ephemeral: true });
+  await interaction.reply({ content: '✅ 黒服出退勤パネルを設置しました。', flags: MessageFlags.Ephemeral });
 
   // パネルを更新して初期表示
   await updateBlackPanel(interaction.guild, storeName, channelId, message.id);

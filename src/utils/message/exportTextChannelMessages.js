@@ -10,6 +10,7 @@ const {
   ChannelType,
   AttachmentBuilder,
   PermissionFlagsBits,
+  MessageFlags,
 } = require('discord.js');
 const logger = require('../../utils/logger');
 const {
@@ -30,7 +31,7 @@ async function exportTextChannelMessages(interaction) {
   if (targetChannel.type !== ChannelType.GuildText) {
     return interaction.reply({
       content: '❌ 対象はテキストチャンネルのみ指定できます。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -44,11 +45,11 @@ async function exportTextChannelMessages(interaction) {
   ) {
     return interaction.reply({
       content: '❌ このチャンネルのメッセージ履歴を読む権限がありません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const guildId = interaction.guild.id;
   const channelId = targetChannel.id;

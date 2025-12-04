@@ -149,9 +149,10 @@ async function handleModifyButton(interaction) {
  * @param {import('discord.js').ModalSubmitInteraction} interaction
  */
 async function handleModifyModalSubmit(interaction) {
+  const { MessageFlags } = require('discord.js');
   await interaction.reply({
     content: '経費申請の修正モーダル処理は現在準備中です。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

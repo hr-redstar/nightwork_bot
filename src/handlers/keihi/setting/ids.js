@@ -17,6 +17,7 @@ const IDS = {
   SEL_APPROVER_ROLES: `${PREFIX}:sel:approver_roles`,
   SEL_CSV_STORE: `${PREFIX}:sel:csv_store`,
   SEL_CSV_PERIOD: `${PREFIX}:sel:csv_period`,
+
 };
 
 // チャンネル選択用 prefix
@@ -27,7 +28,7 @@ const CSV_PERIOD_VALUE_PREFIX = {
   DATE: 'date:',
   MONTH: 'month:',
   QUARTER: 'quarter:',
-};
+}
 
 module.exports = {
   IDS,

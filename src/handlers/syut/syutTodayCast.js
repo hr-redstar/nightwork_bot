@@ -1,5 +1,5 @@
 // src/handlers/syut/syutTodayCast.js
-const { StringSelectMenuBuilder, ActionRowBuilder, ChannelType } = require('discord.js');
+const { StringSelectMenuBuilder, ActionRowBuilder, ChannelType, MessageFlags } = require('discord.js');
 const { getGuildConfig, setGuildConfig } = require('../../utils/config/gcsConfigManager');
 const { getTodayAttendance } = require('../../utils/syut/gcsSyut');
 const { updateCastPanel } = require('./syutPanel_Cast'); // Import updateCastPanel
@@ -12,7 +12,7 @@ async function showTodayCastSetup(interaction, storeName) {
     .setCustomId(`cast_today_select_${storeName}`)
     .setPlaceholder('本日のキャストを送信するチャンネル')
     .addOptions(channels.slice(0, 25));
-  await interaction.reply({ content: '🗓️ 送信先チャンネルを選択してください。', components: [new ActionRowBuilder().addComponents(select)], ephemeral: true });
+  await interaction.reply({ content: '🗓️ 送信先チャンネルを選択してください。', components: [new ActionRowBuilder().addComponents(select)], flags: MessageFlags.Ephemeral });
 }
 
 async function sendTodayCast(interaction, storeName, channelId, hour = '13:00') {
@@ -36,7 +36,7 @@ async function sendTodayCast(interaction, storeName, channelId, hour = '13:00') 
   cfg.castToday[storeName] = { channelId, hour };
   await setGuildConfig(interaction.guild.id, cfg);
 
-  await interaction.reply({ content: '✅ 「本日のキャスト」を送信し、設定を保存しました。', ephemeral: true });
+  await interaction.reply({ content: '✅ 「本日のキャスト」を送信し、設定を保存しました。', flags: MessageFlags.Ephemeral });
 
   // パネルを更新
   const message = await interaction.channel.messages.fetch(interaction.message.id);

@@ -1,5 +1,5 @@
 // src/handlers/syut/syutCsv.js
-const { ActionRowBuilder, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
+const { ActionRowBuilder, StringSelectMenuBuilder, AttachmentBuilder, MessageFlags } = require('discord.js');
 const { getStoreList } = require('../../utils/config/configAccessor');
 const { getMonthlySyuttaikin } = require('../../utils/syut/syutConfigManager');
 
@@ -10,7 +10,7 @@ const { getMonthlySyuttaikin } = require('../../utils/syut/syutConfigManager');
 async function startCsvExport(interaction) {
   const stores = await getStoreList(interaction.guild.id);
   if (!stores.length) {
-    return interaction.reply({ content: '⚠️ 店舗が未登録です。', ephemeral: true });
+    return interaction.reply({ content: '⚠️ 店舗が未登録です。', flags: MessageFlags.Ephemeral });
   }
 
   const storeSelect = new StringSelectMenuBuilder()
@@ -21,7 +21,7 @@ async function startCsvExport(interaction) {
   await interaction.reply({
     content: 'CSVを出力する店舗を選択してください。',
     components: [new ActionRowBuilder().addComponents(storeSelect)],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

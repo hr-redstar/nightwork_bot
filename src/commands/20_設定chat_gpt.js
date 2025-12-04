@@ -5,7 +5,7 @@
 //   - 実処理は handlers/chat_gpt/index.js に委譲
 // ----------------------------------------------------
 
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
 const { handleSettingChatGpt } = require('../handlers/chat_gpt'); // ← handlers/chat_gpt/index.js を想定
 
@@ -30,12 +30,12 @@ module.exports = {
       if (interaction.deferred || interaction.replied) {
         await interaction.followUp({
           content: '⚠️ chat_gpt設定の処理中にエラーが発生しました。',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         }).catch(() => {});
       } else {
         await interaction.reply({
           content: '⚠️ chat_gpt設定の処理中にエラーが発生しました。',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         }).catch(() => {});
       }
     }

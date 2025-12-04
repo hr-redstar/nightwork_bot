@@ -11,7 +11,7 @@ const {
 const { loadStoreRoleConfig } = require('../../../../utils/config/storeRoleConfigManager.js');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_STORE_FOR_STORE_ROLE',
+  customId: 'config_select_store_for_store_role',
 
   async show(interaction) {
     const guildId = interaction.guild.id;
@@ -25,7 +25,7 @@ module.exports = {
     }
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId('CONFIG_SELECT_STORE_FOR_STORE_ROLE_VALUE')
+      .setCustomId('config_select_store_for_store_role_value')
       .setPlaceholder('ロールを紐づける店舗を選択')
       .addOptions(config.stores.map(store => ({
         label: store,

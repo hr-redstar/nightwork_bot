@@ -22,7 +22,8 @@ async function handleKujiSettingModal(interaction) {
   await updatePanel(channel, guildId);
 
   // フィードバック
-  await interaction.reply({ content: 'くじ引き設定を更新しました', ephemeral: true });
+  const { MessageFlags } = require('discord.js');
+  await interaction.reply({ content: 'くじ引き設定を更新しました', flags: MessageFlags.Ephemeral });
 }
 
 module.exports = { handleKujiSettingModal };

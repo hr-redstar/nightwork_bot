@@ -9,9 +9,10 @@
  * @param {import('discord.js').ButtonInteraction} interaction
  */
 async function openUriageItemSetting(interaction) {
+  const { MessageFlags } = require('discord.js');
   return interaction.reply({
     content: '売上項目の設定機能はまだ実装されていません。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

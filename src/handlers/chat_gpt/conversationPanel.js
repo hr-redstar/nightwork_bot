@@ -8,6 +8,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  MessageFlags,
 } = require('discord.js');
 const { IDS } = require('./ids');
 const logger = require('../../utils/logger');
@@ -96,7 +97,7 @@ async function handleConversationPromptModal(interaction) {
   if (!guild) {
     return interaction.reply({
       content: 'ギルド内でのみ使用できます。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -107,7 +108,7 @@ async function handleConversationPromptModal(interaction) {
   if (!parentChannel || parentChannel.type !== ChannelType.GuildText) {
     return interaction.reply({
       content: 'chat gpt会話パネルのあるテキストチャンネルで実行してください。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -163,7 +164,7 @@ async function handleConversationPromptModal(interaction) {
       'プロンプトや会話内容が消える場合があります。\n' +
       '十分ご注意ください。\n\n' +
       '※ pw などの重要な個人情報は送らないで下さい。',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 
   // スレッドの最初の案内メッセージ + 「プロンプト設定」ボタン
@@ -195,7 +196,7 @@ async function handlePromptSettingButton(interaction) {
   if (!channel || !channel.isThread?.()) {
     return interaction.reply({
       content: 'このボタンは chat gptスレッド内でのみ使用できます。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -228,7 +229,7 @@ async function handlePromptEditModal(interaction) {
   if (!guild || !channel || !channel.isThread?.()) {
     return interaction.reply({
       content: 'このモーダルは chat gptスレッド内でのみ使用できます。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
@@ -250,7 +251,7 @@ async function handlePromptEditModal(interaction) {
       '```text\n' +
       newPrompt +
       '\n```',
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 
   await channel.send(

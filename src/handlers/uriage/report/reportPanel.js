@@ -10,6 +10,8 @@ const {
   EmbedBuilder,
 } = require('discord.js');
 
+const { IDS } = require('../setting/ids');
+
 /**
  * 売上報告パネルを送信
  * @param {import('discord.js').TextChannel} channel
@@ -17,7 +19,7 @@ const {
  */
 async function postUriageReportPanel(channel, storeName) {
   const embed = new EmbedBuilder()
-    .setTitle(`売上報告パネル (${storeName})`)
+    .setTitle(`売上報告パネル - ${storeName}`)
     .setDescription('閲覧役職 / 申請役職 を設定してから、売上報告ボタンを使用してください。')
     .addFields(
       { name: '閲覧役職', value: '未設定', inline: true },
@@ -38,7 +40,7 @@ async function postUriageReportPanel(channel, storeName) {
 
   const row2 = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(`URIAGE_SALES_REPORT__${storeName}`)
+      .setCustomId(IDS.BUTTON.REPORT_OPEN)
       .setLabel('売上報告')
       .setStyle(ButtonStyle.Primary),
   );

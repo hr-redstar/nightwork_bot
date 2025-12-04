@@ -5,7 +5,7 @@ const { ActionRowBuilder, StringSelectMenuBuilder, MessageFlags } = require('dis
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { listUriageCsvOptions, getUriageCsvUrl } = require('../../../utils/uriage/uriageCsvManager');
 const logger = require('../../../utils/logger');
-const { IDS, CSV_PERIOD_VALUE_PREFIX } = require('./ids');
+const { IDS } = require('./ids');
 
 /**
  * 「売上csv発行」ボタン → 店舗選択
@@ -17,12 +17,12 @@ async function openCsvExportFlow(interaction) {
   if (!stores.length) {
     return interaction.followUp({
       content: '⚠️ 店舗情報が登録されていません。GCS/config/店舗_役職_ロール.json を確認してください。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
   const menu = new StringSelectMenuBuilder()
-    .setCustomId(IDS.SEL_CSV_STORE)
+    .setCustomId(IDS.SELECT_STORE_FOR_CSV)
     .setPlaceholder('店舗を選択してください')
     .addOptions(
       stores.map((s) => ({
@@ -36,7 +36,7 @@ async function openCsvExportFlow(interaction) {
   return interaction.followUp({
     content: 'CSVを発行する店舗を選択してください。',
     components: [row],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -82,7 +82,7 @@ async function handleCsvStoreSelect(interaction) {
   );
 
   const select = new StringSelectMenuBuilder()
-    .setCustomId(`${IDS.SEL_CSV_PERIOD}:${storeId}`) // storeId を customId に埋め込む
+    .setCustomId(`${IDS.SELECT_CSV_TYPE}:${storeId}`) // storeId を customId に埋め込む
     .setPlaceholder('出力する期間を選択してください')
     .setMinValues(1)
     .setMaxValues(1)
@@ -166,10 +166,10 @@ async function handleCsvPeriodSelect(interaction) {
  */
 async function handleCsvExportSelection(interaction) {
   // ステップ1: 店舗選択
-  if (interaction.customId === IDS.SEL_CSV_STORE) return handleCsvStoreSelect(interaction);
+  if (interaction.customId === IDS.SELECT_STORE_FOR_CSV) return handleCsvStoreSelect(interaction);
 
   // ステップ2: 期間選択 → CSV URL を出力
-  if (interaction.customId.startsWith(IDS.SEL_CSV_PERIOD)) return handleCsvPeriodSelect(interaction);
+  if (interaction.customId.startsWith(IDS.SELECT_CSV_TYPE)) return handleCsvPeriodSelect(interaction);
 }
 
 module.exports = {

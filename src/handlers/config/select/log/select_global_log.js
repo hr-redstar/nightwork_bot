@@ -10,11 +10,11 @@ const { sendSettingLog } = require('../../configLogger');
 const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_GLOBAL_LOG',
+  customId: 'config_select_global_log',
 
   async show(interaction) {
     const menu = new ChannelSelectMenuBuilder()
-      .setCustomId('CONFIG_SELECT_GLOBAL_LOG_VALUE')
+      .setCustomId('config_select_global_log_value')
       .setPlaceholder('グローバルログの送信先を選択')
       .addChannelTypes(ChannelType.GuildText);
 

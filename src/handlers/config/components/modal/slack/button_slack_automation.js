@@ -3,7 +3,7 @@
 const modal = require('../../modal/slack/modal_slack_webhook');
 
 module.exports = {
-  customId: 'CONFIG_SLACK_AUTOMATION',
+  customId: 'config_slack_auto',
 
   async handle(interaction) {
     return modal.show(interaction);

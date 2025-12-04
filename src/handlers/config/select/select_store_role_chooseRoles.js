@@ -21,7 +21,7 @@ const {
 const { sendConfigPanel } = require('../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_LINK_ROLES_FOR_STORE',
+  customId: 'config_link_roles_for_store',
 
   async show(interaction, storeName) {
     const roles = await getRoleObjects(interaction.guild.id);
@@ -34,7 +34,7 @@ module.exports = {
     }
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`CONFIG_LINK_ROLES_FOR_STORE_${storeName}`)
+      .setCustomId(`config_link_roles_for_store_${storeName}`)
       .setPlaceholder(`店舗「${storeName}」に紐づけるロールを選択`)
       .setMinValues(0)
       .setMaxValues(roles.length)
@@ -54,8 +54,8 @@ module.exports = {
   async handle(interaction) {
     const customId = interaction.customId;
 
-    // customId = CONFIG_LINK_ROLES_FOR_STORE_<storeName>
-    const storeName = customId.replace('CONFIG_LINK_ROLES_FOR_STORE_', '');
+    // customId = config_link_roles_for_store_<storeName>
+    const storeName = customId.replace('config_link_roles_for_store_', '');
     const selectedRoleIds = interaction.values; // 複数選択
 
     const guildId = interaction.guild.id;

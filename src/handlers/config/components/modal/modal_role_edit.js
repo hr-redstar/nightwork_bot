@@ -20,7 +20,7 @@ const { sendConfigPanel } = require('../../configPanel');
 const { sendSettingLog } = require('../../configLogger');
 
 module.exports = {
-  customId: 'CONFIG_ROLE_EDIT_MODAL',
+  customId: 'config_role_edit_modal',
 
   // ---------- モーダル表示 ----------
   async show(interaction) {
@@ -33,7 +33,7 @@ module.exports = {
       .join('\n');
 
     const modal = new ModalBuilder()
-      .setCustomId('CONFIG_ROLE_EDIT_MODAL')
+      .setCustomId('config_role_edit_modal')
       .setTitle('👥 役職名の一括編集');
 
     const input = new TextInputBuilder()

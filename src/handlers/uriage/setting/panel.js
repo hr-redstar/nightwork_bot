@@ -32,39 +32,42 @@ function buildUriageSettingEmbed(config, storeRoleConfig) {
   const fields = [];
 
   const stores = storeRoleConfig?.stores ?? [];
-  const storeMap = new Map(stores.map(s => [String(s.id ?? s.name), String(s.name ?? '店舗')]));
+  const storeMap = new Map(stores.map((s) => [String(s.id ?? s.name), String(s.name ?? '店舗')]));
   const panels = config?.panels ?? {};
-  const setupStoreKeys = Object.keys(panels);
+  const setupStoreKeys = Object.keys(panels || {});
 
+  // 1) パネル設置一覧（複数行で表示）
   if (setupStoreKeys.length > 0) {
+    const lines = [];
     for (const storeKey of setupStoreKeys) {
       const panelInfo = panels[storeKey] ?? {};
-      // パネルが設置されている（チャンネルIDがある）店舗のみ表示
       if (!panelInfo.channelId) continue;
-
       const storeName = storeMap.get(storeKey) || storeKey;
-      const ch = `<#${panelInfo.channelId}>`;
-
-      const approverRoleIds = Array.isArray(panelInfo.approverRoleIds)
-        ? panelInfo.approverRoleIds
-        : [];
-
-      const approverRoles = approverRoleIds.length > 0
-        ? approverRoleIds.map((id) => `<@&${id}>`).join(' ')
-        : '未設定';
-
-      fields.push({
-        name: storeName,
-        value: `売上報告パネル: ${ch}\n承認役職: ${approverRoles}`,
-        inline: false,
-      });
+      lines.push(`・${storeName}：${panelInfo.panelTitle || '売上報告 パネル'}`);
     }
+    fields.push({ name: '📋 売上パネル設置一覧', value: lines.join('\n') || '未登録', inline: false });
   } else {
     fields.push({
-      name: '現在、売上報告パネルが設置されている店舗はありません。',
-      value: '下の「売上報告パネル設置」ボタンから設定を開始してください。',
-    })
+      name: '📋 売上パネル設置一覧',
+      value: '未登録\n下の「売上報告パネル設置」ボタンから設定を開始してください。',
+      inline: false,
+    });
   }
+
+  // 2) 承認役職
+  const approverLines = [];
+  for (const storeKey of setupStoreKeys) {
+    const panelInfo = panels[storeKey] ?? {};
+    const approverRoleIds = Array.isArray(panelInfo.approverRoleIds) ? panelInfo.approverRoleIds : [];
+    const approverRoles = approverRoleIds.length > 0 ? approverRoleIds.map((id) => `<@&${id}>`).join(' / ') : '未設定';
+    const storeName = storeMap.get(storeKey) || storeKey;
+    approverLines.push(`・${storeName}：${approverRoles}`);
+  }
+  fields.push({ name: '🛡️ 承認役職', value: approverLines.length ? approverLines.join('\n') : '未設定', inline: false });
+
+  // 3) CSV 出力（説明と更新時刻）
+  const updatedAt = config?.updatedAt || '未更新';
+  fields.push({ name: '📊 売上CSV出力', value: '期間: 年月日 / 年月 / 年 / 四半期\n更新: ' + updatedAt, inline: false });
 
   return createSettingPanelEmbed('💰 売上設定パネル', fields);
 }

@@ -18,27 +18,27 @@ async function openPanelLocationSelector(interaction) {
   if (!stores.length) {
     return interaction.followUp({
       content: '⚠️ 店舗情報が登録されていません。',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
   const menu = new StringSelectMenuBuilder()
-    .setCustomId(IDS.SEL_STORE_FOR_PANEL)
-    .setPlaceholder('パネルを設置する店舗を選択')
+    .setCustomId(IDS.SELECT_STORE_FOR_PANEL)
+    .setPlaceholder('パネルを設置する店舐を選択')
     .addOptions(stores.map((s) => ({ label: s.name, value: s.id })));
 
   return interaction.reply({
     content: '🏪 どの店舗の売上報告パネルを設置しますか？',
     components: [new ActionRowBuilder().addComponents(menu)],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
 async function handleStoreForPanelSelect(interaction) {
   const storeId = interaction.values[0];
   const channelMenu = new ChannelSelectMenuBuilder() // customId に storeId を含める
-    .setCustomId(`${IDS.SEL_PANEL_CHANNEL}:${storeId}`)
-    .setPlaceholder('設置先のテキストチャンネルを選択')
+    .setCustomId(`${IDS.SELECT_CHANNEL_FOR_PANEL}:${storeId}`)
+    .setPlaceholder('設置先のテキストチャネルを選択')
     .addChannelTypes(ChannelType.GuildText);
 
   return interaction.update({

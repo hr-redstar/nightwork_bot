@@ -1,11 +1,6 @@
 // src/handlers/uriage/report/requestFlow.js
 // ----------------------------------------------------
-// 売上「1日の締め」売上報告フロー（5項目モーダル版）
-//   - 売上報告ボタン → モーダル表示
-//   - モーダル送信 → プライベートスレッド作成
-//                    （スレッド: 年月-店舗名-売上報告）
-//                  → スレッドに詳細ログ + 承認/修正/削除ボタン
-//                  → 売上報告パネルのテキストチャンネルにログ出力
+// 売上報告関連のリクエストフロー共通処理
 // ----------------------------------------------------
 
 const {
@@ -17,302 +12,585 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
-  ThreadAutoArchiveDuration,
 } = require('discord.js');
-const { URIAGE_REPORT_IDS } = require('./ids');
+
+const { IDS } = require('../setting/ids');
+const { IDS: STATUS_IDS } = require('./statusIds');
+const { sendSettingLog } = require('../../../utils/config/configLogger'); // 管理者ログ用
+const logger = require('../../../utils/logger');
 const {
-  appendUriageDailyRecord,
+  appendUriageRecord,
+  updateUriageRecord,
 } = require('../../../utils/uriage/gcsUriageManager');
-const {
-  loadStoreRoleConfig,
-} = require('../../../utils/config/storeRoleConfigManager');
 
-// 数値文字列 → number (カンマ除去)
-function parseNumber(str) {
-  if (!str) return NaN;
-  const cleaned = str.replace(/,/g, '').trim();
-  if (!cleaned) return NaN;
-  return Number(cleaned);
+// ------------------------------
+// 共通ヘルパー
+// ------------------------------
+function toSafeNumber(input) {
+  if (!input) return 0;
+  const normalized = String(input).replace(/[^\d.-]/g, '');
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : 0;
 }
 
-// 売掛・諸経費 1項目から分割
-function parseUrikakeExpense(str) {
-  if (!str) return { urikake: 0, expense: 0 };
-
-  // カンマや全角スペースもざっくり区切りとして扱う
-  const raw = str
-    .replace(/,/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!raw) return { urikake: 0, expense: 0 };
-
-  const parts = raw.split(' ');
-  const urikake = parseNumber(parts[0]);
-  const expense = parts[1] != null ? parseNumber(parts[1]) : 0;
-  return { urikake, expense };
+function formatYen(n) {
+  const num = toSafeNumber(n);
+  return `¥${num.toLocaleString('ja-JP')}`;
 }
 
-// レコードID生成（customId と GCS で共通利用）
-function createRecordId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+function formatDateForThread(dateStr) {
+  // YYYY-MM-DD -> YYYYMM
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return '000000';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}${m}`;
 }
 
-// 店舗名解決
-async function resolveStoreName(guildId, storeKey) {
-  const storeConfig = await loadStoreRoleConfig(guildId);
-  const stores = Array.isArray(storeConfig?.stores) ? storeConfig.stores : [];
-  const hit = stores.find((s) => s.id === storeKey || s.name === storeKey);
-  return hit?.name || storeKey;
+function getNowUnix() {
+  return Math.floor(Date.now() / 1000);
 }
 
-/**
- * 売上報告モーダルを表示
- * @param {import('discord.js').ButtonInteraction} interaction
- * @param {string} storeKey
- */
-async function openUriageRequestModal(interaction, storeKey) {
-  const modalCustomId = `${URIAGE_REPORT_IDS.MODAL_REQUEST_PREFIX}:${storeKey}`;
+// 売上報告パネルの Embed タイトルから店舗名を抜く想定：
+// 例）"売上報告パネル - 本店" → "本店"
+function resolveStoreNameFromPanel(interaction) {
+  const embed = interaction.message?.embeds?.[0];
+  if (!embed?.title) return '店舗未設定';
 
-  const modal = new ModalBuilder()
-    .setCustomId(modalCustomId)
-    .setTitle('本日の売上報告（締め）');
-
-  // 1. 日付
-  const dateInput = new TextInputBuilder()
-    .setCustomId('uriage-date')
-    .setLabel('日付 (例: 2025-11-25 / 空欄で今日)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  // 2. 総売り
-  const totalInput = new TextInputBuilder()
-    .setCustomId('uriage-total')
-    .setLabel('総売り（金額・数字のみ）')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  // 3. 現金
-  const cashInput = new TextInputBuilder()
-    .setCustomId('uriage-cash')
-    .setLabel('現金（金額・数字のみ）')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  // 4. カード
-  const cardInput = new TextInputBuilder()
-    .setCustomId('uriage-card')
-    .setLabel('カード（金額・数字のみ）')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  // 5. 売掛・諸経費
-  const urikakeExpenseInput = new TextInputBuilder()
-    .setCustomId('uriage-urikake-expense')
-    .setLabel('売掛・諸経費（例: "20000 5000"）')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
-
-  modal.addComponents(
-    new ActionRowBuilder().addComponents(dateInput),
-    new ActionRowBuilder().addComponents(totalInput),
-    new ActionRowBuilder().addComponents(cashInput),
-    new ActionRowBuilder().addComponents(cardInput),
-    new ActionRowBuilder().addComponents(urikakeExpenseInput),
-  );
-
-  return interaction.showModal(modal);
+  const parts = embed.title.split('-');
+  if (parts.length < 2) return embed.title.trim();
+  return parts[1].trim();
 }
 
-// 互換用: 古いコードで使っている openUriageReportModal → 新しい関数に丸投げ
-async function openUriageReportModal(interaction, storeKey) {
-  console.warn('非推奨の関数 openUriageReportModal が呼び出されました。openUriageRequestModal に移行してください。');
-  return openUriageRequestModal(interaction, storeKey);
+// スレッド内の「売上報告 - 店舗名」から店舗名を抜く
+function resolveStoreNameFromEmbed(message) {
+  const embed = message.embeds?.[0];
+  if (!embed?.title) return '店舗未設定';
+
+  const parts = embed.title.split('-');
+  if (parts.length < 2) return embed.title.trim();
+  return parts[1].trim();
 }
 
-/**
- * 売上「1日の締め」モーダル送信時の処理
- * @param {import('discord.js').ModalSubmitInteraction} interaction
- * @param {string} storeKey
- */
-async function handleUriageRequestModalSubmit(interaction, storeKey) {
-  const guild = interaction.guild;
-  const guildId = guild.id;
-  const user = interaction.user;
-  const channel = interaction.channel;
+// ------------------------------
+// ① 売上報告モーダルを開く
+// ------------------------------
+async function openUriageReportModal(interaction) {
+  try {
+    const storeName = resolveStoreNameFromPanel(interaction);
 
-  if (!channel || channel.type !== ChannelType.GuildText) {
-    return interaction.reply({
-      content: '売上報告はギルドのテキストチャンネルからのみ行えます。',
-      ephemeral: true,
-    });
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const defaultDate = `${yyyy}-${mm}-${dd}`;
+
+    const modalCustomId = `${IDS.MODAL.REPORT}:${encodeURIComponent(storeName)}`;
+
+    const modal = new ModalBuilder()
+      .setCustomId(modalCustomId)
+      .setTitle(`売上報告 - ${storeName}`);
+
+    const dateInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.DATE)
+      .setLabel('日付（例：2025-12-03）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setValue(defaultDate);
+
+    const totalInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.TOTAL)
+      .setLabel('総売り（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const cashInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.CASH)
+      .setLabel('現金（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const cardInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.CARD)
+      .setLabel('カード（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const urikakeInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.URIKAKE)
+      .setLabel('売掛（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    const expenseInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.EXPENSE)
+      .setLabel('諸経費（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(dateInput),
+      new ActionRowBuilder().addComponents(totalInput),
+      new ActionRowBuilder().addComponents(cashInput),
+      new ActionRowBuilder().addComponents(cardInput),
+      new ActionRowBuilder().addComponents(urikakeInput),
+      new ActionRowBuilder().addComponents(expenseInput),
+    );
+
+    await interaction.showModal(modal);
+  } catch (err) {
+    logger.error('[uriage][openUriageReportModal] エラー:', err);
+    // モーダル表示失敗時だけ、ユーザーにエラー返し
+    if (!interaction.replied && !interaction.deferred) {
+      const { MessageFlags } = require('discord.js');
+      await interaction.reply({
+        content: '売上報告モーダルの表示中にエラーが発生しました。',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   }
+}
 
-  let dateStr = interaction.fields.getTextInputValue('uriage-date')?.trim();
-  const totalStr = interaction.fields.getTextInputValue('uriage-total')?.trim();
-  const cashStr = interaction.fields.getTextInputValue('uriage-cash')?.trim();
-  const cardStr = interaction.fields.getTextInputValue('uriage-card')?.trim();
-  const urikakeExpenseStr = interaction.fields
-    .getTextInputValue('uriage-urikake-expense')
-    ?.trim();
+// ------------------------------
+// ② モーダル送信後の処理
+// ------------------------------
+async function handleUriageReportModalSubmit(interaction) {
+  const baseId = interaction.customId.split(':')[0];
+  if (baseId !== IDS.MODAL.REPORT) return;
 
-  // 日付
-  const now = new Date();
-  if (!dateStr) {
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    dateStr = `${y}-${m}-${d}`;
-  }
-
-  // 数値変換
-  const total = parseNumber(totalStr);
-  const cash = parseNumber(cashStr);
-  const card = parseNumber(cardStr);
-  const { urikake, expense } = parseUrikakeExpense(urikakeExpenseStr);
-
-  // バリデーション
-  if (!Number.isFinite(total) || total < 0) {
-    return interaction.reply({
-      content: '「総売り」は0以上の数字で入力してください。',
-      ephemeral: true,
-    });
-  }
-  if (!Number.isFinite(cash) || cash < 0) {
-    return interaction.reply({
-      content: '「現金」は0以上の数字で入力してください。',
-      ephemeral: true,
-    });
-  }
-  if (!Number.isFinite(card) || card < 0) {
-    return interaction.reply({
-      content: '「カード」は0以上の数字で入力してください。',
-      ephemeral: true,
-    });
-  }
-  if (!Number.isFinite(urikake) || urikake < 0) {
-    return interaction.reply({
-      content: '「売掛」は0以上の数字で入力してください。（売掛 諸経費 の順で入力）',
-      ephemeral: true,
-    });
-  }
-  if (!Number.isFinite(expense) || expense < 0) {
-    return interaction.reply({
-      content: '「諸経費」は0以上の数字で入力してください。（売掛 諸経費 の順で入力）',
-      ephemeral: true,
-    });
-  }
-
-  const dateKey = dateStr;
-  const [yearStr, monthStr] = dateStr.split('-');
-  const ymStr = `${yearStr}${monthStr}`;
-  const recordId = createRecordId();
-  const storeName = await resolveStoreName(guildId, storeKey);
-
-  const zankin = total - (card + expense);
-
-  // ① プライベートスレッド
-  const threadName = `${ymStr}-${storeName}-売上報告`.slice(0, 90);
-
-  const thread = await channel.threads.create({
-    name: threadName,
-    autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
-    type: ChannelType.PrivateThread,
-    reason: `売上報告: ${storeName} (${dateStr})`,
-  });
+  const { MessageFlags } = require('discord.js');
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   try {
-    await thread.members.add(user.id);
-  } catch {}
+    const [, encodedStoreName] = interaction.customId.split(':');
+    const storeName = encodedStoreName ? decodeURIComponent(encodedStoreName) : '店舗未設定';
 
-  const nowTs = Math.floor(Date.now() / 1000);
+    const dateStr = interaction.fields.getTextInputValue(IDS.FIELDS.DATE);
+    const totalStr = interaction.fields.getTextInputValue(IDS.FIELDS.TOTAL);
+    const cashStr = interaction.fields.getTextInputValue(IDS.FIELDS.CASH);
+    const cardStr = interaction.fields.getTextInputValue(IDS.FIELDS.CARD);
+    const urikakeStr = interaction.fields.getTextInputValue(IDS.FIELDS.URIKAKE);
+    const expenseStr = interaction.fields.getTextInputValue(IDS.FIELDS.EXPENSE);
 
-  const threadEmbed = new EmbedBuilder()
-    .setTitle('💰 売上報告（1日の締め）')
-    .setDescription(`店舗: **${storeName}**\n日付: **${dateStr}**`)
-    .addFields(
-      { name: '総売り', value: `${total.toLocaleString()} 円`, inline: true },
-      { name: '現金', value: `${cash.toLocaleString()} 円`, inline: true },
-      { name: 'カード', value: `${card.toLocaleString()} 円`, inline: true },
-      { name: '売掛', value: `${urikake.toLocaleString()} 円`, inline: true },
-      { name: '諸経費', value: `${expense.toLocaleString()} 円`, inline: true },
-      { name: '残金', value: `${zankin.toLocaleString()} 円`, inline: true },
-      { name: '入力者', value: `<@${user.id}>`, inline: true },
-      { name: '入力時間', value: `<t:${nowTs}:f>`, inline: true },
-      { name: 'ステータス', value: '承認待ち', inline: true },
-    )
-    .setTimestamp(new Date());
+    const total = toSafeNumber(totalStr);
+    const cash = toSafeNumber(cashStr);
+    const card = toSafeNumber(cardStr);
+    const urikake = toSafeNumber(urikakeStr);
+    const expense = toSafeNumber(expenseStr);
 
-  const buttonRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`${URIAGE_REPORT_IDS.BTN_APPROVE_PREFIX}:${recordId}`)
-      .setLabel('承認')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(`${URIAGE_REPORT_IDS.BTN_EDIT_PREFIX}:${recordId}`)
-      .setLabel('修正')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`${URIAGE_REPORT_IDS.BTN_DELETE_PREFIX}:${recordId}`)
-      .setLabel('削除')
-      .setStyle(ButtonStyle.Danger),
-  );
+    // 👉 残金 = 総売り - (カード + 諸経費)
+    const zankin = total - (card + expense);
 
-  const threadMessage = await thread.send({
-    content: `<@${user.id}> さんの売上報告です。`,
-    embeds: [threadEmbed],
-    components: [buttonRow],
-  });
+    const nowUnix = getNowUnix();
+    const panelChannel = interaction.channel; // 売上報告パネルがあるチャンネル
 
-  // ② 親チャンネルにログ
-  const logEmbed = new EmbedBuilder()
-    .setTitle('💰 売上報告 受付')
-    .setDescription(`店舗: **${storeName}**\n日付: **${dateStr}**`)
-    .addFields(
-      { name: '総売り', value: `${total.toLocaleString()} 円`, inline: true },
-      { name: '現金', value: `${cash.toLocaleString()} 円`, inline: true },
-      { name: 'カード', value: `${card.toLocaleString()} 円`, inline: true },
-      { name: '売掛', value: `${urikake.toLocaleString()} 円`, inline: true },
-      { name: '諸経費', value: `${expense.toLocaleString()} 円`, inline: true },
-      { name: '残金', value: `${zankin.toLocaleString()} 円`, inline: true },
-      { name: 'スレッド', value: `<#${thread.id}>`, inline: false },
-    )
-    .setTimestamp(new Date());
+    // 1) 月別・店舗別のプライベートスレッドを取得 or 作成
+    const ym = formatDateForThread(dateStr); // 202512
+    const threadName = `${ym}-${storeName}-売上報告`;
 
-  const logMessage = await channel.send({ embeds: [logEmbed] });
+    // アクティブスレッドのキャッシュを更新（見つかりやすくするため）
+    try {
+      await panelChannel.threads.fetchActive();
+    } catch (e) {
+      logger.warn('[uriage][handleUriageReportModalSubmit] fetchActive 失敗:', e);
+    }
 
-  // ③ GCS保存
-  const record = {
-    id: recordId,
-    type: 'closing',
-    createdAt: new Date().toISOString(),
-    createdBy: user.id,
-    storeKey,
-    storeName,
-    date: dateStr,
-    total,
-    cash,
-    card,
-    urikake,
-    expense,
-    zankin,
-    source: 'manual',
-    status: 'pending',
-    threadId: thread.id,
-    threadMessageId: threadMessage.id,
-    logMessageId: logMessage.id,
-    channelId: channel.id,
-  };
+    let reportThread =
+      panelChannel.threads.cache.find((t) => t.name === threadName) ?? null;
 
-  await appendUriageDailyRecord(guildId, storeKey, dateKey, record);
+    if (!reportThread) {
+      reportThread = await panelChannel.threads.create({
+        name: threadName,
+        type: ChannelType.PrivateThread,
+        autoArchiveDuration: 4320, // 3日 → 必要なら変更
+        reason: '売上報告スレッド自動作成',
+      });
+    }
 
-  return interaction.reply({
-    content: '売上報告（1日の締め）を受け付けました。スレッドで承認・修正・削除が行えます。',
-    ephemeral: true,
-  });
+    // ユーザーをスレッドに招待（権限があれば）
+    try {
+      await reportThread.members.add(interaction.user.id);
+    } catch (e) {
+      logger.warn('[uriage][handleUriageReportModalSubmit] スレッドへのメンバー追加に失敗:', e);
+    }
+
+    // 2) スレッド内のログメッセージ
+    const embed = new EmbedBuilder()
+      .setTitle(`売上報告 - ${storeName}`)
+      .addFields(
+        { name: '日付', value: dateStr || '未入力', inline: true },
+        { name: '総売り', value: formatYen(total), inline: true },
+        { name: '現金', value: formatYen(cash), inline: true },
+        { name: 'カード', value: formatYen(card), inline: true },
+        { name: '売掛', value: formatYen(urikake), inline: true },
+        { name: '諸経費', value: formatYen(expense), inline: true },
+        { name: '残金（総売り - (カード + 諸経費)）', value: formatYen(zankin), inline: false },
+        { name: '入力者', value: `${interaction.user}`, inline: true },
+        { name: '入力時間', value: `<t:${nowUnix}:f>`, inline: true },
+      )
+      .setFooter({ text: `スレッド：${threadName}` });
+
+    // ステータス操作ボタン（承認 / 修正 / 削除）
+    // ※ customId にメッセージIDを埋め込んで、後で statusActions.js 側で使う想定
+    const actionRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(STATUS_IDS.BUTTON.APPROVE) // 必要なら `+ ':' + プレフィックス` に変更
+        .setLabel('承認')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(STATUS_IDS.BUTTON.EDIT)
+        .setLabel('修正')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId(STATUS_IDS.BUTTON.DELETE)
+        .setLabel('削除')
+        .setStyle(ButtonStyle.Danger),
+    );
+
+    const threadMessage = await reportThread.send({
+      content: `スレッド名：${threadName}\n入力者：${interaction.user}\n入力時間：<t:${nowUnix}:f>`,
+      embeds: [embed],
+      components: [actionRow],
+    });
+
+    // 3) 売上報告パネルのテキストチャンネルにログ出力
+    const panelLogMsg = await panelChannel.send(
+      [
+        '----------------------------',
+        `日付：${dateStr} の売上報告がされました。`,
+        `入力者：${interaction.user}　入力時間：<t:${nowUnix}:f>`,
+        `修正者：-　修正時間：-`,
+        `承認者：-　承認時間：-`,
+        threadMessage.url,
+        '----------------------------',
+      ].join('\n'),
+    );
+
+    // 4) 管理者ログに出力（config.json を参照する configLogger を利用）
+    // 『店舗名』で売上報告がされました。
+    // 日付：　入力者：メンションユーザー　　入力時間：
+    // スレッドメッセージリンク
+    try {
+      const description = [
+        `『${storeName}』で売上報告がされました。`,
+        `日付：${dateStr}　入力者：${interaction.user}　入力時間：<t:${nowUnix}:f>`,
+        threadMessage.url,
+      ].join('\n');
+
+      await sendSettingLog(interaction, {
+        title: '売上報告',
+        description,
+      });
+    } catch (e) {
+      logger.warn('[uriage][handleUriageReportModalSubmit] 管理者ログ送信に失敗:', e);
+    }
+
+    // 5) GCS にも売上データを保存しておく
+    try {
+      const record = {
+        id: threadMessage.id,
+        guildId: interaction.guild.id,
+        storeName,
+        date: dateStr,
+        total,
+        cash,
+        card,
+        urikake,
+        expense,
+        zankin,
+        createdById: interaction.user.id,
+        createdByTag: interaction.user.tag,
+        createdAt: new Date().toISOString(),
+        threadId: threadMessage.channelId,
+        threadMessageId: threadMessage.id,
+        panelChannelId: panelChannel.id,
+        panelLogMessageId: panelLogMsg.id,
+        status: 'pending', // 承認前なので pending
+      };
+
+      await appendUriageRecord(interaction.guild.id, record);
+    } catch (e) {
+      logger.warn('[uriage][handleUriageReportModalSubmit] appendUriageRecord 失敗:', e);
+    }
+
+    // 5) ユーザーへのフィードバック
+    await interaction.editReply({
+      content: [
+        '✅ 売上報告を登録しました。',
+        `・店舗：${storeName}`,
+        `・日付：${dateStr}`,
+        `・総売り：${formatYen(total)} / 現金：${formatYen(cash)} / カード：${formatYen(card)} / 売掛：${formatYen(urikake)} / 諸経費：${formatYen(expense)}`,
+        `・残金：${formatYen(zankin)}`,
+        '',
+        `スレッド：${threadMessage.url}`,
+        `ログ：${panelLogMsg.url}`,
+      ].join('\n'),
+    });
+  } catch (err) {
+    logger.error('[uriage][handleUriageReportModalSubmit] エラー:', err);
+    await interaction.editReply({
+      content: '売上報告の処理中にエラーが発生しました。',
+    });
+  }
+}
+
+// ヘルパー：ログメッセージの行を更新
+function updateLogContentLine(original, startsWith, newLine) {
+  const lines = original.split('\n');
+  const idx = lines.findIndex((l) => l.startsWith(startsWith));
+  if (idx === -1) return original;
+  lines[idx] = newLine;
+  return lines.join('\n');
+}
+
+/**
+ * 「修正」ボタン押下時に、既存値入りのモーダルを開く
+ * @param {import('discord.js').ButtonInteraction} interaction
+ */
+async function openUriageEditModal(interaction) {
+  try {
+    const message = interaction.message; // スレッド内の売上報告メッセージ
+    const embed = message.embeds?.[0];
+
+    if (!embed) {
+      const { MessageFlags } = require('discord.js');
+      await interaction.reply({
+        content: '売上データを取得できませんでした。（Embedが見つかりません）',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const storeName = resolveStoreNameFromEmbed(message);
+
+    // 既存フィールドから数値文字列を取り出して、"¥" やカンマを除去しておく
+    const getNumericTextFromField = (fieldName) => {
+      const field = (embed.fields || []).find((f) => f.name === fieldName);
+      if (!field) return '';
+      const raw = field.value ?? '';
+      const n = toSafeNumber(raw);
+      return n ? String(n) : '';
+    };
+
+    const totalStr = getNumericTextFromField('総売り');
+    const cashStr = getNumericTextFromField('現金');
+    const cardStr = getNumericTextFromField('カード');
+    const urikakeStr = getNumericTextFromField('売掛');
+    const expenseStr = getNumericTextFromField('諸経費');
+
+    const modalCustomId = `${IDS.MODAL.EDIT}:${message.id}`;
+
+    const modal = new ModalBuilder()
+      .setCustomId(modalCustomId)
+      .setTitle(`売上修正 - ${storeName}`);
+
+    const totalInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.TOTAL)
+      .setLabel('総売り（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setValue(totalStr);
+
+    const cashInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.CASH)
+      .setLabel('現金（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false)
+      .setValue(cashStr);
+
+    const cardInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.CARD)
+      .setLabel('カード（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false)
+      .setValue(cardStr);
+
+    const urikakeInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.URIKAKE)
+      .setLabel('売掛（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false)
+      .setValue(urikakeStr);
+
+    const expenseInput = new TextInputBuilder()
+      .setCustomId(IDS.FIELDS.EXPENSE)
+      .setLabel('諸経費（数字のみ）')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false)
+      .setValue(expenseStr);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(totalInput),
+      new ActionRowBuilder().addComponents(cashInput),
+      new ActionRowBuilder().addComponents(cardInput),
+      new ActionRowBuilder().addComponents(urikakeInput),
+      new ActionRowBuilder().addComponents(expenseInput),
+    );
+
+    await interaction.showModal(modal);
+  } catch (err) {
+    logger.error('[uriage][openUriageEditModal] エラー:', err);
+    if (!interaction.replied && !interaction.deferred) {
+      const { MessageFlags } = require('discord.js');
+      await interaction.reply({
+        content: '売上修正モーダルの表示中にエラーが発生しました。',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+  }
+}
+
+/**
+ * 修正モーダル送信後の処理
+ * @param {import('discord.js').ModalSubmitInteraction} interaction
+ */
+async function handleUriageEditModalSubmit(interaction) {
+  const [baseId, targetMessageId] = interaction.customId.split(':');
+  if (baseId !== IDS.MODAL.EDIT) return;
+
+  const { MessageFlags } = require('discord.js');
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  try {
+    const guildId = interaction.guild.id;
+    const thread = interaction.channel; // 売上報告スレッド
+    const threadMessage = await thread.messages.fetch(targetMessageId);
+    const oldEmbed = threadMessage.embeds?.[0];
+
+    if (!oldEmbed) {
+      await interaction.editReply('売上データを取得できませんでした。（Embedが見つかりません）');
+      return;
+    }
+
+    // Embed から日付を取得（元の date は変更しない仕様）
+    const dateField = (oldEmbed.fields || []).find((f) => f.name === '日付');
+    const dateStr = dateField ? dateField.value.split(/\s+/)[0].trim() : null;
+    const storeName = resolveStoreNameFromEmbed(threadMessage);
+    const nowUnix = getNowUnix();
+
+    // モーダルから新しい数値を取得
+    const total = toSafeNumber(
+      interaction.fields.getTextInputValue(IDS.FIELDS.TOTAL),
+    );
+    const cash = toSafeNumber(
+      interaction.fields.getTextInputValue(IDS.FIELDS.CASH),
+    );
+    const card = toSafeNumber(
+      interaction.fields.getTextInputValue(IDS.FIELDS.CARD),
+    );
+    const urikake = toSafeNumber(
+      interaction.fields.getTextInputValue(IDS.FIELDS.URIKAKE),
+    );
+    const expense = toSafeNumber(
+      interaction.fields.getTextInputValue(IDS.FIELDS.EXPENSE),
+    );
+
+    const zankin = total - (card + expense);
+
+    // 既存のステータス系フィールドを回収（承認者/承認時間 など）
+    const existingFields = oldEmbed.fields || [];
+    const approver = existingFields.find((f) => f.name === '承認者');
+    const approverTime = existingFields.find((f) => f.name === '承認時間');
+
+    // 新しいフィールドを組み立て
+    const newFields = [
+      { name: '日付', value: dateStr || '未入力', inline: true },
+      { name: '総売り', value: formatYen(total), inline: true },
+      { name: '現金', value: formatYen(cash), inline: true },
+      { name: 'カード', value: formatYen(card), inline: true },
+      { name: '売掛', value: formatYen(urikake), inline: true },
+      { name: '諸経費', value: formatYen(expense), inline: true },
+      {
+        name: '残金（総売り - (カード + 諸経費)）',
+        value: formatYen(zankin),
+        inline: false,
+      },
+    ];
+
+    if (approver) newFields.push(approver);
+    if (approverTime) newFields.push(approverTime);
+
+    // 今回の修正者情報
+    newFields.push(
+      {
+        name: '修正者',
+        value: `${interaction.user}`,
+        inline: true,
+      },
+      {
+        name: '修正時間',
+        value: `<t:${nowUnix}:f>`,
+        inline: true,
+      },
+    );
+
+    const newEmbed = EmbedBuilder.from(oldEmbed).setFields(newFields);
+
+    // ① スレッド内メッセージを更新
+    await threadMessage.edit({
+      embeds: [newEmbed],
+      components: threadMessage.components,
+    });
+
+    // ② パネル側ログメッセージを更新（スレッドメッセージURLで紐付け）
+    const parentChannel = thread.parent;
+    let logMsg = null;
+
+    if (parentChannel) {
+      const url = `https://discord.com/channels/${guildId}/${thread.id}/${threadMessage.id}`;
+      const fetched = await parentChannel.messages.fetch({ limit: 50 });
+      logMsg = fetched.find((m) => m.content.includes(url)) || null;
+    }
+
+    if (logMsg) {
+      const newContent = updateLogContentLine(
+        logMsg.content,
+        '修正者：',
+        `修正者：${interaction.user}　修正時間：<t:${nowUnix}:f>`,
+      );
+      await logMsg.edit(newContent);
+    }
+
+    // ③ GCS のレコードも更新
+    if (dateStr) {
+      await updateUriageRecord(guildId, dateStr, threadMessage.id, {
+        total,
+        cash,
+        card,
+        urikake,
+        expense,
+        zankin,
+        status: 'edited',
+        editedById: interaction.user.id,
+        editedByTag: interaction.user.tag,
+        editedAt: new Date().toISOString(),
+      });
+    }
+
+    // ④ ユーザーへの結果返却
+    await interaction.editReply({
+      content: [
+        '✏️ 売上報告を修正しました。',
+        `・店舗：${storeName}`,
+        `・日付：${dateStr}`,
+        `・総売り：${formatYen(total)} / 現金：${formatYen(cash)} / カード：${formatYen(card)} / 売掛：${formatYen(urikake)} / 諸経費：${formatYen(expense)}`,
+        `・残金：${formatYen(zankin)}`,
+        '',
+        `スレッド：${threadMessage.url}`,
+        logMsg ? `パネルログ：${logMsg.url}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    });
+  } catch (err) {
+    logger.error('[uriage][handleUriageEditModalSubmit] エラー:', err);
+    await interaction.editReply('売上修正の処理中にエラーが発生しました。');
+  }
 }
 
 module.exports = {
   openUriageReportModal,
-  openUriageReportModal, // ← 追加
-  handleUriageRequestModalSubmit,
+  handleUriageReportModalSubmit,
+  openUriageEditModal,
+  handleUriageEditModalSubmit,
 };

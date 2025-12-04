@@ -6,7 +6,7 @@
 const modal = require('../modal/modal_store_add.js');
 
 module.exports = {
-  customId: 'CONFIG_STORE_ADD',
+  customId: 'config_store_add',
 
   async execute(interaction) {
     return modal.show(interaction);

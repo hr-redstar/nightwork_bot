@@ -11,21 +11,23 @@ const {
 const nextStep = require('./select_user_chooseStore.js');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_MEMBER',
+  customId: 'config_user_select_member',
 
   async show(interaction) {
     const menu = new UserSelectMenuBuilder()
-      .setCustomId('CONFIG_USER_SELECT_MEMBER')
+      .setCustomId('config_user_select_member')
       .setPlaceholder('ユーザーを選択してください')
       .setMinValues(1)
       .setMaxValues(1);
 
     const row = new ActionRowBuilder().addComponents(menu);
 
+    const { MessageFlags } = require('discord.js');
+
     await interaction.reply({
       content: '👤 情報を登録するユーザーを選択してください。',
       components: [row],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   },
 

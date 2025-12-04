@@ -12,6 +12,7 @@ const {
   ButtonStyle,
   EmbedBuilder,
 } = require('discord.js');
+
 const logger = require('../../../utils/logger');
 const {
   loadKeihiConfig,
@@ -23,9 +24,9 @@ const {
 const { createSettingPanelEmbed } = require('../../../utils/embedPanel');
 const { IDS } = require('./ids');
 
-// ------------------------
+// ----------------------------------------------------
 // ボタン行
-// ------------------------
+// ----------------------------------------------------
 function buildSettingButtonsRow1() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -48,26 +49,42 @@ function buildSettingButtonsRow2() {
   );
 }
 
-// ------------------------
+// ----------------------------------------------------
 // 店舗名解決
-// ------------------------
+//   storeRoleConfig のフォーマット差異を吸収して storeId → 店舗名 にする
+// ----------------------------------------------------
 function resolveStoreName(storeRoleConfig, storeId) {
   if (!storeRoleConfig) return storeId;
+
   const rawStores = storeRoleConfig.stores ?? storeRoleConfig;
 
+  // 配列形式
   if (Array.isArray(rawStores)) {
-    const store = rawStores[Number(storeId)];
-    if (typeof store === 'string') return store; // 文字列の配列 ['店舗A', ...]
-    return store?.name ?? store?.storeName ?? storeId; // オブジェクトの配列 [{ name: '店舗A' }, ...]
-  } else if (rawStores && typeof rawStores === 'object') {
-    return rawStores[storeId]?.name ?? rawStores[storeId]?.storeName ?? storeId; // オブジェクト { '0': { name: '店舗A' } }
+    // 新: [{ id, name }, ...]
+    const byId = rawStores.find((s) => s && String(s.id) === String(storeId));
+    if (byId) return byId.name;
+
+    // 旧: ["店舗A", "店舗B"] or [{ name, storeName }]
+    const byIndex = rawStores[Number(storeId)];
+    if (typeof byIndex === 'string') return byIndex;
+    return byIndex?.name ?? byIndex?.storeName ?? storeId;
   }
-  return storeId; // フォールバック
+
+  // オブジェクト形式: { "外部IT会社": { name: "外部IT会社", ... } }
+  if (rawStores && typeof rawStores === 'object') {
+    return (
+      rawStores[storeId]?.name ??
+      rawStores[storeId]?.storeName ??
+      storeId
+    );
+  }
+
+  return storeId;
 }
 
-// ------------------------
-// 設定パネル embed + components
-// ------------------------
+// ----------------------------------------------------
+// 設定パネル embed + components を構築
+// ----------------------------------------------------
 async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   const guildId = guild.id;
 
@@ -93,7 +110,6 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
       if (!channelId) continue;
 
       const messageId = panel.messageId || null;
-
       const channel = guild.channels.cache.get(channelId);
       const storeName = resolveStoreName(storeRoleConfig, storeId);
       const channelMention = channel ? `<#${channelId}>` : `ID: ${channelId}`;
@@ -107,11 +123,10 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     }
   }
 
-  // ---------- ② まだ panels に載っていない店舗だけ旧 panelMap からフォールバック ----------
+  // ---------- ② panels にまだ載っていない店舗だけ旧 panelMap からフォールバック ----------
   if (panelMap && typeof panelMap === 'object') {
     for (const [storeId, channelId] of Object.entries(panelMap)) {
-      // すでに panels 側で扱った店舗はスキップ
-      if (panels && panels[storeId]) continue;
+      if (panels && panels[storeId]) continue; // 既に新フォーマットにある店舗はスキップ
 
       const channel = guild.channels.cache.get(channelId);
       const storeName = resolveStoreName(storeRoleConfig, storeId);
@@ -128,8 +143,6 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   }
 
   // ---------- 承認役職（役職＋ロールで表示） ----------
-
-  // ロールID（旧フィールド互換）の union
   const roleIdSet = new Set();
 
   if (Array.isArray(keihiConfig.approverRoleIds)) {
@@ -150,14 +163,13 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
 
   let approverLines = '';
 
-  // 役職ベースで表示できるなら、役職名＋ロールの形で出す
+  // 役職ベースで表示できるなら「役職名：ロール」形式で表示
   if (storeRoleConfig && approverPositionIds.length > 0) {
     const rawRoles =
       storeRoleConfig.roles ??
       storeRoleConfig.positions ??
       {};
 
-    /** @type {Record<string, { id: string, name: string }>} */
     const positionsById = {};
 
     if (Array.isArray(rawRoles)) {
@@ -192,11 +204,11 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     const lines = [];
 
     for (const posId of approverPositionIds) {
-      const posKey = String(posId);
-      const posMeta = positionsById[posKey];
-      const posName = posMeta?.name || posKey;
+      const key = String(posId);
+      const posMeta = positionsById[key];
+      const posName = posMeta?.name || key;
 
-      const roleIdsForPos = positionRoles[posKey] || [];
+      const roleIdsForPos = positionRoles[key] || [];
       const roleMentionText =
         roleIdsForPos.length > 0
           ? roleIdsForPos
@@ -215,7 +227,7 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     }
   }
 
-  // 上で作れなかった場合（古いデータ or position情報なし）はロールのみ表示にフォールバック
+  // 上で作れなかった場合はロールIDだけで表示
   if (!approverLines) {
     approverLines =
       approverRoleIds.length > 0
@@ -252,9 +264,9 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   };
 }
 
-// ------------------------
-// 設定パネルのメッセージ更新
-// ------------------------
+// ----------------------------------------------------
+// 設定パネルのメッセージ更新（configPanel 情報から）
+// ----------------------------------------------------
 async function refreshKeihiSettingPanelMessage(guild, keihiConfig) {
   const panelInfo = keihiConfig.configPanel || keihiConfig.settingPanel;
   if (!panelInfo?.channelId || !panelInfo?.messageId) return;
@@ -271,16 +283,49 @@ async function refreshKeihiSettingPanelMessage(guild, keihiConfig) {
   }
 }
 
-// ------------------------
+// ----------------------------------------------------
+// 旧フォーマットから新フォーマットへのデータ移行
+//   - panelMap/panelMessageMap → panels[storeId] へ
+// ----------------------------------------------------
+function migrateConfigFormat(config) {
+  if (!config || typeof config !== 'object') config = {};
+
+  if (!config.panels || typeof config.panels !== 'object') {
+    config.panels = {};
+  }
+
+  const panelMap = config.panelMap || {};
+  const panelMessageMap = config.panelMessageMap || {};
+
+  if (!panelMap || !Object.keys(panelMap).length) {
+    return config;
+  }
+
+  for (const [storeId, channelId] of Object.entries(panelMap)) {
+    if (config.panels[storeId]) continue;
+    config.panels[storeId] = {
+      channelId,
+      messageId: panelMessageMap[storeId] || null,
+      requestRoleIds: [],
+      items: [],
+    };
+  }
+
+  return config;
+}
+
+// ----------------------------------------------------
 // /設定経費 実行時: 設定パネル送信/更新
-// ------------------------
+//   （コマンド側で先に deferReply 済み想定）
+// ----------------------------------------------------
 async function postKeihiSettingPanel(interaction) {
   const guild = interaction.guild;
   const guildId = guild.id;
 
-  const keihiConfig = await loadKeihiConfig(guildId);
-  const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
+  let keihiConfig = (await loadKeihiConfig(guildId)) || {};
+  keihiConfig = migrateConfigFormat(keihiConfig);
 
+  const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
   const panelInfo = keihiConfig.configPanel || keihiConfig.settingPanel;
 
   // 既存パネルがあればそのメッセージを更新
@@ -299,6 +344,14 @@ async function postKeihiSettingPanel(interaction) {
         channelId: panelInfo.channelId,
         messageId: panelInfo.messageId,
       };
+
+      // 旧フォーマット削除
+      if (keihiConfig.panelMap) {
+        delete keihiConfig.panelMap;
+        delete keihiConfig.panelMessageMap;
+        logger.info('[keihi/setting/panel] 新フォーマットへの移行完了');
+      }
+
       await saveKeihiConfig(guildId, keihiConfig);
 
       await interaction.editReply({
@@ -310,6 +363,7 @@ async function postKeihiSettingPanel(interaction) {
         '[keihi/setting/panel] 既存パネル更新失敗 → 新規送信へフォールバック',
         err,
       );
+      // → 下で「新規送信」にフォールバック
     }
   }
 
@@ -320,6 +374,14 @@ async function postKeihiSettingPanel(interaction) {
     channelId: sent.channelId,
     messageId: sent.id,
   };
+
+  // 旧フォーマット削除
+  if (keihiConfig.panelMap) {
+    delete keihiConfig.panelMap;
+    delete keihiConfig.panelMessageMap;
+    logger.info('[keihi/setting/panel] 新フォーマットへの移行完了');
+  }
+
   await saveKeihiConfig(guildId, keihiConfig);
 
   await interaction.editReply({
@@ -327,9 +389,9 @@ async function postKeihiSettingPanel(interaction) {
   });
 }
 
-// ------------------------
+// ----------------------------------------------------
 // 店舗ごとの経費申請パネルを送信
-// ------------------------
+// ----------------------------------------------------
 /**
  * @param {import('discord.js').TextBasedChannel} channel
  * @param {string} storeId
@@ -357,28 +419,28 @@ async function sendKeihiPanel(channel, storeId) {
           .map((item) => `・${typeof item === 'string' ? item : item.name}`)
           .join('\n')
       : '未設定';
+
   embed.addFields({
     name: '申請可能な経費項目',
     value: itemsValue.slice(0, 1024),
   });
 
-  // 役職IDをメンションに変換するヘルパー
+  // 役職IDをメンションに変換
   const rolesToMentions = (roleIds = []) => {
     if (!roleIds.length) return '未設定';
     return roleIds.map((id) => `<@&${id}>`).join(' ');
   };
 
-  // 閲覧役職
-  embed.addFields({
-    name: 'スレッド閲覧役職',
-    value: rolesToMentions(panelConfig.viewRoleIds),
-  });
-
-  // 申請役職
-  embed.addFields({
-    name: '経費申請役職',
-    value: rolesToMentions(panelConfig.requestRoleIds),
-  });
+  embed.addFields(
+    {
+      name: 'スレッド閲覧役職',
+      value: rolesToMentions(panelConfig.viewRoleIds),
+    },
+    {
+      name: '経費申請役職',
+      value: rolesToMentions(panelConfig.requestRoleIds),
+    },
+  );
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -387,7 +449,7 @@ async function sendKeihiPanel(channel, storeId) {
       .setStyle(ButtonStyle.Primary),
   );
 
-  return await channel.send({ embeds: [embed], components: [row] });
+  return channel.send({ embeds: [embed], components: [row] });
 }
 
 module.exports = {

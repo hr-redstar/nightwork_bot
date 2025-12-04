@@ -133,7 +133,7 @@ async function handleChannelSelectedForPanel(interaction, {
   // 4. ユーザーへの確認メッセージ
   await interaction.followUp({
     content: `✅ ${selectedStore} の${featureLabel}を <#${channelId}> に設置しました。`,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

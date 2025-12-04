@@ -18,7 +18,7 @@ const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
 const nextStep = require('./select_user_birth_year.js');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_POSITION',
+  customId: 'config_user_select_position',
 
   /**
    * 役職選択メニュー表示
@@ -64,7 +64,7 @@ module.exports = {
     }
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`CONFIG_USER_SELECT_POSITION_${userId}_${storeName}`)
+      .setCustomId(`config_user_select_position_${userId}_${storeName}`)
       .setPlaceholder('役職を選択してください（1つだけ）')
       .setMinValues(1)
       .setMaxValues(1)
@@ -83,7 +83,7 @@ module.exports = {
     // --- 自動推定が成功した場合、「次へ」ボタンを追加 ---
     if (defaultPositionId) {
       const nextButton = new ButtonBuilder()
-        .setCustomId(`CONFIG_USER_GOTO_BIRTH_YEAR_${userId}_${storeName}_${defaultPositionId}`) // GOTO
+        .setCustomId(`config_user_goto_birth_year_${userId}_${storeName}_${defaultPositionId}`) // GOTO
         .setLabel('この役職で決定')
         .setStyle(ButtonStyle.Success);
       
@@ -108,7 +108,7 @@ module.exports = {
     const customId = interaction.customId;
     // CONFIG_USER_SELECT_POSITION_<userId>_<storeName>
 
-    const parts = customId.replace('CONFIG_USER_SELECT_POSITION_', '').split('_');
+    const parts = customId.replace('config_user_select_position_', '').split('_');
     const userId = parts[0];
     const storeName = parts.slice(1).join('_'); // storeName は _ を含む可能性があるため
 

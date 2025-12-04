@@ -1,4 +1,4 @@
-﻿﻿﻿﻿const {
+﻿﻿const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
@@ -99,6 +99,13 @@ async function sendConfigPanel(channel) {
   const slackInfo = globalConfig.slackWebhookUrl ? '🔗 設定済み' : '未設定';
 
   // -------------------------------
+  // ⚙️ コマンド実行役職
+  // -------------------------------
+  const commandExecutorRole = globalConfig.commandExecutorRoleId
+    ? `<@&${globalConfig.commandExecutorRoleId}>`
+    : '未設定';
+
+  // -------------------------------
   // 📌 Embed 作成
   // -------------------------------
   const embed = new EmbedBuilder()
@@ -111,6 +118,7 @@ async function sendConfigPanel(channel) {
       { name: '👔 役職とロールの紐づけ', value: positionRoleList },
       { name: '📜 ログ設定', value: logFields },
       { name: '🔔 Slack通知自動化', value: slackInfo },
+      { name: '⚙️ コマンド実行役職', value: commandExecutorRole },
     )
     .setTimestamp();
 
@@ -125,7 +133,8 @@ async function sendConfigPanel(channel) {
   );
 
   const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('config_user_register').setLabel('ユーザー情報登録').setStyle(ButtonStyle.Success)
+    new ButtonBuilder().setCustomId('config_user_register').setLabel('ユーザー情報登録').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('config_command_role').setLabel('コマンド実行役職').setStyle(ButtonStyle.Secondary)
   );
 
   const row3 = new ActionRowBuilder().addComponents(

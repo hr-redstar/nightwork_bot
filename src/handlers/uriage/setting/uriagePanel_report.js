@@ -5,7 +5,7 @@
 // ----------------------------------------------------
 
 const {
-  getUriageStoreConfig,
+  loadUriageStoreConfig,
   saveUriageStoreConfig,
 } = require('../../../utils/uriage/gcsUriageManager');
 const { buildUriageReportPanel } = require('../report/reportPanel');
@@ -44,7 +44,7 @@ async function postUriageReportPanel({ guild, channel, storeKey }) {
   const message = await channel.send(payload);
 
   // 店舗別configにパネル情報を保存
-  const config = await getUriageStoreConfig(guildId, storeKey);
+  const config = await loadUriageStoreConfig(guildId, storeKey);
   config.reportPanelMessageId = message.id;
   config.reportPanelChannelId = message.channel.id;
   await saveUriageStoreConfig(guildId, storeKey, config);

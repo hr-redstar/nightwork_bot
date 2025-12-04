@@ -113,9 +113,10 @@ async function submitConfigModal(interaction) {
   // ✅ 設定ログスレッド出力
   await logToSettingThread(interaction, before, next);
 
+  const { MessageFlags } = require('discord.js');
   await interaction.reply({
     content: `✅ くじ引き設定を更新しました（${lines.length} 件）。`,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

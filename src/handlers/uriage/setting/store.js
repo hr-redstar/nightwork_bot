@@ -8,9 +8,10 @@
  * @param {import('discord.js').ButtonInteraction} interaction
  */
 async function openUriageStoreSetting(interaction) {
+  const { MessageFlags } = require('discord.js');
   return interaction.reply({
-    content: '店舗別の詳細設定機能はまだ実装されていません。',
-    ephemeral: true,
+    content: '売上の店舗別設定機能はまだ実装されていません。',
+    flags: MessageFlags.Ephemeral,
   });
 }
 

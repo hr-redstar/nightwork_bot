@@ -15,7 +15,7 @@ const extraYearStep = require('./select_user_birth_year_extra.js');
 const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
 
 module.exports = {
-  customId: 'CONFIG_USER_SELECT_BIRTH_YEAR',
+  customId: 'config_user_select_birth_year',
 
   /**
    * 年選択メニュー表示（2006〜1982）
@@ -31,7 +31,7 @@ module.exports = {
     // --- メニュー1 (2006〜1982) ---
     const menu1 = new StringSelectMenuBuilder()
       .setCustomId(
-        `CONFIG_USER_SELECT_BIRTH_YEAR_${userId}_${storeName}_${positionId}`
+        `config_user_select_birth_year_${userId}_${storeName}_${positionId}`
       )
       .setPlaceholder('生まれた年を選択してください (2006〜1982年)')
       .setMinValues(1)
@@ -45,7 +45,7 @@ module.exports = {
     // --- メニュー2 (1981〜1957) ---
     const menu2 = new StringSelectMenuBuilder()
       .setCustomId(
-        `CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_${userId}_${storeName}_${positionId}`
+        `config_user_select_birth_year_extra_${userId}_${storeName}_${positionId}`
       )
       .setPlaceholder('生まれた年を選択してください (1981〜1957年)')
       .setMinValues(1)
@@ -65,7 +65,7 @@ module.exports = {
     if (userInfo?.birthday) {
       const [year, month, day] = userInfo.birthday.split('-');
       const nextButton = new ButtonBuilder()
-        .setCustomId(`CONFIG_USER_GOTO_USERINFO_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`)
+        .setCustomId(`config_user_goto_userinfo_${userId}_${storeName}_${positionId}_${year}_${month}_${day}`)
         .setLabel('この生年月日で決定')
         .setStyle(ButtonStyle.Success);
       
@@ -84,8 +84,8 @@ module.exports = {
    * 年選択後 → Step4-2（誕生月）へ
    */
   async handle(interaction) {
-    const isExtra = interaction.customId.includes('_EXTRA_');
-    const prefix = isExtra ? 'CONFIG_USER_SELECT_BIRTH_YEAR_EXTRA_' : 'CONFIG_USER_SELECT_BIRTH_YEAR_';
+    const isExtra = interaction.customId.includes('_extra_');
+    const prefix = isExtra ? 'config_user_select_birth_year_extra_' : 'config_user_select_birth_year_';
     const raw = interaction.customId.replace(prefix, '');
     const customIdParts = raw.split('_');
 

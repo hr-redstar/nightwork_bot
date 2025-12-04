@@ -1,5 +1,5 @@
 const { getKujiSettings } = require('./kujiStorage');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { runKuji } = require('./kujiRunner');
 const { logKujiResult } = require('./kujiLogger');
 
@@ -13,7 +13,7 @@ async function handleKujiRun(interaction) {
     const count = parseInt(interaction.values[0], 10);
 
     if (kujiList.length === 0) {
-      return interaction.reply({ content: '⚠️ くじ引きの項目が設定されていません。', ephemeral: true });
+      return interaction.reply({ content: '⚠️ くじ引きの項目が設定されていません。', flags: MessageFlags.Ephemeral });
     }
 
     const results = runKuji(kujiList, count);
@@ -39,15 +39,15 @@ async function handleKujiRun(interaction) {
     await interaction.channel.send({ embeds: [embed] });
 
     // And then acknowledge the ephemeral interaction.
-    await interaction.reply({ content: `結果をスレッド <#${thread.id}> に出力しました。`, ephemeral: true });
+    await interaction.reply({ content: `結果をスレッド <#${thread.id}> に出力しました。`, flags: MessageFlags.Ephemeral });
 
   } catch (error) {
     console.error('❌ kujiRunHandler error:', error);
     if (interaction.isRepliable()) {
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: 'くじ引きの実行中にエラーが発生しました。', ephemeral: true });
+        await interaction.followUp({ content: 'くじ引きの実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
       } else {
-        await interaction.reply({ content: 'くじ引きの実行中にエラーが発生しました。', ephemeral: true });
+        await interaction.reply({ content: 'くじ引きの実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
       }
     }
   }

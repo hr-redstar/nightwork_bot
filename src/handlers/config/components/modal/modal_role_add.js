@@ -44,9 +44,11 @@ module.exports = {
 
     await addRole(interaction.guild.id, fakeRoleObj);
 
+    const { MessageFlags } = require('discord.js');
+
     await interaction.reply({
       content: `🎭 役職 **${roleName}** を追加しました！`,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   },
 };

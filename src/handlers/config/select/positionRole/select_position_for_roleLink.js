@@ -12,7 +12,7 @@ const { loadStoreRoleConfig } = require('../../../../utils/config/storeRoleConfi
 const nextStep = require('./select_roles_for_position.js');
 
 module.exports = {
-  customId: 'CONFIG_SELECT_POSITION_FOR_ROLE_LINK',
+  customId: 'config_select_position_for_role_link',
 
   /**
    * 役職選択メニューを表示
@@ -38,7 +38,7 @@ module.exports = {
     }
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId('CONFIG_SELECT_POSITION_FOR_ROLE_LINK_VALUE')
+      .setCustomId('config_select_position_for_role_link_value')
       .setPlaceholder('ロールを紐づける役職を選択')
       .addOptions(options);
 
