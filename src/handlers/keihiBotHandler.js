@@ -1,6 +1,7 @@
 // src/handlers/keihiBotHandler.js
 // ----------------------------------------------------
 // 経費機能のエントリーポイント（interactionCreate から呼ばれる）
+// ./keihi/index.js をラップするだけ
 // ----------------------------------------------------
 
 const { handleKeihiInteraction } = require('./keihi');
@@ -10,7 +11,7 @@ const { handleKeihiInteraction } = require('./keihi');
  * @param {import('discord.js').Interaction} interaction
  */
 async function handleInteraction(interaction) {
-  // ここでは CSV とかをいじらず、全部 keihi/index.js に丸投げする
+  // ここでは一切ルーティングしないで、全部 keihi/index.js に投げる
   return handleKeihiInteraction(interaction);
 }
 

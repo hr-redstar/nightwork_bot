@@ -10,4 +10,9 @@ const STATUS_IDS = {
   MODIFY_MODAL: 'keihi_request_modify_modal',
 };
 
-module.exports = { STATUS_IDS };
+// ※ import 側で const { IDS: STATUS_IDS } = require('./statusIds');
+//    としている箇所があったので、互換のため IDS 名でも export しておく
+module.exports = {
+  STATUS_IDS,
+  IDS: STATUS_IDS,
+};

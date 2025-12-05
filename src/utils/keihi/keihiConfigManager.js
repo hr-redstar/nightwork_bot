@@ -1,202 +1,111 @@
 // src/utils/keihi/keihiConfigManager.js
 // ----------------------------------------------------
-// 経費機能 全体設定 ({guildId}/keihi/config.json)
-// 旧フォーマット：
-//   - approvalRoles
-//   - panelMap
-//   - panelMessageMap
-//   - settingPanel
-//   - …
-// 新フォーマット：
-//   - configPanel
-//   - approverRoleIds
-//   - panels
+// 経費の「ギルド全体設定」管理
+//   - パス: GCS/{guildId}/keihi/config.json
+//   - 承認役職（ロールID / 役職ID）
+//   - 設定パネル（/設定経費）の場所
 // ----------------------------------------------------
 
-const gcs = require('../gcs');
+const { readJSON, saveJSON } = require('../gcs');
 const logger = require('../logger');
 
-/**
- * keihi グローバル設定ファイルパス
- *   {guildId}/keihi/config.json
- */
-function keihiGlobalConfigPath(guildId) {
-  return `${guildId}/keihi/config.json`;
+function buildConfigPath(guildId) {
+  return `GCS/${guildId}/keihi/config.json`;
 }
 
-/**
- * ベース構造
- * 旧フォーマット用のフィールドも全部用意しておく
- */
-function createDefaultKeihiConfig() {
+function createDefaultConfig() {
   return {
-    // 新フォーマット
-    configPanel: {
-      channelId: null,
-      messageId: null,
-    },
-    approverRoleIds: [],   // 新: 承認役職ID一覧
-    panels: {},            // 新: 店舗別パネル設定 { [storeId]: { channelId, messageId, ... } }
+    // グローバル承認ロール（ロールID）
+    approverRoleIds: [],
 
-    // 旧フォーマット（互換のため残す）
-    approvalRoles: [],             // 旧: approverRoleIds の元
-    viewRoles: [],
-    applyRoles: [],
-    panelMap: {},
-    panelMessageMap: {},
-    threadViewRolesByStore: {},
-    applyRolesByStore: {},
-    itemsByStore: {},
-    settingPanel: null,
+    // グローバル承認役職（positionId）
+    approverPositionIds: [],
 
-    // メタ情報
+    // 設定パネル (/設定経費) のメッセージ場所
+    configPanel: null, // { channelId, messageId }
+
+    // 旧フォーマット互換
+    panelMap: undefined,
+    panelMessageMap: undefined,
+
+    // パネル一覧（storeId -> { channelId, messageId }）
+    panels: {},
+
     lastUpdated: null,
   };
 }
 
+function normalizeConfig(raw) {
+  const base = createDefaultConfig();
+  const cfg = { ...base, ...(raw || {}) };
+
+  if (!Array.isArray(cfg.approverRoleIds)) cfg.approverRoleIds = [];
+  if (!Array.isArray(cfg.approverPositionIds)) cfg.approverPositionIds = [];
+
+  if (!cfg.panels || typeof cfg.panels !== 'object') cfg.panels = {};
+  return cfg;
+}
+
 /**
- * 経費グローバル設定の読み込み
- *  - 旧フォーマットのフィールドもそのまま残す
- *  - configPanel が無ければ settingPanel を fallback で使う
- *  - approverRoleIds が無ければ approvalRoles を使う
+ * 古い panelMap / panelMessageMap を panels に移行
  */
-async function loadKeihiConfig(guildId) {
-  const path = keihiGlobalConfigPath(guildId);
-  try {
-    const raw = (await gcs.readJSON(path)) || {};
-    const base = createDefaultKeihiConfig();
+function migratePanels(cfg) {
+  const panelMap = cfg.panelMap || {};
+  const panelMessageMap = cfg.panelMessageMap || {};
 
-    // ベースに raw をマージ（旧フィールドも全部残す）
-    const merged = {
-      ...base,
-      ...raw,
-      configPanel: {
-        ...base.configPanel,
-        ...(raw.configPanel || {}),
-      },
-    };
+  if (!panelMap || typeof panelMap !== 'object') return cfg;
 
-    // configPanel が無くて settingPanel があれば流用
-    if (
-      (!merged.configPanel || !merged.configPanel.channelId) &&
-      merged.settingPanel &&
-      merged.settingPanel.channelId
-    ) {
-      merged.configPanel = {
-        channelId: merged.settingPanel.channelId,
-        messageId: merged.settingPanel.messageId,
+  if (!cfg.panels || typeof cfg.panels !== 'object') {
+    cfg.panels = {};
+  }
+
+  for (const [storeId, channelId] of Object.entries(panelMap)) {
+    if (!storeId || !channelId) continue;
+
+    if (!cfg.panels[storeId]) {
+      cfg.panels[storeId] = {
+        channelId,
+        messageId: panelMessageMap[storeId] || null,
       };
     }
+  }
 
-    // approverRoleIds が空で、approvalRoles があれば流用
-    if (
-      (!Array.isArray(merged.approverRoleIds) ||
-        merged.approverRoleIds.length === 0) &&
-      Array.isArray(merged.approvalRoles)
-    ) {
-      merged.approverRoleIds = merged.approvalRoles.slice();
-    }
+  delete cfg.panelMap;
+  delete cfg.panelMessageMap;
+  return cfg;
+}
 
-    // panels が undefined / 不正 の場合は空オブジェクトに
-    if (!merged.panels || typeof merged.panels !== 'object') {
-      merged.panels = {};
-    }
-
-    return merged;
+/**
+ * 経費グローバル設定を読み込み
+ * @param {string} guildId
+ */
+async function loadKeihiConfig(guildId) {
+  const path = buildConfigPath(guildId);
+  try {
+    const raw = await readJSON(path);
+    const cfg = normalizeConfig(raw);
+    return migratePanels(cfg);
   } catch (err) {
-    logger.warn(
-      '[keihiConfigManager] keihi/config.json 読み込み失敗 -> デフォルト使用',
-      err,
-    );
-    return createDefaultKeihiConfig();
+    logger.warn('[keihiConfigManager] 読み込み失敗:', err);
+    return createDefaultConfig();
   }
 }
 
 /**
- * 経費グローバル設定の保存
- *  - 旧フィールドもそのまま書き戻す
- *  - lastUpdated を現在時刻で更新
+ * 経費グローバル設定を保存
+ * @param {string} guildId
+ * @param {object} config
  */
 async function saveKeihiConfig(guildId, config) {
-  const path = keihiGlobalConfigPath(guildId);
-  try {
-    const base = createDefaultKeihiConfig();
+  const path = buildConfigPath(guildId);
+  const cfg = normalizeConfig(config);
+  cfg.lastUpdated = new Date().toISOString();
 
-    const saveData = {
-      ...base,
-      ...config,
-      configPanel: {
-        ...base.configPanel,
-        ...(config.configPanel || {}),
-      },
-      lastUpdated: new Date().toISOString(),
-    };
-
-    await gcs.saveJSON(path, saveData);
-  } catch (err) {
-    logger.error('[keihiConfigManager] keihi/config.json 保存失敗', err);
-    throw err;
-  }
-}
-
-// ----------------------------------------------------
-// 経費機能 店舗別設定 ({guildId}/keihi/{storeId}/config.json)
-// ----------------------------------------------------
-
-/**
- * keihi 店舗別設定ファイルパス
- *   {guildId}/keihi/{storeId}/config.json
- */
-function keihiStoreConfigPath(guildId, storeId) {
-  return `${guildId}/keihi/${storeId}/config.json`;
-}
-
-/**
- * 経費店舗別設定の読み込み
- *  - ここでは素の JSON をそのまま返す（デフォルト構成は gcsKeihiManager 側でも提供）
- */
-async function loadKeihiStoreConfig(guildId, storeId) {
-  const path = keihiStoreConfigPath(guildId, storeId);
-  try {
-    const config = (await gcs.readJSON(path)) || {};
-    return config;
-  } catch (err) {
-    logger.warn(
-      `[keihiConfigManager] ${path} 読み込み失敗 -> デフォルト使用`,
-      err,
-    );
-    return {};
-  }
-}
-
-/**
- * 経費店舗別設定の保存
- *  - 既存の設定を読み込んでからマージして上書き
- */
-async function saveKeihiStoreConfig(guildId, storeId, newConfig) {
-  const path = keihiStoreConfigPath(guildId, storeId);
-  try {
-    const existingConfig = await loadKeihiStoreConfig(guildId, storeId);
-    const mergedConfig = {
-      ...existingConfig,
-      ...newConfig,
-      lastUpdated: new Date().toISOString(),
-    };
-    await gcs.saveJSON(path, mergedConfig);
-  } catch (err) {
-    logger.error(`[keihiConfigManager] ${path} 保存失敗`, err);
-    throw err;
-  }
+  await saveJSON(path, cfg);
+  return cfg;
 }
 
 module.exports = {
-  // 全体設定
-  keihiGlobalConfigPath,
   loadKeihiConfig,
   saveKeihiConfig,
-
-  // 店舗別設定
-  keihiStoreConfigPath,
-  loadKeihiStoreConfig,
-  saveKeihiStoreConfig,
 };

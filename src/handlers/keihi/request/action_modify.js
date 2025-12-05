@@ -1,6 +1,6 @@
 // src/handlers/keihi/request/action_modify.js
 // ----------------------------------------------------
-// 経費申請「修正」ボタンの処理
+// 経費申請「修正」ボタンの処理（ステータス上の「修正済み」マーク）
 // ----------------------------------------------------
 
 const { MessageFlags } = require('discord.js');
@@ -8,7 +8,6 @@ const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { sendSettingLog } = require('../../../utils/config/configLogger');
 const { resolveStoreName } = require('../setting/panel');
-const { STATUS_IDS } = require('./statusIds');
 const {
   getEmbedFieldValue,
   collectApproverRoleIds,
@@ -21,27 +20,13 @@ const {
  */
 async function handleModifyButton(interaction) {
   const { customId, guild, member } = interaction;
-
-  if (!guild) {
-    await interaction.reply({
-      content: 'ギルド情報が取得できませんでした。',
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
   const guildId = guild.id;
 
-  // customId 形式:
-  //   keihi_request_modify::{storeId}::{threadId}::{messageId}
-  // または statusHelpers.buildStatusButtons 経由で:
-  //   keihi_request_modify::{storeId}::{threadId}::{messageId}::{status}
+  // keihi_request_modify::{storeId}::{threadId}::{messageId}::{status?}
   const parts = customId.split('::');
-  const [prefix, storeId, threadId, messageId] = parts;
-  // const status = parts[4] || null; // 現状は未使用だが、将来ステータスで条件分岐したいとき用
+  const [, storeId, threadId, messageId] = parts;
 
-  if (prefix !== STATUS_IDS.MODIFY || !storeId || !threadId || !messageId) {
-    return;
-  }
+  if (!storeId || !threadId || !messageId) return;
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -70,7 +55,6 @@ async function handleModifyButton(interaction) {
     return;
   }
 
-  // 承認/修正/削除の権限チェック
   const approverRoleIds = collectApproverRoleIds(keihiConfig);
   const { hasPermission, message: permError } = checkStatusActionPermission(
     'modify',
@@ -78,37 +62,44 @@ async function handleModifyButton(interaction) {
     baseEmbed,
     approverRoleIds,
   );
-
   if (!hasPermission) {
     await interaction.editReply({ content: permError });
     return;
   }
 
   const storeName = resolveStoreName(storeRoleConfig, storeId);
-
   const now = new Date();
   const tsUnix = Math.floor(now.getTime() / 1000);
   const modifiedAtText = `<t:${tsUnix}:f>`;
 
-  // スレッド側のメッセージを「修正済み」としてマーク
+  const originalDate = getEmbedFieldValue(baseEmbed, '日付');
+  const originalDepartment = getEmbedFieldValue(baseEmbed, '部署');
+  const originalItemName = getEmbedFieldValue(baseEmbed, '経費項目');
+
   await message.edit({
     content: `✏️ 経費申請　修正しました　修正者：${member}　修正時間：${modifiedAtText}`,
     embeds: message.embeds,
     components: message.components,
   });
 
-  // パネルチャンネル側のログメッセージも更新
-  const parentChannel = thread.isThread() && thread.parent ? thread.parent : thread;
-  const logMessageId = baseEmbed.footer?.text?.startsWith('LogID: ')
-    ? baseEmbed.footer.text.slice('LogID: '.length)
+  const threadChannel = message.channel;
+  const parentChannel =
+    threadChannel.isThread() && threadChannel.parent
+      ? threadChannel.parent
+      : threadChannel;
+
+  const footerText = baseEmbed.footer?.text || '';
+  const logMessageId = footerText.startsWith('LogID: ')
+    ? footerText.slice('LogID: '.length)
     : null;
 
   if (parentChannel && logMessageId) {
-    const logMessage = await parentChannel.messages.fetch(logMessageId).catch(() => null);
+    const logMessage = await parentChannel.messages
+      .fetch(logMessageId)
+      .catch(() => null);
     if (logMessage) {
       let content = logMessage.content;
 
-      // 既に「修正者：」行があれば差し替え、なければ「承認者：」の直前に差し込む
       if (/^修正者：/m.test(content)) {
         content = content.replace(
           /^修正者：.*$/m,
@@ -125,11 +116,6 @@ async function handleModifyButton(interaction) {
     }
   }
 
-  // 元の申請内容をログ用に取得
-  const originalDate = getEmbedFieldValue(baseEmbed, '日付');
-  const originalDepartment = getEmbedFieldValue(baseEmbed, '部署');
-  const originalItemName = getEmbedFieldValue(baseEmbed, '経費項目');
-
   await sendSettingLog(interaction, {
     title: '経費申請修正',
     description:
@@ -144,19 +130,4 @@ async function handleModifyButton(interaction) {
   });
 }
 
-/**
- * 修正モーダル送信時（現状はプレースホルダー）
- * @param {import('discord.js').ModalSubmitInteraction} interaction
- */
-async function handleModifyModalSubmit(interaction) {
-  const { MessageFlags } = require('discord.js');
-  await interaction.reply({
-    content: '経費申請の修正モーダル処理は現在準備中です。',
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-module.exports = {
-  handleModifyButton,
-  handleModifyModalSubmit,
-};
+module.exports = { handleModifyButton };

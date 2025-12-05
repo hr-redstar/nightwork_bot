@@ -1,16 +1,19 @@
 // src/handlers/keihi/request/statusHelpers.js
 // ----------------------------------------------------
-// 経費申請ステータス操作の共通ヘルパー
+// 経費申請ステータス操作 共通ヘルパー
+//   - Embed から値取得
+//   - 承認ロール一覧取得
+//   - 権限チェック
+//   - ステータスボタン行の再構築
 // ----------------------------------------------------
 
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { STATUS_IDS } = require('./statusIds');
 
 /**
- * Embedから特定のフィールド値を取得する
+ * Embed から特定フィールドの値を取得
  * @param {import('discord.js').Embed} embed
  * @param {string} fieldName
- * @returns {string}
  */
 function getEmbedFieldValue(embed, fieldName) {
   const field = embed?.fields?.find((f) => f.name === fieldName);
@@ -18,7 +21,7 @@ function getEmbedFieldValue(embed, fieldName) {
 }
 
 /**
- * 承認役職ID一覧を取得する
+ * 承認役職ID一覧を取得（/設定経費 の承認役職）
  * @param {object} keihiConfig
  * @returns {string[]}
  */
@@ -31,6 +34,7 @@ function collectApproverRoleIds(keihiConfig) {
     }
   }
 
+  // 旧フィールド互換 (approvalRoles)
   if (Array.isArray(keihiConfig.approvalRoles)) {
     for (const id of keihiConfig.approvalRoles) {
       if (id) set.add(id);
@@ -54,7 +58,10 @@ function checkStatusActionPermission(action, member, embed, approverRoleIds) {
 
   if (action === 'approve') {
     if (!isApprover) {
-      return { hasPermission: false, message: 'この経費申請を承認する権限がありません。' };
+      return {
+        hasPermission: false,
+        message: 'この経費申請を承認する権限がありません。',
+      };
     }
   } else {
     // modify, delete
@@ -63,7 +70,10 @@ function checkStatusActionPermission(action, member, embed, approverRoleIds) {
     const isOriginalRequester = originalInputUserId === member.id;
 
     if (!isApprover && !isOriginalRequester) {
-      return { hasPermission: false, message: 'この経費申請を操作する権限がありません。' };
+      return {
+        hasPermission: false,
+        message: 'この経費申請を操作する権限がありません。',
+      };
     }
   }
 
@@ -71,31 +81,24 @@ function checkStatusActionPermission(action, member, embed, approverRoleIds) {
 }
 
 /**
- * ステータスボタンの行を再構築する
+ * ステータスボタン行を再構築
  * @param {string} storeId
  * @param {string} threadId
  * @param {string} messageId
  * @param {string} status
- * @returns {ActionRowBuilder<ButtonBuilder>}
  */
 function buildStatusButtons(storeId, threadId, messageId, status) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(
-        `${STATUS_IDS.APPROVE}::${storeId}::${threadId}::${messageId}::${status}`,
-      )
+      .setCustomId(`${STATUS_IDS.APPROVE}::${storeId}::${threadId}::${messageId}::${status}`)
       .setLabel('承認')
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId(
-        `${STATUS_IDS.MODIFY}::${storeId}::${threadId}::${messageId}::${status}`,
-      )
+      .setCustomId(`${STATUS_IDS.MODIFY}::${storeId}::${threadId}::${messageId}::${status}`)
       .setLabel('修正')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId(
-        `${STATUS_IDS.DELETE}::${storeId}::${threadId}::${messageId}::${status}`,
-      )
+      .setCustomId(`${STATUS_IDS.DELETE}::${storeId}::${threadId}::${messageId}::${status}`)
       .setLabel('削除')
       .setStyle(ButtonStyle.Danger),
   );

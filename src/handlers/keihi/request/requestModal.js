@@ -18,9 +18,8 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const {
-  loadKeihiConfig,
-} = require('../../../utils/keihi/keihiConfigManager');
+const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
+const { loadKeihiStoreConfig } = require('../../../utils/keihi/keihiStoreConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { sendAdminLog } = require('../../../utils/config/configLogger');
 const { resolveStoreName } = require('../setting/panel');
@@ -35,67 +34,39 @@ const {
 const { IDS: REQ_IDS } = require('./requestIds');
 const { STATUS_IDS } = require('./statusIds');
 
-const FALLBACK_MODAL_PREFIX = 'keihi_request_request_modal';
-
 /**
  * 経費申請モーダル送信時
  * @param {import('discord.js').ModalSubmitInteraction} interaction
  */
 async function handleRequestModalSubmit(interaction) {
-  console.log('[DEBUG] handleRequestModalSubmit 呼び出し:', interaction.customId);
+  const customId = interaction.customId; // keihi_request_request_modal::店舗名
+  const [prefix, storeId] = customId.split('::'); // "keihi_request_request_modal", "店舗名"
 
-  const customId = interaction.customId; // 例: keihi_request_request_modal::外部IT会社
-  const [prefix, storeId] = customId.split('::');
-
-  const expectedPrefix =
-    (REQ_IDS && REQ_IDS.REQUEST_MODAL) || FALLBACK_MODAL_PREFIX;
-
-  console.log('[keihi_request] handleRequestModalSubmit start', {
-    customId,
-    prefix,
-    expectedPrefix,
-    storeId,
-  });
-
-  if (prefix !== expectedPrefix || !storeId) {
-    console.warn('[keihi_request] 予期しないモーダルIDです', {
-      customId,
-      prefix,
-      expectedPrefix,
-      storeId,
-    });
-    return;
+  if (prefix !== REQ_IDS.REQUEST_MODAL || !storeId) {
+    return; // 想定外
   }
 
   const guild = interaction.guild;
-  if (!guild) {
-    console.warn('[keihi_request] ギルド情報が取得できませんでした');
-    return;
-  }
   const guildId = guild.id;
   const member = interaction.member;
 
-  // 1. deferReply
   try {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   } catch (e) {
     console.error('deferReplyでエラーが発生しました。followUpで通知を試みます:', e);
-    // deferReplyが失敗した場合でもfollowUpでエラー通知を試みる
     await interaction
       .followUp({
-        content:
-          '応答の準備に失敗しました。インタラクションがタイムアウトした可能性があります。',
+        content: '応答の準備に失敗しました。インタラクションがタイムアウトした可能性があります。',
         flags: MessageFlags.Ephemeral,
       })
       .catch((err) =>
         console.error('followUpでのエラー通知にも失敗しました:', err),
       );
-    // deferReplyが失敗するとeditReplyは使えないため、ここで処理を中断
     return;
   }
 
   try {
-    // 2. バリデーションとデータ取得
+    // 1. バリデーションとデータ取得
     const { error, data } = validateAndGetData(interaction);
     if (error) {
       await interaction.editReply({ content: error });
@@ -103,22 +74,21 @@ async function handleRequestModalSubmit(interaction) {
     }
     const { dateStr, department, itemName, amount, note } = data;
 
-    // 時間のかかるI/O処理
-    const [keihiConfig, storeRoleConfig] = await Promise.all([
+    const [keihiConfig, storeConfig, storeRoleConfig] = await Promise.all([
       loadKeihiConfig(guildId),
+      loadKeihiStoreConfig(guildId, storeId),
       loadStoreRoleConfig(guildId).catch(() => null),
     ]);
 
-    const panelConfig = keihiConfig.panels?.[storeId];
-    if (!panelConfig || !panelConfig.channelId) {
+    if (!storeConfig.channelId) {
       await interaction.editReply({
-        content: '経費申請パネルの設定が見つかりません。',
+        content: '経費申請パネルのチャンネル設定が見つかりません。',
       });
       return;
     }
 
-    // 3. ログ出力先チャンネルとスレッドの準備
-    const channel = await guild.channels.fetch(panelConfig.channelId).catch(() => null);
+    // 2. ログ出力先チャンネルとスレッドの準備
+    const channel = await guild.channels.fetch(storeConfig.channelId).catch(() => null);
     if (!channel || !channel.isTextBased()) {
       await interaction.editReply({
         content: '経費申請ログ用のチャンネルに送信できません。',
@@ -130,10 +100,10 @@ async function handleRequestModalSubmit(interaction) {
 
     const thread = await findOrCreateExpenseThread(channel, dateStr, storeName);
 
-    // 4. スレッドにメンバーを追加
+    // 3. スレッドにメンバーを追加
     const { allowedRoleIds } = collectAllowedRoleIdsForRequest(
       keihiConfig,
-      storeId,
+      storeConfig,
       storeRoleConfig,
     );
     await addMembersToThread(thread, guild, member, allowedRoleIds);
@@ -144,14 +114,14 @@ async function handleRequestModalSubmit(interaction) {
     const timestampText = `${dateStr || '不明'} ${hh}:${mi}`;
     const tsUnix = Math.floor(now.getTime() / 1000);
 
-    // 5. スレッドに送信するメッセージを構築
+    // 4. スレッドに送信するメッセージを構築
     const content = '経費申請';
     const initialEmbed = new EmbedBuilder()
       .setTitle('経費申請')
       .addFields(
         { name: '日付', value: dateStr, inline: true },
-        { name: '部署', value: department || '未入力', inline: true },
-        { name: '経費項目', value: itemName || '未入力', inline: false },
+        { name: '部署', value: department, inline: true },
+        { name: '経費項目', value: itemName, inline: false },
         { name: '金額', value: `${amount.toLocaleString()} 円`, inline: true },
         { name: '備考', value: note || '未入力', inline: false },
         { name: 'ステータス', value: '🕒 申請中', inline: true },
@@ -161,14 +131,14 @@ async function handleRequestModalSubmit(interaction) {
       .setTimestamp()
       .setFooter({ text: 'LogID: PENDING' }); // 仮のフッター
 
-    // 6. スレッドにメッセージを送信（この時点ではボタンなし）
+    // 5. スレッドにメッセージを送信（この時点ではボタンなし）
     console.log('プライベートスレッドへメッセージを送信中...');
     const threadMessage = await thread.send({
       content,
       embeds: [initialEmbed],
     });
 
-    // 7. 申請チャンネルにログを送信
+    // 6. 申請チャンネルにログを送信
     console.log('経費申請パネルチャンネルへメッセージを送信中...');
     const logLines = [
       '------------------------------',
@@ -183,7 +153,7 @@ async function handleRequestModalSubmit(interaction) {
       content: logLines.join('\n'),
     });
 
-    // 8. スレッドメッセージを更新 (フッターにログIDを、ボタンにスレッド/メッセージIDを設定)
+    // 7. スレッドメッセージを更新 (フッターにログIDを、ボタンにスレッド/メッセージIDを設定)
     console.log('スレッドメッセージのフッターとボタンを更新中...');
     const finalEmbed = EmbedBuilder.from(initialEmbed).setFooter({
       text: `LogID: ${logMessage.id}`,
@@ -210,12 +180,9 @@ async function handleRequestModalSubmit(interaction) {
         .setStyle(ButtonStyle.Danger),
     );
 
-    await threadMessage.edit({
-      embeds: [finalEmbed],
-      components: [finalButtonsRow],
-    });
+    await threadMessage.edit({ embeds: [finalEmbed], components: [finalButtonsRow] });
 
-    // 9. 管理者ログを送信
+    // 8. 管理者ログを送信
     try {
       console.log('管理者ログへメッセージを送信中...');
       await sendAdminLog(interaction, {
@@ -228,32 +195,20 @@ async function handleRequestModalSubmit(interaction) {
       console.log('管理者ログへのメッセージ送信完了。');
     } catch (logError) {
       console.error('管理者ログの送信に失敗しました:', logError);
-      await interaction
-        .followUp({
-          content:
-            '⚠️ 管理者ログの送信に失敗しました。\n' +
-            'ボットに管理者ログチャンネルへの「メッセージを送信」「埋め込みリンク」権限があるか確認してください。',
-          flags: MessageFlags.Ephemeral,
-        })
-        .catch((e) =>
-          console.error('管理者ログエラー通知の送信にも失敗しました:', e),
-        );
+      await interaction.followUp({
+        content:
+          '⚠️ 管理者ログの送信に失敗しました。\n' +
+          'ボットに管理者ログチャンネルへの「メッセージを送信」「埋め込みリンク」権限があるか確認してください。',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
-    // 10. ユーザーへの最終応答
-    const replyMsg = await interaction.editReply({
+    // 9. ユーザーへの最終応答
+    await interaction.editReply({
       content: `店舗「${storeName}」で経費申請を登録しました。\nスレッド: ${threadMessage.url}`,
     });
 
-    // 1分後にメッセージを削除する
-    setTimeout(() => {
-      replyMsg.delete().catch((e) => {
-        // 既に削除されている場合などは無視
-        console.debug('メッセージ削除エラー（無視）:', e.message);
-      });
-    }, 60 * 1000); // 60秒 = 1分
-
-    // 11. 経費申請パネルを再送信して最新化
+    // 10. 経費申請パネルを再送信して最新化
     try {
       await refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig);
     } catch (e) {

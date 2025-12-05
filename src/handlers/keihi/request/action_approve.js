@@ -6,7 +6,7 @@
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
-const { sendAdminLog } = require('../../../utils/config/configLogger');
+const { sendSettingLog } = require('../../../utils/config/configLogger');
 const { resolveStoreName } = require('../setting/panel');
 const {
   getEmbedFieldValue,
@@ -26,12 +26,7 @@ const {
   saveKeihiYearlyData,
 } = require('../../../utils/keihi/gcsKeihiManager');
 
-// ----------------------------------------------------
-// 日付文字列 → { yyyy, mm, dd } の簡易パーサ
-//   - "YYYY-MM-DD"
-//   - "YYYY/MM/DD"
-// の両方に対応
-// ----------------------------------------------------
+// 日付文字列 → { yyyy, mm, dd }
 function parseYmdParts(dateStr) {
   if (!dateStr) return null;
   const m = /^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/.exec(dateStr.trim());
@@ -58,13 +53,10 @@ async function handleApproveButton(interaction) {
   }
   const guildId = guild.id;
 
-  // customId 形式:
-  //   keihi_request_approve::{storeId}::{threadId}::{messageId}
-  // または buildStatusButtons 経由で:
-  //   keihi_request_approve::{storeId}::{threadId}::{messageId}::{status}
+  // customId:
+  //   keihi_request_approve::{storeId}::{threadId}::{messageId}::{status?}
   const parts = customId.split('::');
   const [prefix, storeId, threadId, messageId] = parts;
-  // const status = parts[4] || null; // 必要になったら利用
 
   if (prefix !== STATUS_IDS.APPROVE || !storeId || !threadId || !messageId) {
     return;
@@ -107,7 +99,6 @@ async function handleApproveButton(interaction) {
     return;
   }
 
-  // 権限チェック（承認者ロールを持つメンバーのみ承認可能）
   const { hasPermission, message: permError } = checkStatusActionPermission(
     'approve',
     member,
@@ -124,7 +115,7 @@ async function handleApproveButton(interaction) {
   const tsUnix = Math.floor(now.getTime() / 1000);
   const approvedAtText = `<t:${tsUnix}:f>`;
 
-  // 既存フィールドをコピーしてからステータス系を上書き
+  // Embed fields 更新
   const fields = Array.isArray(baseEmbed.fields)
     ? baseEmbed.fields.map((f) => ({ ...f }))
     : [];
@@ -148,7 +139,6 @@ async function handleApproveButton(interaction) {
     .setFields(fields)
     .setTimestamp(now);
 
-  // ステータスボタンを再構築（status = 'APPROVED' を付与）
   const newButtonsRow = buildStatusButtons(
     storeId,
     threadId,
@@ -172,13 +162,11 @@ async function handleApproveButton(interaction) {
       let content = logMessage.content;
 
       if (/^承認者：/m.test(content)) {
-        // 既存行を上書き
         content = content.replace(
           /^承認者：.*$/m,
           `承認者：${member}　承認時間：${approvedAtText}`,
         );
       } else {
-        // 一番下の罫線の直前に追記
         content = content.replace(
           /------------------------------\s*$/m,
           `承認者：${member}　承認時間：${approvedAtText}\n------------------------------`,
@@ -189,7 +177,7 @@ async function handleApproveButton(interaction) {
     }
   }
 
-  // ---------- ここで 年月日ファイルを更新 ----------
+  // 日・月・年 集計ファイル更新
   try {
     await updateKeihiStatsOnApprove({
       guildId,
@@ -199,7 +187,6 @@ async function handleApproveButton(interaction) {
       approver: member,
     });
   } catch (e) {
-    // 統計更新に失敗しても本体処理は続行
     console.error('[keihi] 年月日ファイル更新中にエラー:', e);
   }
 
@@ -209,7 +196,7 @@ async function handleApproveButton(interaction) {
   const originalInputUser = getEmbedFieldValue(baseEmbed, '入力者');
   const originalInputTime = getEmbedFieldValue(baseEmbed, '入力時間');
 
-  await sendAdminLog(interaction, {
+  await sendSettingLog(interaction, {
     title: '経費申請承認',
     description:
       `✅ 店舗「${storeName}」の経費申請を承認しました。\n` +
@@ -224,13 +211,6 @@ async function handleApproveButton(interaction) {
 
 /**
  * 承認時に 日・月・年 の集計ファイルを更新
- * @param {{
- *   guildId: string,
- *   storeId: string,
- *   baseEmbed: import('discord.js').Embed,
- *   threadMessage: import('discord.js').Message,
- *   approver: import('discord.js').GuildMember
- * }} params
  */
 async function updateKeihiStatsOnApprove({
   guildId,
@@ -239,13 +219,9 @@ async function updateKeihiStatsOnApprove({
   threadMessage,
   approver,
 }) {
-  // ギルド名（サーバー名）
-  const guildName = threadMessage.guild?.name || null;
-
-  // Embed から各項目を取得
   const dateStrRaw = getEmbedFieldValue(baseEmbed, '日付') || '';
   const dateStr = dateStrRaw.trim();
-  if (!dateStr) return; // 日付ないとどうにもならないのでスキップ
+  if (!dateStr) return;
 
   const department = (getEmbedFieldValue(baseEmbed, '部署') || '').trim();
   const itemName = (getEmbedFieldValue(baseEmbed, '経費項目') || '').trim();
@@ -255,43 +231,13 @@ async function updateKeihiStatsOnApprove({
 
   const inputUserId = inputUser.match(/<@!?(\d+)>/)?.[1] || null;
 
-  // ---- ★ 名前を解決（申請者 / 承認者）ここから ----
-  const guild = threadMessage.guild;
-
-  // メンションからユーザーID抽出
-  // リクエストしたユーザーの表示名 / ユーザー名を取得
-  let requesterName = null;
-  if (inputUserId && guild) {
-    let requesterMember = guild.members.cache.get(inputUserId);
-    if (!requesterMember) {
-      requesterMember = await guild.members.fetch(inputUserId).catch(() => null);
-    }
-    // デフォルトは埋め込みに入っている文字列そのまま
-    requesterName = inputUser;
-    // メンバー情報が取れたら表示名/ユーザー名優先
-    if (requesterMember) {
-      requesterName =
-        requesterMember.displayName ||
-        requesterMember.nickname ||
-        requesterMember.user?.globalName ||
-        requesterMember.user?.username ||
-        inputUser;
-    }
-  }
-  // 承認者の表示名 / ユーザー名
-  const approvedByName =
-    approver.displayName || approver.nickname || approver.user?.globalName ||
-    approver.user?.username || `${approver}`;
-  // ---- ★ ここまで ----
-
-  // "10,000 円" → "10000" にする
   const cleanedAmountText = String(amountField)
     .replace(/[^\d,，]/g, '')
     .replace(/[,，]/g, '')
     .trim();
   const amount = Number(cleanedAmountText || '0');
   if (!Number.isFinite(amount) || amount <= 0) {
-    return; // 金額が取れない場合は集計スキップ
+    return;
   }
 
   const nowIso = new Date().toISOString();
@@ -300,7 +246,7 @@ async function updateKeihiStatsOnApprove({
       ? baseEmbed.footer.text.slice('LogID: '.length)
       : null;
 
-  // ---------------- 日別ファイル ----------------
+  // 日別
   const dailyData = (await loadKeihiDailyData(guildId, storeId, dateStr)) || {};
   if (!Array.isArray(dailyData.requests)) dailyData.requests = [];
 
@@ -323,12 +269,9 @@ async function updateKeihiStatsOnApprove({
     amount,
     note,
     requesterId: inputUserId,
-    requester: inputUser, // メンション形式も残しておく
-    requesterName, // ★ 申請者の表示名（新規追加）
+    requester: inputUser,
     approvedById: approver.id,
-    approvedBy: `${approver}`, // メンション形式も残しておく
-    approvedByName, // ★ 承認者の表示名（新規追加）
-    guildName: guild?.name || null, // ★ サーバー名も一応保持
+    approvedBy: `${approver}`,
     approvedAt: nowIso,
     updatedAt: nowIso,
   });
@@ -344,14 +287,14 @@ async function updateKeihiStatsOnApprove({
   await saveKeihiDailyData(guildId, storeId, dateStr, dailyData);
 
   const diff = amount - prevApprovedAmount;
-  if (!diff) return; // 承認金額に変化がないときは月・年は触らない
+  if (!diff) return;
 
   const ymd = parseYmdParts(dateStr);
   if (!ymd) return;
   const { yyyy, mm } = ymd;
   const monthKey = `${yyyy}-${mm}`;
-  
-  // ---------------- 月別ファイル ----------------
+
+  // 月別
   const monthlyData =
     (await loadKeihiMonthlyData(guildId, storeId, dateStr)) || {};
   monthlyData.guildId = guildId;
@@ -370,7 +313,7 @@ async function updateKeihiStatsOnApprove({
 
   await saveKeihiMonthlyData(guildId, storeId, dateStr, monthlyData);
 
-  // ---------------- 年別ファイル ----------------
+  // 年別
   const yearlyData =
     (await loadKeihiYearlyData(guildId, storeId, dateStr)) || {};
   yearlyData.guildId = guildId;

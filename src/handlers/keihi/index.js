@@ -1,33 +1,35 @@
 // src/handlers/keihi/index.js
 // ----------------------------------------------------
-// 経費関連のインタラクションを統括するハンドラ
-// customId のプレフィックスを見て、各機能に処理を振り分ける
+// 経費機能ルーター
+//   - customId / modalId から「設定 or 申請」を振り分け
 // ----------------------------------------------------
 
-const { handleKeihiSettingInteraction } = require('./setting');
-const { handleKeihiRequestInteraction } = require('./request');
+const { handleSettingInteraction } = require('./setting');
+const { handleRequestInteraction } = require('./request');
 
 /**
- * 経費関連のインタラクションをすべて処理する
+ * keihi_* 系インタラクションのエントリーポイント
  * @param {import('discord.js').Interaction} interaction
  */
 async function handleKeihiInteraction(interaction) {
-  // スラッシュコマンドなど customId を持たないものは無視
-  if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit() && !interaction.isChannelSelectMenu()) {
-    return;
-  }
-
   const customId = interaction.customId || '';
 
-  // 設定パネル（keihi_config:xxxx）からのインタラクション
+  // 設定系: keihi_config:...
   if (customId.startsWith('keihi_config:')) {
-    return handleKeihiSettingInteraction(interaction);
+    return handleSettingInteraction(interaction);
   }
 
-  // 申請パネル（keihi_request...）からのインタラクション
-  if (customId.startsWith('keihi_request')) {
-    return handleKeihiRequestInteraction(interaction);
+  // 申請系: keihi_request...
+  if (
+    customId.startsWith('keihi_request') ||
+    (interaction.isModalSubmit() &&
+      customId.startsWith('keihi_request'))
+  ) {
+    return handleRequestInteraction(interaction);
   }
+
+  // 想定外は何もしない
+  return;
 }
 
 module.exports = {
