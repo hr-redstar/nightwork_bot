@@ -1,121 +1,122 @@
 // src/handlers/uriage/setting/panelLocation.js
-// 「売上報告パネル設置」ボタンのフロー
+// 売上報告パネルの設置フロー
 
-const { ActionRowBuilder, StringSelectMenuBuilder, ChannelSelectMenuBuilder, ChannelType, MessageFlags } = require('discord.js');
+const {
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ChannelSelectMenuBuilder,
+  ChannelType,
+} = require('discord.js');
+const { MessageFlags } = require('discord.js');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
-const { loadUriageConfig, saveUriageConfig } = require('../../../utils/uriage/uriageConfigManager');
-const { postUriageReportPanel } = require('./uriagePanel_report');
-const { refreshUriageSettingPanelMessage } = require('./panel'); // keihi の refreshKeihiSettingPanelMessage に相当
-const { sendSettingLog } = require('../../../utils/uriage/embedLogger');
-const logger = require('../../../utils/logger');
+const { buildStoreSelectOptions } = require('../../../utils/config/storeSelectHelper');
+const {
+  loadUriageConfig,
+  saveUriageConfig,
+  loadUriageStoreConfig,
+  saveUriageStoreConfig,
+} = require('../../../utils/uriage/uriageConfigManager');
+const { sendSettingLog } = require('../../../utils/config/configLogger');
+const { sendUriagePanel, refreshUriageSettingPanelMessage, resolveStoreName } = require('./panel');
 const { IDS } = require('./ids');
 
-async function openPanelLocationSelector(interaction) {
+// 店舗選択
+async function handleSetPanelButton(interaction) {
   const guildId = interaction.guild.id;
-  const storeData = await loadStoreRoleConfig(guildId);
-  const stores = storeData?.stores || [];
+  const options = await buildStoreSelectOptions(guildId);
 
-  if (!stores.length) {
-    return interaction.followUp({
-      content: '⚠️ 店舗情報が登録されていません。',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId(IDS.SELECT_STORE_FOR_PANEL)
-    .setPlaceholder('パネルを設置する店舐を選択')
-    .addOptions(stores.map((s) => ({ label: s.name, value: s.id })));
-
-  return interaction.reply({
-    content: '🏪 どの店舗の売上報告パネルを設置しますか？',
-    components: [new ActionRowBuilder().addComponents(menu)],
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-async function handleStoreForPanelSelect(interaction) {
-  const storeId = interaction.values[0];
-  const channelMenu = new ChannelSelectMenuBuilder() // customId に storeId を含める
-    .setCustomId(`${IDS.SELECT_CHANNEL_FOR_PANEL}:${storeId}`)
-    .setPlaceholder('設置先のテキストチャネルを選択')
-    .addChannelTypes(ChannelType.GuildText);
-
-  return interaction.update({
-    content: `✅ 店舗 **${storeId}** を選択しました。\n次に、パネルを設置するチャンネルを選択してください。`,
-    components: [new ActionRowBuilder().addComponents(channelMenu)],
-  });
-}
-
-async function handlePanelChannelSelect(interaction) {
-  await interaction.deferUpdate();
-  const guildId = interaction.guild.id;
-  const guild = interaction.guild;
-
-  const id = interaction.customId; // uriage:setting:select:panel_channel:{店舗名}
-  const parts = id.split(':');
-  const storeId = parts[parts.length - 1]; // 店舗ID=店舗名として扱う
-
-  const channelId = interaction.values[0];
-  const channel = guild.channels.cache.get(channelId);
-
-  if (!channel || !channel.isTextBased()) {
-    await interaction.followUp({
-      content: '選択されたチャンネルにメッセージを送信できません。',
-      flags: MessageFlags.Ephemeral,
+  if (!options.length) {
+    await interaction.reply({
+      content: '店舗設定が見つかりません。先に 店舗_役職_ロール.json を設定してください。',
     });
     return;
   }
 
-  const globalConfig = await loadUriageConfig(guildId);
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(IDS.SEL_STORE_FOR_PANEL)
+    .setPlaceholder('売上報告パネルを設置する店舗を選択')
+    .addOptions(options);
 
-  if (!globalConfig.panels) {
-    globalConfig.panels = {};
-  }
-
-  if (!globalConfig.panels[storeId]) {
-    globalConfig.panels[storeId] = {
-      channelId,
-      messageId: null,
-    };
-  } else {
-    globalConfig.panels[storeId].channelId = channelId;
-  }
-
-  await saveUriageConfig(guildId, globalConfig);
-
-  // 店舗ごとの売上報告パネルメッセージを upsert
-  const panelMessage = await postUriageReportPanel({
-    guild,
-    channel,
-    storeKey: storeId,
+  const row = new ActionRowBuilder().addComponents(select);
+  await interaction.reply({
+    content: '売上報告パネルを設置する店舗を選んでください。',
+    components: [row],
+    flags: MessageFlags.Ephemeral,
   });
+}
 
-  // panelMessage.id を globalConfig.panels に反映
-  if (panelMessage?.id) {
-    globalConfig.panels[storeId].messageId = panelMessage.id;
-    await saveUriageConfig(guildId, globalConfig);
+// 店舗選択 → チャンネル選択
+async function handleStoreForPanelSelect(interaction) {
+  const storeId = interaction.values[0];
+
+  const chSelect = new ChannelSelectMenuBuilder()
+    .setCustomId(`${IDS.PANEL_CHANNEL_PREFIX}${storeId}`)
+    .setPlaceholder('売上報告パネルを置くテキストチャンネルを選択')
+    .setChannelTypes(ChannelType.GuildText);
+
+  const row = new ActionRowBuilder().addComponents(chSelect);
+
+  await interaction.update({
+    content: `店舗「${storeId}」の売上報告パネルを置くチャンネルを選択してください。`,
+    components: [row],
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+// チャンネル確定 → パネル送信＆保存
+async function handlePanelChannelSelect(
+  interaction,
+  refreshPanel = refreshUriageSettingPanelMessage,
+) {
+  const guild = interaction.guild;
+  const guildId = guild.id;
+  const parts = interaction.customId.split(':');
+  const storeId = parts[parts.length - 1];
+
+  const channelId = interaction.values[0];
+  const channel = guild.channels.cache.get(channelId);
+  if (!channel || !channel.isTextBased()) {
+    await interaction.reply({ content: 'テキストチャンネルを選択してください。' });
+    return;
   }
 
-  // 売上設定パネルを再描画
-  await refreshUriageSettingPanelMessage(guild, globalConfig);
+  await interaction.deferUpdate();
 
+  const uriageConfig = await loadUriageConfig(guildId);
+  if (!uriageConfig.panels) uriageConfig.panels = {};
+  uriageConfig.panels[storeId] = { channelId, messageId: null };
+  await saveUriageConfig(guildId, uriageConfig);
+
+  // パネル送信
+  const panelMessage = await sendUriagePanel(channel, storeId);
+
+  // 店舗ごとの config 保存
+  const storeConfig = await loadUriageStoreConfig(guildId, storeId);
+  storeConfig.channelId = panelMessage.channelId;
+  storeConfig.messageId = panelMessage.id;
+  await saveUriageStoreConfig(guildId, storeId, storeConfig);
+
+  // 設定パネルを再描画
+  const latestConfig = await loadUriageConfig(guildId);
+  await refreshPanel(guild, latestConfig);
+
+  // 設定ログ
+  const storeRoleConfig = await loadStoreRoleConfig(guildId).catch(() => null);
+  const storeName = resolveStoreName(storeRoleConfig, storeId);
   await sendSettingLog(interaction, {
     title: '売上報告パネル設置',
-    fields: [
-      { name: '店舗', value: storeId, inline: true },
-      { name: 'チャンネル', value: `<#${channelId}>`, inline: true },
-    ],
-  });
+    description: `店舗「${storeName}」の売上報告パネルを <#${channelId}> に設置しました。`,
+  }).catch(() => {});
 
   await interaction.editReply({
-    content: `✅ **${storeId}** の売上報告パネルを <#${channelId}> に設置しました。`,
+    content: `店舗「${storeName}」の売上報告パネルを <#${channelId}> に設置しました。`,
     components: [],
+    flags: MessageFlags.Ephemeral,
   });
 }
 
 module.exports = {
-  openPanelLocationSelector,
+  handleSetPanelButton,
   handleStoreForPanelSelect,
   handlePanelChannelSelect,
 };

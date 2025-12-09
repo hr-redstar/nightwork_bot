@@ -26,7 +26,13 @@ function resolveRoleIdsFromPositions(storeRoleConfig, positionIds) {
   const positionRoles =
     storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap || {};
 
-  const roleIds = positionIds.flatMap((posId) => positionRoles[posId] || []);
+  const roleIds = positionIds.flatMap((posId) => {
+    const raw = positionRoles[posId];
+    if (!raw) return [];
+    // 配列でも単体でも対応
+    return Array.isArray(raw) ? raw : [raw];
+  });
+
   return [...new Set(roleIds.filter(Boolean))];
 }
 
@@ -39,7 +45,9 @@ function resolveRoleIdsFromPositions(storeRoleConfig, positionIds) {
 function getPositionName(storeRoleConfig, positionId) {
   if (!storeRoleConfig || !positionId) return `ID: ${positionId}`;
   const positions = storeRoleConfig.roles || [];
-  const pos = positions.find((p) => String(p.id ?? p.positionId) === String(positionId));
+  const pos = positions.find(
+    (p) => String(p.id ?? p.positionId) === String(positionId),
+  );
   return pos?.name || `ID: ${positionId}`;
 }
 
@@ -59,15 +67,27 @@ function formatRoleLines(storeRoleConfig, positionIds, roleIds) {
   }
 
   const positionRoles =
-    (storeRoleConfig && (storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap)) || {};
+    (storeRoleConfig &&
+      (storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap)) ||
+    {};
 
   return positionIds
     .map((posId) => {
-      const roleId = positionRoles[posId];
+      const raw = positionRoles[posId];
+      const roleIdList = Array.isArray(raw)
+        ? raw
+        : raw
+        ? [raw]
+        : [];
+
       const posName = getPositionName(storeRoleConfig, posId);
-      return roleId
-        ? `${posName}: <@&${roleId}>`
-        : `${posName}: 未紐付`;
+      const mention =
+        roleIdList.length > 0
+          ? roleIdList.map((id) => `<@&${id}>`).join(' ')
+          : '未紐付';
+
+      // 例）店長: @管理者 @副管理者
+      return `${posName}: ${mention}`;
     })
     .join('\n');
 }
@@ -158,7 +178,12 @@ function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
  * @param {any} storeRoleConfig
  * @returns {Promise<import('discord.js').Message | null>}
  */
-async function upsertStorePanelMessage(guild, storeId, keihiConfig, storeRoleConfig) {
+async function upsertStorePanelMessage(
+  guild,
+  storeId,
+  keihiConfig,
+  storeRoleConfig,
+) {
   const panelConfig = keihiConfig.panels?.[storeId];
   if (!panelConfig?.channelId) return null;
 
@@ -166,26 +191,39 @@ async function upsertStorePanelMessage(guild, storeId, keihiConfig, storeRoleCon
     const channel = await guild.channels.fetch(panelConfig.channelId);
     if (!channel || !channel.isTextBased()) return null;
 
-    const embed = buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig);
+    const embed = buildStorePanelEmbed(
+      guild,
+      storeId,
+      keihiConfig,
+      storeRoleConfig,
+    );
 
     const row1 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.ITEM_CONFIG}:${storeId}`)
+        .setCustomId(
+          `${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.ITEM_CONFIG}:${storeId}`,
+        )
         .setLabel('経費項目登録')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.VIEW_ROLES}:${storeId}`)
+        .setCustomId(
+          `${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.VIEW_ROLES}:${storeId}`,
+        )
         .setLabel('閲覧役職')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.REQUEST_ROLES}:${storeId}`)
+        .setCustomId(
+          `${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.REQUEST_ROLES}:${storeId}`,
+        )
         .setLabel('申請役職')
         .setStyle(ButtonStyle.Secondary),
     );
 
     const row2 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.REQUEST}:${storeId}`)
+        .setCustomId(
+          `${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.REQUEST}:${storeId}`,
+        )
         .setLabel('経費申請')
         .setStyle(ButtonStyle.Primary),
     );
@@ -207,17 +245,26 @@ async function upsertStorePanelMessage(guild, storeId, keihiConfig, storeRoleCon
       }
     }
 
-    const sent = await channel.send({ embeds: [embed], components: [row1, row2] });
+    const sent = await channel.send({
+      embeds: [embed],
+      components: [row1, row2],
+    });
 
     // keihiConfig.panels の存在は上で確認済みだが念のため
     if (!keihiConfig.panels) keihiConfig.panels = {};
-    if (!keihiConfig.panels[storeId]) keihiConfig.panels[storeId] = panelConfig || {};
+    if (!keihiConfig.panels[storeId]) {
+      keihiConfig.panels[storeId] = panelConfig || {};
+    }
 
-    keihiConfig.panels[storeId].messageId = sent.id; // ここで config を更新（保存は呼び出し側）
+    // ここで config を更新（保存は呼び出し側）
+    keihiConfig.panels[storeId].messageId = sent.id;
 
     return sent;
   } catch (err) {
-    logger.error(`[keihi/request/panel] 店舗ID ${storeId} のパネル更新失敗`, err);
+    logger.error(
+      `[keihi/request/panel] 店舗ID ${storeId} のパネル更新失敗`,
+      err,
+    );
     return null;
   }
 }

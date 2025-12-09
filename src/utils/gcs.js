@@ -142,4 +142,88 @@ module.exports = {
   saveJSON,
   USE_GCS,
   GCS_BUCKET_NAME,
+  // 追加ヘルパー
+  listFiles,
+  downloadFileToBuffer,
+  getPublicUrl,
+  saveBuffer,
 };
+
+// ----------------------------------------------------
+// 追加ヘルパー: listFiles / downloadFileToBuffer / getPublicUrl
+// ----------------------------------------------------
+
+async function listFiles(prefix) {
+  const normalized = normalizeObjectPath(prefix);
+
+  if (useGcsMode && bucket) {
+    const [files] = await bucket.getFiles({ prefix: normalized });
+    return files.map((f) => f.name);
+  }
+
+  // ローカル: prefix 配下のファイルを再帰取得
+  const { filePath, logicalPath } = toLocalPath(normalized);
+  const dir = logicalPath.startsWith('GCS/') ? logicalPath.slice('GCS/'.length) : logicalPath;
+  const baseDir = path.join(LOCAL_GCS_ROOT, dir);
+
+  async function walk(dirPath, logicalPrefix) {
+    let results = [];
+    let dirents;
+    try {
+      dirents = await fs.readdir(dirPath, { withFileTypes: true });
+    } catch (err) {
+      if (err.code === 'ENOENT') return [];
+      throw err;
+    }
+    for (const d of dirents) {
+      const fullPath = path.join(dirPath, d.name);
+      const logical = `${logicalPrefix}/${d.name}`.replace(/\\/g, '/');
+      if (d.isDirectory()) {
+        const sub = await walk(fullPath, logical);
+        results = results.concat(sub);
+      } else {
+        results.push(`GCS/${logical}`);
+      }
+    }
+    return results;
+  }
+
+  const logicalPrefix = normalized.replace(/^GCS\//, '');
+  return walk(baseDir, logicalPrefix);
+}
+
+async function downloadFileToBuffer(objectPath) {
+  const normalized = normalizeObjectPath(objectPath);
+
+  if (useGcsMode && bucket) {
+    const file = bucket.file(normalized);
+    const [buf] = await file.download();
+    return buf;
+  }
+
+  const { filePath } = toLocalPath(normalized);
+  return fs.readFile(filePath);
+}
+
+function getPublicUrl(objectPath) {
+  const normalized = normalizeObjectPath(objectPath);
+  if (useGcsMode && GCS_BUCKET_NAME) {
+    return `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${normalized}`;
+  }
+  return null;
+}
+
+// バッファを保存（CSV など汎用）
+async function saveBuffer(objectPath, buffer) {
+  const normalized = normalizeObjectPath(objectPath);
+  const { logicalPath, filePath } = toLocalPath(normalized);
+
+  if (useGcsMode && bucket) {
+    const file = bucket.file(logicalPath);
+    await file.save(buffer, { resumable: false });
+    return;
+  }
+
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buffer);
+}

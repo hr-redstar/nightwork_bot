@@ -14,8 +14,10 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
-const { loadKeihiStoreConfig } = require('../../../utils/keihi/keihiStoreConfigManager');
+const {
+  loadKeihiConfig,
+  loadKeihiStoreConfig,
+} = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { resolveStoreName } = require('../setting/panel');
 const {
@@ -26,26 +28,22 @@ const { IDS: REQ_IDS } = require('./requestIds');
 // ----------------------------------------------------
 // 経費申請ボタン → 経費項目セレクト表示
 // ----------------------------------------------------
-/**
- * 経費申請ボタン押下時
- * @param {import('discord.js').ButtonInteraction} interaction
- * @param {string} storeId
- */
 async function handleRequestStart(interaction, storeId) {
   const guild = interaction.guild;
   const guildId = guild.id;
   const member = interaction.member;
 
-  const [keihiConfig, storeConfig, storeRoleConfig] = await Promise.all([
+  const [keihiConfig, storeRoleConfig, storeConfig] = await Promise.all([
     loadKeihiConfig(guildId),
-    loadKeihiStoreConfig(guildId, storeId),
     loadStoreRoleConfig(guildId).catch(() => null),
+    loadKeihiStoreConfig(guildId, storeId).catch(() => null),
   ]);
 
-  if (!storeConfig.channelId) {
+  const panelConfig = keihiConfig.panels?.[storeId] || {};
+
+  if (!panelConfig || !panelConfig.channelId) {
     await interaction.reply({
-      content:
-        'この店舗の経費申請パネル設定が見つかりません。\nまず「経費パネル設置」から店舗パネルを作成してください。',
+      content: 'この店舗の経費申請パネル設定が見つかりません。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -53,7 +51,7 @@ async function handleRequestStart(interaction, storeId) {
 
   const { allowedRoleIds } = collectAllowedRoleIdsForRequest(
     keihiConfig,
-    storeConfig,
+    storeId,
     storeRoleConfig,
   );
 
@@ -64,13 +62,15 @@ async function handleRequestStart(interaction, storeId) {
   if (!hasPermission) {
     await interaction.reply({
       content:
-        'この店舗で経費申請を行う権限がありません。\nスレッド閲覧役職 / 申請役職 / 承認役職のいずれかを付与してください。',
+        'この店舗で経費申請を行う権限がありません。\nスレッド閲覧役職 / 申請役職 / 承認役職、または設定された申請用ロールのいずれかを付与してください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  const items = storeConfig.items || [];
+  const items = panelConfig.items?.length
+    ? panelConfig.items
+    : (storeConfig && Array.isArray(storeConfig.items) ? storeConfig.items : []);
   if (!items.length) {
     await interaction.reply({
       content:
@@ -98,7 +98,7 @@ async function handleRequestStart(interaction, storeId) {
 
     select.addOptions({
       label: label.slice(0, 100),
-      value: label.slice(0, 100), // value にも項目名そのものを設定
+      value: label.slice(0, 100),
     });
   });
 
@@ -114,10 +114,6 @@ async function handleRequestStart(interaction, storeId) {
 // ----------------------------------------------------
 // 経費項目セレクト → 申請モーダル表示
 // ----------------------------------------------------
-/**
- * 経費項目セレクト送信時
- * @param {import('discord.js').StringSelectMenuInteraction} interaction
- */
 async function handleRequestItemSelect(interaction) {
   const { customId, values, guild } = interaction;
   const guildId = guild.id;

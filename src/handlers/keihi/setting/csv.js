@@ -1,5 +1,9 @@
-// src/handlers/uriage/setting/csv.js　
-// 売上「CSV発行」フロー（経費版をベースに uriage 用に調整）　
+// src/handlers/keihi/setting/csv.js
+// ----------------------------------------------------
+// 経費「CSV発行」フロー
+//   ボタン -> 店舗選択 -> 種別選択（年月日 / 年月 / 年 / 四半期）
+//   -> 期間選択 -> JSON を CSV 化し添付 & URL 表示
+// ----------------------------------------------------
 
 const {
   ActionRowBuilder,
@@ -11,9 +15,9 @@ const {
 const { IDS } = require('./ids');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const {
-  listUriageJsonTargets,
-  buildUriageCsvForPeriod,
-} = require('../../../utils/uriage/gcsUriageManager');
+  listKeihiJsonTargets,
+  buildKeihiCsvForPeriod,
+} = require('../../../utils/keihi/gcsKeihiManager');
 const logger = require('../../../utils/logger');
 
 // ユーザーごとの一時状態: { storeName, rangeType }
@@ -25,14 +29,14 @@ function getStateKey(interaction) {
   return `${guildId}:${userId}`;
 }
 
-// 店舗一覧を SelectMenu 用に整形
+// 店舗一覧を SelectMenu 用に整形（storeRoleConfig の形が不定なのでゆるく対応）
 function buildStoreOptions(storeConfig) {
   if (Array.isArray(storeConfig?.stores)) {
     return storeConfig.stores.map((store, index) => {
       const name =
         (store && (store.name ?? store.storeName)) ||
         (typeof store === 'string' ? store : `店舗${index + 1}`);
-      return { label: name, value: store.id ? String(store.id) : name };
+      return { label: name, value: name };
     });
   }
 
@@ -47,11 +51,13 @@ function buildStoreOptions(storeConfig) {
 
   return Object.entries(storeConfig || {}).map(([storeId, store]) => {
     const name = store?.name || store?.storeName || storeId;
-    return { label: name, value: storeId };
+    return { label: name, value: name };
   });
 }
 
-// 「売上csv発行」ボタン
+/**
+ * 「経費csv発行」ボタン
+ */
 async function handleExportCsvButton(interaction) {
   const guildId = interaction.guild?.id;
   if (!guildId) {
@@ -83,20 +89,22 @@ async function handleExportCsvButton(interaction) {
     const row = new ActionRowBuilder().addComponents(select);
 
     await interaction.reply({
-      content: '売上CSVを発行する店舗を選択してください。',
+      content: '経費CSVを発行する店舗を選択してください。',
       components: [row],
       flags: MessageFlags.Ephemeral,
     });
   } catch (err) {
-    logger.error('[uriage/csv] handleExportCsvButton エラー', err);
+    logger.error('[keihi/csv] handleExportCsvButton エラー', err);
     return interaction.reply({
-      content: '売上CSV発行の店舗一覧取得に失敗しました。',
+      content: '経費CSV発行の店舗一覧取得に失敗しました。',
       flags: MessageFlags.Ephemeral,
     });
   }
 }
 
-// 店舗選択 / 期間ボタン / 期間選択 の dispatcher
+/**
+ * 店舗選択 / 期間ボタン / 期間選択の dispatcher
+ */
 async function handleCsvFlowInteraction(interaction) {
   try {
     if (interaction.isStringSelectMenu()) {
@@ -119,17 +127,19 @@ async function handleCsvFlowInteraction(interaction) {
       }
     }
   } catch (err) {
-    logger.error('[uriage/csv] handleCsvFlowInteraction エラー', err);
+    logger.error('[keihi/csv] handleCsvFlowInteraction エラー', err);
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
-        content: '売上CSV発行中にエラーが発生しました。',
+        content: '経費CSV発行中にエラーが発生しました。',
         flags: MessageFlags.Ephemeral,
       });
     }
   }
 }
 
-// 店舗選択
+/**
+ * 店舗選択
+ */
 async function handleSelectStore(interaction) {
   const storeName = interaction.values[0];
   const key = getStateKey(interaction);
@@ -156,12 +166,14 @@ async function handleSelectStore(interaction) {
   );
 
   await interaction.update({
-    content: `店舗「${storeName}」の売上CSVを発行します。期間の種類を選択してください。`,
+    content: `店舗「${storeName}」の経費CSVを発行します。\n期間の種類を選択してください。`,
     components: [buttonsRow],
   });
 }
 
-// 期間種別選択
+/**
+ * 期間種別選択（年月日/年月/年/四半期）
+ */
 async function handleSelectRangeType(interaction) {
   const key = getStateKey(interaction);
   const state = csvStateMap.get(key);
@@ -189,11 +201,11 @@ async function handleSelectRangeType(interaction) {
   csvStateMap.set(key, { ...state, rangeType });
 
   const guildId = interaction.guild.id;
-  const targets = await listUriageJsonTargets(guildId, state.storeName, rangeType);
+  const targets = await listKeihiJsonTargets(guildId, state.storeName, rangeType);
 
   if (!targets.length) {
     return interaction.update({
-      content: `店舗「${state.storeName}」の${rangeLabel}の売上CSVはまだありません。`,
+      content: `店舗「${state.storeName}」の${rangeLabel}の経費CSVはまだありません。`,
       components: [],
     });
   }
@@ -204,26 +216,28 @@ async function handleSelectRangeType(interaction) {
     .addOptions(
       targets.slice(0, 25).map(label => ({
         label,
-        value: label,
+        value: label, // ラベル＝ファイルラベル
       })),
     );
 
   const row = new ActionRowBuilder().addComponents(select);
 
   await interaction.update({
-    content: `店舗「${state.storeName}」の${rangeLabel}の売上CSV対象を選択してください。`,
+    content: `店舗「${state.storeName}」の${rangeLabel}の経費CSV対象を選択してください。`,
     components: [row],
   });
 }
 
-// 期間選択後：JSON→CSV を生成し、添付＋URL表示
+/**
+ * 期間選択後：JSON→CSV を生成し、添付＋URL表示
+ */
 async function handleSelectTarget(interaction) {
   const key = getStateKey(interaction);
   const state = csvStateMap.get(key);
 
   if (!state?.storeName || !state?.rangeType) {
     return interaction.reply({
-      content: '店舗または期間の情報が失われています。もう一度「売上csv発行」からやり直してください。',
+      content: '店舗または期間の情報が失われています。もう一度「経費csv発行」からやり直してください。',
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -232,7 +246,7 @@ async function handleSelectTarget(interaction) {
   const label = interaction.values[0]; // YYYY-MM など
 
   try {
-    const { buffer, fileName, publicUrl } = await buildUriageCsvForPeriod(
+    const { buffer, fileName, publicUrl } = await buildKeihiCsvForPeriod(
       guildId,
       state.storeName,
       state.rangeType,
@@ -241,14 +255,14 @@ async function handleSelectTarget(interaction) {
 
     await interaction.update({
       content: [
-        `店舗「${state.storeName}」の売上CSVを出力しました。`,
+        `店舗「${state.storeName}」の経費CSVを出力しました。`,
         '',
         `URL: ${publicUrl ?? 'URL 取得に失敗しました'}`,
       ].join('\n'),
       files: [
         {
           attachment: buffer,
-          name: fileName || 'uriage.csv',
+          name: fileName || 'keihi.csv',
         },
       ],
       components: [],
@@ -256,7 +270,7 @@ async function handleSelectTarget(interaction) {
 
     csvStateMap.delete(key);
   } catch (err) {
-    logger.error('[uriage/csv] handleSelectTarget CSV生成エラー', err);
+    logger.error('[keihi/csv] handleSelectTarget CSV生成エラー', err);
     await interaction.update({
       content: 'CSVファイルの取得に失敗しました。',
       components: [],

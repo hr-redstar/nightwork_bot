@@ -5,16 +5,19 @@
 //   - モーダル入力のバリデーション
 //   - スレッド作成 / 検索
 //   - スレッドへのメンバー追加
-//   - パネル再描画 & 店舗config 更新
+//   - パネル再描画 & config 更新
 // ----------------------------------------------------
 
 const { ChannelType } = require('discord.js');
-const { loadKeihiConfig, saveKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
+const {
+  loadKeihiConfig,
+  saveKeihiConfig,
+} = require('../../../utils/keihi/keihiConfigManager');
 const {
   loadKeihiStoreConfig,
   saveKeihiStoreConfig,
 } = require('../../../utils/keihi/keihiStoreConfigManager');
-const { sendKeihiPanel } = require('../setting/panel');
+const { upsertStorePanelMessage } = require('./panel');
 const logger = require('../../../utils/logger');
 
 // ----------------------------------------------------
@@ -33,28 +36,31 @@ function resolveRoleIdsFromPositions(storeRoleConfig, positionIds) {
 // ----------------------------------------------------
 // 経費申請ボタンを押してよいロール一覧を取得
 //   - 店舗の閲覧役職 / 申請役職 / グローバル承認役職
+//   - 新旧両方の設定形式に対応
 // ----------------------------------------------------
-function collectAllowedRoleIdsForRequest(keihiConfig, storeConfig, storeRoleConfig) {
+function collectAllowedRoleIdsForRequest(keihiConfig, storeId, storeRoleConfig) {
+  const panel = keihiConfig.panels?.[storeId] || {};
+
   const allowed = new Set();
   const approverSet = new Set();
 
-  // --- 店舗ごとの閲覧役職 / 申請役職（ロールID直接） ---
-  for (const id of storeConfig.viewRoleIds || []) {
+  // 店舗ごとの閲覧役職 / 申請役職（ロールID直接）
+  for (const id of panel.viewRoleIds || []) {
     if (id) allowed.add(id);
   }
-  for (const id of storeConfig.requestRoleIds || []) {
+  for (const id of panel.requestRoleIds || []) {
     if (id) allowed.add(id);
   }
 
-  // --- 店舗ごとの閲覧役職 / 申請役職（役職ID → ロールID） ---
+  // 店舗ごとの閲覧役職 / 申請役職（役職ID → ロールID）
   if (storeRoleConfig) {
     const viewRoleIdsFromPositions = resolveRoleIdsFromPositions(
       storeRoleConfig,
-      storeConfig.viewRolePositionIds,
+      panel.viewRolePositionIds,
     );
     const requestRoleIdsFromPositions = resolveRoleIdsFromPositions(
       storeRoleConfig,
-      storeConfig.requestRolePositionIds,
+      panel.requestRolePositionIds,
     );
 
     for (const id of viewRoleIdsFromPositions) {
@@ -65,7 +71,7 @@ function collectAllowedRoleIdsForRequest(keihiConfig, storeConfig, storeRoleConf
     }
   }
 
-  // --- グローバル承認役職 (/設定経費 の承認役職) ---
+  // グローバル承認役職 (/設定経費 の承認役職)
   if (Array.isArray(keihiConfig.approverRoleIds)) {
     for (const id of keihiConfig.approverRoleIds) {
       if (!id) continue;
@@ -79,6 +85,20 @@ function collectAllowedRoleIdsForRequest(keihiConfig, storeConfig, storeRoleConf
       if (!id) continue;
       approverSet.add(id);
       allowed.add(id);
+    }
+  }
+
+  // さらに旧仕様: keihiConfig.roles.request + storeRoleConfig.links.link_role_role
+  if (
+    keihiConfig.roles &&
+    keihiConfig.roles.request &&
+    storeRoleConfig?.links?.link_role_role
+  ) {
+    const requestRoleName = keihiConfig.roles.request;
+    const extraRoleIds =
+      storeRoleConfig.links.link_role_role[requestRoleName] || [];
+    for (const rid of extraRoleIds) {
+      if (rid) allowed.add(rid);
     }
   }
 
@@ -120,7 +140,6 @@ function validateAndGetData(interaction) {
 
 // ----------------------------------------------------
 // 経費申請用のスレッドを検索または作成する（プライベート）
-//   スレッド名: YYYY-MM-店舗名-経費申請
 // ----------------------------------------------------
 async function findOrCreateExpenseThread(channel, dateStr, storeName) {
   let baseDate = new Date();
@@ -187,59 +206,51 @@ async function addMembersToThread(thread, guild, requester, allowedRoleIds) {
 }
 
 // ----------------------------------------------------
-// 経費申請パネルを再描画し、店舗config & グローバルconfig の messageId を更新
-//   ついでに「以前のパネルメッセージ」は削除
+// 経費申請パネルを再描画し、config の messageId を更新
 // ----------------------------------------------------
 async function refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig) {
-  const guildId = guild.id;
-  const storeConfig = await loadKeihiStoreConfig(guildId, storeId);
+  const panelConfig = keihiConfig.panels?.[storeId];
 
-  const oldMessageId = storeConfig.messageId || null;
-  const channelId = storeConfig.channelId || null;
+  const oldMessageId = panelConfig?.messageId || null;
+  const channelId = panelConfig?.channelId || null;
 
-  if (!channelId) return;
-
-  const channel = await guild.channels.fetch(channelId).catch(() => null);
-  if (!channel || !channel.isTextBased()) return;
-
-  // 新しいパネルメッセージを送信
-  const newPanelMessage = await sendKeihiPanel(channel, storeId);
-  if (!newPanelMessage) return;
-
-  // 旧パネルメッセージを削除
-  if (oldMessageId && newPanelMessage.id !== oldMessageId) {
-    try {
+  // 既存パネルがあれば先に削除を試みる
+  if (channelId && oldMessageId) {
+    const channel = await guild.channels.fetch(channelId).catch(() => null);
+    if (channel && channel.isTextBased()) {
       const oldMsg = await channel.messages.fetch(oldMessageId).catch(() => null);
       if (oldMsg) {
         await oldMsg.delete().catch(() => {});
-        console.log(
-          `[keihi/request/helpers] 旧パネルメッセージを削除しました storeId=${storeId}, messageId=${oldMessageId}`,
-        );
       }
-    } catch (e) {
-      console.warn(
-        `[keihi/request/helpers] 旧パネルメッセージ削除中にエラーが発生しました storeId=${storeId}, messageId=${oldMessageId}`,
-        e,
-      );
     }
   }
 
-  // 店舗config に新しい messageId を保存
-  storeConfig.messageId = newPanelMessage.id;
-  await saveKeihiStoreConfig(guildId, storeId, storeConfig);
-
-  // グローバル keihiConfig.panels も同期
-  const latestGlobal = await loadKeihiConfig(guildId);
-  if (!latestGlobal.panels) latestGlobal.panels = {};
-  latestGlobal.panels[storeId] = {
-    channelId,
-    messageId: newPanelMessage.id,
-  };
-  await saveKeihiConfig(guildId, latestGlobal);
-
-  console.log(
-    `[keihi/request/helpers] パネルを再生成し、新しいメッセージID (${newPanelMessage.id}) を保存しました。storeId=${storeId}`,
+  // 新しいパネルを送信 / 更新
+  const updatedPanelMessage = await upsertStorePanelMessage(
+    guild,
+    storeId,
+    keihiConfig,
+    storeRoleConfig,
   );
+
+  if (!updatedPanelMessage || !panelConfig) return;
+
+  if (updatedPanelMessage.id !== oldMessageId) {
+    const latestConfig = await loadKeihiConfig(guild.id);
+    if (!latestConfig.panels) latestConfig.panels = {};
+    if (!latestConfig.panels[storeId]) latestConfig.panels[storeId] = {};
+
+    latestConfig.panels[storeId].channelId = channelId || latestConfig.panels[storeId].channelId;
+    latestConfig.panels[storeId].messageId = updatedPanelMessage.id;
+    await saveKeihiConfig(guild.id, latestConfig);
+
+    // 店舗別 config も更新
+    const storeConfig = await loadKeihiStoreConfig(guild.id, storeId).catch(() => ({}));
+    storeConfig.storeId = storeId;
+    storeConfig.channelId = latestConfig.panels[storeId].channelId;
+    storeConfig.messageId = updatedPanelMessage.id;
+    await saveKeihiStoreConfig(guild.id, storeId, storeConfig);
+  }
 }
 
 module.exports = {

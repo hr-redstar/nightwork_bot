@@ -1,49 +1,63 @@
-const { IDS } = require('../setting/ids');
+// src/handlers/uriage/report/index.js
+// 売上報告まわりの router
+
+const { handleReportButton, handleReportModal } = require('./reportFlow');
 const {
-  openUriageReportModal,
-  handleUriageReportModalSubmit,
-  openUriageEditModal,
-  handleUriageEditModalSubmit,
-} = require('./requestFlow');
-const { handleStatusButton } = require('./statusActions'); // まだ未実装なら TODO でOK
+  handleViewRolesButton,
+  handleViewRolesSelect,
+  handleRequestRolesButton,
+  handleRequestRolesSelect,
+} = require('./reportPanelRolesFlow');
+const {
+  handleApproveButton,
+  handleModifyButton,
+  handleDeleteButton,
+} = require('./actionStatus');
 
 /**
- * 売上報告系のインタラクション振り分け
+ * 売上報告ボタン/モーダルのディスパッチ
  * @param {import('discord.js').Interaction} interaction
  */
-async function handleInteraction(interaction) {
-  // ボタン
-  if (interaction.isButton()) {
-    // 売上報告モーダルを開く
-    if (interaction.customId === IDS.BUTTON.REPORT_OPEN) {
-      return openUriageReportModal(interaction);
-    }
+async function handleUriageReportInteraction(interaction) {
+  const customId = interaction.customId || '';
 
-    // 承認 / 修正 / 削除 などステータス系
-    if (
-      interaction.customId === 'uriage_report_status_approve' ||
-      interaction.customId === 'uriage_report_status_edit' ||
-      interaction.customId === 'uriage_report_status_delete'
-    ) {
-      return handleStatusButton(interaction);
+  if (interaction.isButton()) {
+    if (customId.startsWith('uriage_report:btn:report:')) {
+      return handleReportButton(interaction);
+    }
+    if (customId.startsWith('uriage_report:btn:view_roles')) {
+      return handleViewRolesButton(interaction);
+    }
+    if (customId.startsWith('uriage_report:btn:request_roles')) {
+      return handleRequestRolesButton(interaction);
+    }
+    if (customId.startsWith('uriage_report_status:approve')) {
+      return handleApproveButton(interaction);
+    }
+    if (customId.startsWith('uriage_report_status:modify')) {
+      return handleModifyButton(interaction);
+    }
+    if (customId.startsWith('uriage_report_status:delete')) {
+      return handleDeleteButton(interaction);
     }
   }
 
-  // モーダル送信
   if (interaction.isModalSubmit()) {
-    const baseId = interaction.customId.split(':')[0];
-
-    if (baseId === IDS.MODAL.REPORT) {
-      return handleUriageReportModalSubmit(interaction);
+    if (customId.startsWith('uriage_report:modal::')) {
+      return handleReportModal(interaction);
     }
+  }
 
-    // 修正モーダルの送信ハンドラ
-    if (baseId === IDS.MODAL.EDIT) {
-      return handleUriageEditModalSubmit(interaction);
+  if (interaction.isAnySelectMenu()) {
+    if (customId.startsWith('uriage_report:sel:view_roles')) {
+      return handleViewRolesSelect(interaction);
+    }
+    if (customId.startsWith('uriage_report:sel:request_roles')) {
+      return handleRequestRolesSelect(interaction);
     }
   }
 }
 
 module.exports = {
-  handleInteraction,
+  handleUriageReportInteraction,
 };

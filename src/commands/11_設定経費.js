@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// src/commands/11_設定経費.js
+﻿﻿// src/commands/11_設定経費.js
 
 const {
   SlashCommandBuilder,
@@ -7,7 +7,7 @@ const {
 } = require('discord.js');
 
 const { sendCommandLog } = require('../utils/config/configLogger');
-const { postKeihiSettingPanel } = require('../handlers/keihi/setting/panel');
+const { postKeihiSettingPanel } = require('../handlers/keihi/setting/keihiPanel_Setting');
 
 module.exports = {
   data: new SlashCommandBuilder()

@@ -31,6 +31,25 @@ const { refreshPanelAndSave } = require('./helpers');
  * @param {string} storeId
  */
 async function openItemConfigModal(interaction, storeId) {
+  const guildId = interaction.guild?.id;
+  let existingItems = [];
+
+  if (guildId) {
+    const [keihiConfig, storeConfig] = await Promise.all([
+      loadKeihiConfig(guildId).catch(() => null),
+      loadKeihiStoreConfig(guildId, storeId).catch(() => null),
+    ]);
+
+    const panelItems = keihiConfig?.panels?.[storeId]?.items;
+    const storeItems = storeConfig?.items;
+
+    if (Array.isArray(panelItems) && panelItems.length) {
+      existingItems = panelItems;
+    } else if (Array.isArray(storeItems) && storeItems.length) {
+      existingItems = storeItems;
+    }
+  }
+
   const modal = new ModalBuilder()
     .setCustomId(`${KEIHI_IDS.PREFIX.ITEM_CONFIG_MODAL}::${storeId}`) // 例: keihi_request:modal_item_config::外部IT会社
     .setTitle(`経費項目登録：${storeId}`);
@@ -45,6 +64,10 @@ async function openItemConfigModal(interaction, storeId) {
         + '① 交通費 タクシー代、電車・バス代、営業移動費、配達交通費など\n'
         + '② 備品・消耗品費 名刺、文房具、バインダー、店舗備品、のぼり、テープ、電池など\n…',
     );
+
+  if (existingItems.length) {
+    input.setValue(existingItems.join('\n'));
+  }
 
   const row = new ActionRowBuilder().addComponents(input);
   modal.addComponents(row);

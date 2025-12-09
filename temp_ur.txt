@@ -1,0 +1,85 @@
+// src/utils/uriage/uriageConfigManager.js
+// ----------------------------------------------------
+// 螢ｲ荳願ｨｭ螳壹・ GCS 隱ｭ縺ｿ譖ｸ縺阪Θ繝ｼ繝・ぅ繝ｪ繝・ぅ
+//   - 繧ｮ繝ｫ繝牙・騾・   GCS/{guildId}/uriage/config.json
+//   - 蠎苓・縺斐→險ｭ螳・ GCS/{guildId}/uriage/{storeName}/config.json
+// ----------------------------------------------------
+
+const path = require('path');
+const { readJSON, saveJSON } = require('../gcs');
+
+// 繝代せ繝倥Ν繝代・
+function getUriageGlobalConfigPath(guildId) {
+  if (!guildId) throw new Error('[uriageConfigManager] guildId 縺梧悴謖・ｮ壹〒縺・);
+  return path.join('GCS', guildId, 'uriage', 'config.json');
+}
+
+function getUriageStoreConfigPath(guildId, storeName) {
+  if (!guildId) throw new Error('[uriageConfigManager] guildId 縺梧悴謖・ｮ壹〒縺・);
+  if (!storeName) throw new Error('[uriageConfigManager] storeName 縺梧悴謖・ｮ壹〒縺・);
+  return path.join('GCS', guildId, 'uriage', storeName, 'config.json');
+}
+
+// 繝・ヵ繧ｩ繝ｫ繝・function createDefaultGlobalConfig() {
+  return {
+    configPanel: null, // { channelId, messageId }
+    panels: {},        // { [storeId]: { channelId, messageId } }
+    approverPositionIds: [],
+    approverRoleIds: [],
+    csvUpdatedAt: null,
+  };
+}
+
+function createDefaultStoreConfig(storeName) {
+  return {
+    storeName,
+    channelId: null,
+    messageId: null,
+    viewRoleIds: [],
+    requestRoleIds: [],
+    items: [],
+  };
+}
+
+// 螳牙・繝ｭ繝ｼ繝・async function safeLoadJson(logicalPath, defaults) {
+  try {
+    const data = await readJSON(logicalPath);
+    return { ...defaults, ...(data || {}) };
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return { ...defaults };
+    throw err;
+  }
+}
+
+// 繧ｮ繝ｫ繝牙・騾夊ｨｭ螳・async function loadUriageConfig(guildId) {
+  const p = getUriageGlobalConfigPath(guildId);
+  return safeLoadJson(p, createDefaultGlobalConfig());
+}
+
+async function saveUriageConfig(guildId, config) {
+  const p = getUriageGlobalConfigPath(guildId);
+  await saveJSON(p, config || {});
+  return config;
+}
+
+// 蠎苓・蛻･險ｭ螳・async function loadUriageStoreConfig(guildId, storeName) {
+  const p = getUriageStoreConfigPath(guildId, storeName);
+  return safeLoadJson(p, createDefaultStoreConfig(storeName));
+}
+
+async function saveUriageStoreConfig(guildId, storeName, config) {
+  const p = getUriageStoreConfigPath(guildId, storeName);
+  await saveJSON(p, config || {});
+  return config;
+}
+
+module.exports = {
+  getUriageGlobalConfigPath,
+  getUriageStoreConfigPath,
+  createDefaultGlobalConfig,
+  createDefaultStoreConfig,
+  loadUriageConfig,
+  saveUriageConfig,
+  loadUriageStoreConfig,
+  saveUriageStoreConfig,
+};

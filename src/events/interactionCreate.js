@@ -9,7 +9,7 @@ const logger = require('../utils/logger');
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
 
-// const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
+const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
 const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
 const { handleInteraction: handleChatGPTBot } = require('../handlers/chat_gptBotHandler');
 const { handleInteraction: handleConfigInteraction } = require('../handlers/configBotHandler.js');
@@ -68,7 +68,12 @@ module.exports = {
       if (interaction.isButton()) {
         const { customId } = interaction;
 
-        if (customId.startsWith('uriage:')) {
+        if (
+          customId.startsWith('uriage:') ||
+          customId.startsWith('uriage_config') ||
+          customId.startsWith('uriage_report') ||
+          customId.startsWith('uriage_')
+        ) {
           return handleUriageInteraction(interaction);
         }
 
@@ -96,7 +101,12 @@ module.exports = {
       if (interaction.isAnySelectMenu()) {
         const { customId } = interaction;
 
-        if (customId.startsWith('uriage:')) {
+        if (
+          customId.startsWith('uriage:') ||
+          customId.startsWith('uriage_config') ||
+          customId.startsWith('uriage_report') ||
+          customId.startsWith('uriage_')
+        ) {
           return handleUriageInteraction(interaction);
         }
 
@@ -122,7 +132,12 @@ module.exports = {
       if (interaction.isModalSubmit()) {
         const { customId } = interaction;
 
-        if (customId.startsWith('uriage:')) {
+        if (
+          customId.startsWith('uriage:') ||
+          customId.startsWith('uriage_config') ||
+          customId.startsWith('uriage_report') ||
+          customId.startsWith('uriage_')
+        ) {
           return handleUriageInteraction(interaction);
         }
 

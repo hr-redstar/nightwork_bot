@@ -15,7 +15,7 @@ async function handleUriageInteraction(interaction) {
   const { customId } = interaction;
 
   // 設定系のインタラクション (パネル/ロール/CSV発行など)
-  if (customId.startsWith('uriage:setting')) {
+  if (customId.startsWith('uriage:setting') || customId.startsWith('uriage_config')) {
     return handleUriageSettingInteraction(interaction);
   }
 

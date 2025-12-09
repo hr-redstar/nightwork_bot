@@ -1,18 +1,11 @@
 // src/utils/uriage/uriageValidator.js
-// ----------------------------------------------------
-// 売上機能 向けバリデーション & 権限チェック
-// ----------------------------------------------------
+// 売上報告用の簡易バリデーション
 
-/**
- * メンバーが指定ロールを1つでも持っているか
- * @param {import('discord.js').GuildMember} member
- * @param {string[]} roleIds
- */
-function hasAnyRole(member, roleIds = []) {
-  if (!member || !Array.isArray(roleIds) || roleIds.length === 0) return false;
-  return member.roles.cache.some((r) => roleIds.includes(r.id));
+function validateReportInput(fields) {
+  const errors = [];
+  if (!fields.date) errors.push('日付は必須です。');
+  if (!fields.total || Number(fields.total) <= 0) errors.push('総売りは1以上を入力してください。');
+  return errors;
 }
 
-module.exports = {
-  hasAnyRole,
-};
+module.exports = { validateReportInput };

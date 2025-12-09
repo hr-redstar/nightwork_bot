@@ -1,56 +1,124 @@
 // src/utils/uriage/uriageConfigManager.js
 // ----------------------------------------------------
-// 売上 全体設定 (ギルド単位)
-//   GCS/{guildId}/uriage/config.json
+// 売上機能の GCS 読み書きユーティリティ
+//   - ギルド共通:   GCS/{guildId}/uriage/config.json
+//   - 店舗ごと:     GCS/{guildId}/uriage/{storeId}/config.json
 // ----------------------------------------------------
 
+const path = require('path');
 const { readJSON, saveJSON } = require('../gcs');
-const logger = require('../logger');
 
-/**
- * ベース構造
- */
-function createDefaultUriageConfig() {
+// ----------------------------------------------------
+// パス
+// ----------------------------------------------------
+function getUriageGlobalConfigPath(guildId) {
+  if (!guildId) throw new Error('[uriageConfigManager] guildId が未指定です');
+  return path.join('GCS', guildId, 'uriage', 'config.json');
+}
+
+function getUriageStoreConfigPath(guildId, storeId) {
+  if (!guildId) throw new Error('[uriageConfigManager] guildId が未指定です');
+  if (!storeId) throw new Error('[uriageConfigManager] storeId が未指定です');
+  return path.join('GCS', guildId, 'uriage', storeId, 'config.json');
+}
+
+// ----------------------------------------------------
+// デフォルト
+// ----------------------------------------------------
+function createDefaultGlobalConfig() {
   return {
-    // 例: { [storeId]: { channelId: '...', messageId: '...' } }
-    panels: {},
-    approverRoleIds: [],
+    configPanel: null, // { channelId, messageId }
+    panels: {},        // { [storeId]: { channelId, messageId } }
+    approverPositionIds: [],
+    approverRoleIds: [], // 旧仕様フォールバック
+    csvUpdatedAt: null,
+  };
+}
+
+function createDefaultStoreConfig(storeId) {
+  return {
+    storeId,
+    channelId: null,      // 売上報告パネルを設置したテキストチャンネル
+    messageId: null,      // 売上報告パネルのメッセージID
+
+    // ロールID直接指定
+    viewRoleIds: [],      // スレッド閲覧ロールID
+    requestRoleIds: [],   // 売上報告を申請できるロールID
+
+    // 役職ID（店舗_役職_ロール.json の positionId 経由）
+    viewRolePositionIds: [],
+    requestRolePositionIds: [],
+
+    items: [],            // 売上項目等があれば配列で
     lastUpdated: null,
   };
 }
 
-// パス生成
-function uriageConfigPath(guildId) {
-  return `${guildId}/uriage/config.json`;
-}
-
-// 読み込み
-async function loadUriageConfig(guildId) {
+// ----------------------------------------------------
+// ヘルパー
+// ----------------------------------------------------
+async function safeLoadJson(logicalPath, defaults) {
   try {
-    const raw = (await readJSON(uriageConfigPath(guildId))) || {};
-    const base = createDefaultUriageConfig();
-    return { ...base, ...raw };
+    const data = await readJSON(logicalPath);
+    return { ...defaults, ...(data || {}) };
   } catch (err) {
-    logger.error(`[uriageConfigManager] 読み込みエラー: ${guildId}`, err);
-    return createDefaultUriageConfig();
-  }
-}
-
-// 保存
-async function saveUriageConfig(guildId, config) {
-  const data = { ...createDefaultUriageConfig(), ...config };
-  data.lastUpdated = new Date().toISOString();
-  try {
-    await saveJSON(uriageConfigPath(guildId), data);
-    return data;
-  } catch (err) {
-    logger.error('[uriageConfigManager] uriage/config.json 保存失敗', err);
+    if (err && err.code === 'ENOENT') return { ...defaults };
     throw err;
   }
 }
 
+function normalizeStoreConfig(raw, storeId) {
+  const base = createDefaultStoreConfig(storeId);
+  const cfg = { ...base, ...(raw || {}) };
+
+  cfg.storeId = storeId;
+  if (!Array.isArray(cfg.viewRoleIds)) cfg.viewRoleIds = [];
+  if (!Array.isArray(cfg.requestRoleIds)) cfg.requestRoleIds = [];
+  if (!Array.isArray(cfg.viewRolePositionIds)) cfg.viewRolePositionIds = [];
+  if (!Array.isArray(cfg.requestRolePositionIds)) cfg.requestRolePositionIds = [];
+  if (!Array.isArray(cfg.items)) cfg.items = [];
+
+  return cfg;
+}
+
+// ----------------------------------------------------
+// 共通設定
+// ----------------------------------------------------
+async function loadUriageConfig(guildId) {
+  const p = getUriageGlobalConfigPath(guildId);
+  return safeLoadJson(p, createDefaultGlobalConfig());
+}
+
+async function saveUriageConfig(guildId, config) {
+  const p = getUriageGlobalConfigPath(guildId);
+  await saveJSON(p, config || {});
+  return config;
+}
+
+// ----------------------------------------------------
+// 店舗別設定
+// ----------------------------------------------------
+async function loadUriageStoreConfig(guildId, storeId) {
+  const p = getUriageStoreConfigPath(guildId, storeId);
+  const data = await safeLoadJson(p, createDefaultStoreConfig(storeId));
+  return normalizeStoreConfig(data, storeId);
+}
+
+async function saveUriageStoreConfig(guildId, storeId, config) {
+  const p = getUriageStoreConfigPath(guildId, storeId);
+  const cfg = normalizeStoreConfig(config, storeId);
+  cfg.lastUpdated = new Date().toISOString();
+  await saveJSON(p, cfg);
+  return cfg;
+}
+
 module.exports = {
-  uriageConfigPath,
+  getUriageGlobalConfigPath,
+  getUriageStoreConfigPath,
+  createDefaultGlobalConfig,
+  createDefaultStoreConfig,
   loadUriageConfig,
   saveUriageConfig,
+  loadUriageStoreConfig,
+  saveUriageStoreConfig,
 };

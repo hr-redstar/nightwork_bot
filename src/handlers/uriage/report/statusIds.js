@@ -1,12 +1,12 @@
-// 売上報告の「承認 / 修正 / 削除」ボタン用の ID
-// ※ まだアクション本体はこれからでOK。先に ID だけ決めておく。
+// src/handlers/uriage/report/statusIds.js
+// 売上報告ステータス更新用 ID（承認/修正/削除）
 
-const IDS = {
-  BUTTON: {
-    APPROVE: 'uriage_report_status_approve',
-    EDIT: 'uriage_report_status_edit',
-    DELETE: 'uriage_report_status_delete',
-  },
+const PREFIX = 'uriage_report_status';
+
+const STATUS_IDS = {
+  APPROVE: `${PREFIX}:approve`,
+  MODIFY: `${PREFIX}:modify`,
+  DELETE: `${PREFIX}:delete`,
 };
 
-module.exports = { IDS };
+module.exports = { STATUS_IDS, PREFIX };

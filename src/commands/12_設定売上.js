@@ -1,11 +1,11 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
-const { sendUriageSettingPanel } = require('../handlers/uriage/setting/panel');
+const { postUriageSettingPanel } = require('../handlers/uriage/setting/panel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定売上')
-    .setDescription('売上機能に関する設定パネルを表示します。')
+    .setDescription('売上機能に関する設定パネルを表示します')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   /**
@@ -13,17 +13,16 @@ module.exports = {
    */
   async execute(interaction) {
     try {
+      // コマンド実行者のみに見えるようエフェメラルで応答
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      await sendUriageSettingPanel(interaction);
+      await postUriageSettingPanel(interaction);
     } catch (err) {
       logger.error('[/設定売上] エラー:', err);
+      const content = '⚠️ 売上設定パネルの表示中にエラーが発生しました。';
       if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。' });
+        await interaction.editReply({ content });
       } else {
-        await interaction.reply({
-          content: '⚠️ 売上設定パネルの表示中にエラーが発生しました。',
-          flags: MessageFlags.Ephemeral,
-        });
+        await interaction.reply({ content });
       }
     }
   },

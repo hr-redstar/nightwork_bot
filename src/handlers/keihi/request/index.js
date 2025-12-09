@@ -8,8 +8,19 @@ const { STATUS_IDS } = require('./statusIds');
 const { handleRequestStart, handleRequestItemSelect } = require('./requestStart');
 const { handleRequestModalSubmit } = require('./requestModal');
 const { handleApproveButton } = require('./action_approve');
-const { handleModifyButton } = require('./action_modify');
+const { handleModifyButton, handleModifyModalSubmit } = require('./action_modify');
 const { handleDeleteButton } = require('./action_delete');
+const {
+  openItemConfigModal,
+  handleItemConfigModalSubmit,
+} = require('./itemConfig');
+const {
+  openViewRolesSelect,
+  openRequestRolesSelect,
+  handleViewRoleSelect,
+  handleRequestRoleSelect,
+} = require('./roleConfig');
+const { IDS: KEIHI_IDS } = require('./ids');
 
 /**
  * 経費申請系インタラクションを処理
@@ -25,6 +36,22 @@ async function handleRequestInteraction(interaction) {
       const parts = customId.split(':');
       const storeId = parts[parts.length - 1];
       return handleRequestStart(interaction, storeId);
+    }
+    // keihi_request:btn:item_config:{storeId}
+    if (customId.startsWith(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.ITEM_CONFIG}:`)) {
+      const parts = customId.split(':');
+      const storeId = parts[parts.length - 1];
+      return openItemConfigModal(interaction, storeId);
+    }
+    if (customId.startsWith(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.VIEW_ROLES}:`)) {
+      const parts = customId.split(':');
+      const storeId = parts[parts.length - 1];
+      return openViewRolesSelect(interaction, storeId);
+    }
+    if (customId.startsWith(`${KEIHI_IDS.PREFIX.BUTTON}:${KEIHI_IDS.ACTION.REQUEST_ROLES}:`)) {
+      const parts = customId.split(':');
+      const storeId = parts[parts.length - 1];
+      return openRequestRolesSelect(interaction, storeId);
     }
 
     if (customId.startsWith(STATUS_IDS.APPROVE)) {
@@ -47,6 +74,12 @@ async function handleRequestInteraction(interaction) {
     if (customId.startsWith(REQ_IDS.REQUEST_ITEM_SELECT)) {
       return handleRequestItemSelect(interaction);
     }
+    if (customId.startsWith(KEIHI_IDS.PREFIX.VIEW_ROLE_SELECT)) {
+      return handleViewRoleSelect(interaction);
+    }
+    if (customId.startsWith(KEIHI_IDS.PREFIX.REQUEST_ROLE_SELECT)) {
+      return handleRequestRoleSelect(interaction);
+    }
 
     return;
   }
@@ -57,6 +90,12 @@ async function handleRequestInteraction(interaction) {
 
     if (customId.startsWith(REQ_IDS.REQUEST_MODAL)) {
       return handleRequestModalSubmit(interaction);
+    }
+    if (customId.startsWith(STATUS_IDS.MODIFY_MODAL)) {
+      return handleModifyModalSubmit(interaction);
+    }
+    if (customId.startsWith(KEIHI_IDS.PREFIX.ITEM_CONFIG_MODAL)) {
+      return handleItemConfigModalSubmit(interaction);
     }
 
     return;
