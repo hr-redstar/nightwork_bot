@@ -130,7 +130,9 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     ? approverRoleIds
         .map((roleId) => {
           const role = guild.roles.cache.get(roleId);
-          return role ? `<@&${role.id}>` : `ロールID: ${roleId}`;
+          const name = role?.name || `ロールID: ${roleId}`;
+          const mention = role ? `<@&${role.id}>` : `ロールID: ${roleId}`;
+          return `${name}：${mention}`;
         })
         .join('\n')
     : '未設定';
@@ -301,3 +303,24 @@ module.exports = {
   postKeihiSettingPanel,
   sendKeihiPanel,
 };
+
+/**
+ * 設定パネルメッセージを再描画
+ * @param {import('discord.js').Guild} guild
+ * @param {any} keihiConfig
+ */
+async function refreshKeihiSettingPanelMessage(guild, keihiConfig) {
+  const panelInfo = keihiConfig.configPanel || keihiConfig.settingPanel;
+  if (!panelInfo?.channelId || !panelInfo?.messageId) return;
+
+  const channel = await guild.channels.fetch(panelInfo.channelId).catch(() => null);
+  if (!channel || !channel.isTextBased()) return;
+
+  const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
+  const message = await channel.messages.fetch(panelInfo.messageId).catch(() => null);
+  if (message) {
+    await message.edit(payload).catch(() => {});
+  }
+}
+
+module.exports.refreshKeihiSettingPanelMessage = refreshKeihiSettingPanelMessage;
