@@ -32,12 +32,11 @@ const {
   addMembersToThread,
   collectAllowedRoleIdsForRequest,
   refreshPanelAndSave,
-  resolveRoleIdsFromPositions,
-  resolveStoreNameSafe, // helpers.jsからインポートされる
 } = require('./helpers.js');
 const { IDS: REQ_IDS } = require('./requestIds');
 const { IDS: STATUS_IDS } = require('./statusIds');
 const logger = require('../../../utils/logger');
+const { resolveStoreName } = require('../setting/storeNameResolver'); // ★ 追加
 
 /**
  * 経費申請モーダル送信時
@@ -104,7 +103,7 @@ async function handleRequestModalSubmit(interaction) {
       return;
     }
 
-    const storeName = resolveStoreNameSafe(storeRoleConfig, storeId);
+    const storeName = resolveStoreName(storeRoleConfig, storeId);
 
     const thread = await findOrCreateExpenseThread(
       channel,

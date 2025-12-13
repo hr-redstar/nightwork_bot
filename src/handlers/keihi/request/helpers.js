@@ -10,19 +10,30 @@
 
 const { ChannelType } = require('discord.js');
 const {
-  loadKeihiConfig,
   saveKeihiConfig,
 } = require('../../../utils/keihi/keihiConfigManager');
-const {
-  loadKeihiStoreConfig,
-  saveKeihiStoreConfig,
-} = require('../../../utils/keihi/keihiStoreConfigManager');
-const {
-  upsertStorePanelMessage,
-  resolveStoreNameSafe,
-  resolveRoleIdsFromPositions,
-} = require('./panel');
+const { upsertStorePanelMessage } = require('./panel');
 const logger = require('../../../utils/logger');
+
+// ----------------------------------------------------
+// positionIds と storeRoleConfig からロールID配列を作る共通処理
+//   - storeRoleConfig.positionRoles / positionRoleMap に対応
+//   - 値が配列でも単体でもOK
+// ----------------------------------------------------
+function resolveRoleIdsFromPositions(storeRoleConfig, positionIds) {
+  if (!storeRoleConfig || !Array.isArray(positionIds)) return [];
+
+  const positionRoles =
+    storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap || {};
+
+  const roleIds = positionIds.flatMap((posId) => {
+    const raw = positionRoles[posId];
+    if (!raw) return [];
+    return Array.isArray(raw) ? raw : [raw];
+  });
+
+  return [...new Set(roleIds.filter(Boolean))];
+}
 
 // ----------------------------------------------------
 // 経費申請ボタンを押してよいロール一覧を取得
@@ -181,12 +192,16 @@ async function addMembersToThread(thread, guild, requester, allowedRoleIds) {
         if (!hasTargetRole) continue;
         if (thread.members.cache.has(mbr.id)) continue;
 
-        await thread.members.add(mbr.id).catch(() => {});
+        await thread.members.add(mbr.id).catch((err) => {
+          logger.warn(`スレッドにメンバー(ID: ${mbr.id})を追加できませんでした。`, err);
+        });
       }
     }
 
     if (!thread.members.cache.has(requester.id)) {
-      await thread.members.add(requester.id).catch(() => {});
+      await thread.members.add(requester.id).catch((err) => {
+        logger.warn(`スレッドに申請者(ID: ${requester.id})を追加できませんでした。`, err);
+      });
     }
   } catch (e) {
     logger.warn(
@@ -200,13 +215,15 @@ async function addMembersToThread(thread, guild, requester, allowedRoleIds) {
 // 経費申請パネルを再描画し、config の messageId を更新
 // ----------------------------------------------------
 async function refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig) {
-  const panelConfig = keihiConfig.panels?.[storeId];
+  // keihiConfig は upsertStorePanelMessage によって直接変更されるため、
+  // 呼び出し後にそのオブジェクトを保存する
+  const updatedConfig = keihiConfig;
 
   // 新しいパネルを送信 / 更新
   const updatedPanelMessage = await upsertStorePanelMessage(
     guild,
     storeId,
-    keihiConfig,
+    updatedConfig,
     storeRoleConfig,
   );
 
@@ -215,7 +232,7 @@ async function refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig)
   // upsertStorePanelMessage で keihiConfig オブジェクトは更新されているので、
   // それをそのまま保存する。
   // 注意：この関数は keihiConfig を直接変更します。
-  await saveKeihiConfig(guild.id, keihiConfig);
+  await saveKeihiConfig(guild.id, updatedConfig);
 }
 
 module.exports = {
@@ -224,6 +241,4 @@ module.exports = {
   findOrCreateExpenseThread,
   addMembersToThread,
   refreshPanelAndSave,
-  resolveStoreNameSafe,
-  resolveRoleIdsFromPositions,
 };

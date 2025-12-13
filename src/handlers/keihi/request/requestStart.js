@@ -19,11 +19,12 @@ const {
   loadKeihiStoreConfig,
 } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
-const { resolveStoreName } = require('../setting/panel');
 const {
   collectAllowedRoleIdsForRequest,
 } = require('./helpers.js');
 const { IDS: REQ_IDS } = require('./requestIds');
+const logger = require('../../../utils/logger');
+const { resolveStoreName } = require('../setting/storeNameResolver');
 
 // ----------------------------------------------------
 // 経費申請ボタン → 経費項目セレクト表示

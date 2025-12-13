@@ -6,16 +6,18 @@
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { loadKeihiConfig } = require('../../../utils/keihi/keihiConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
-const { sendSettingLog } = require('../../../utils/config/configLogger');
-const { resolveStoreName } = require('../setting/panel');
+const { sendAdminLog } = require('../../../utils/config/configLogger');
 const {
   getEmbedFieldValue,
   collectApproverRoleIds,
   checkStatusActionPermission,
   buildStatusButtons,
 } = require('./statusHelpers');
-const { STATUS_IDS } = require('./statusIds');
+const logger = require('../../../utils/logger');
 const { generateKeihiCsvFiles } = require('../../../utils/keihi/keihiCsvGenerator');
+
+// 共通 店舗名リゾルバ
+const { resolveStoreName } = require('../setting/storeNameResolver');
 
 const {
   loadKeihiDailyData,
@@ -26,6 +28,9 @@ const {
   saveKeihiYearlyData,
 } = require('../../../utils/keihi/gcsKeihiManager');
 
+// ----------------------------------------------------
+// ユーティリティ
+// ----------------------------------------------------
 function parseYmdParts(dateStr) {
   if (!dateStr) return null;
   const m = /^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/.exec(dateStr.trim());
@@ -36,154 +41,209 @@ function parseYmdParts(dateStr) {
   return { yyyy, mm, dd };
 }
 
+// ----------------------------------------------------
+// 承認ボタンクリック時のメイン処理
+// ----------------------------------------------------
 async function handleApproveButton(interaction) {
-  const { customId, guild, member } = interaction;
-
-  if (!guild) {
-    await interaction.reply({
-      content: 'ギルド情報が取得できませんでした。',
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
-  const guildId = guild.id;
-
-  const parts = customId.split('::');
-  const [prefix, storeId, threadId, messageId] = parts;
-  if (prefix !== STATUS_IDS.APPROVE || !storeId || !threadId || !messageId) return;
-
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-  const thread = await guild.channels.fetch(threadId).catch(() => null);
-  if (!thread || !thread.isThread()) {
-    await interaction.editReply({ content: '対象のスレッドが見つかりませんでした。' });
-    return;
-  }
-
-  const message = await thread.messages.fetch(messageId).catch(() => null);
-  if (!message) {
-    await interaction.editReply({ content: '対象のメッセージが見つかりませんでした。' });
-    return;
-  }
-
-  const [keihiConfig, storeRoleConfig] = await Promise.all([
-    loadKeihiConfig(guildId),
-    loadStoreRoleConfig(guildId).catch(() => null),
-  ]);
-
-  const approverRoleIds = collectApproverRoleIds(keihiConfig);
-  if (!approverRoleIds.length) {
-    await interaction.editReply({
-      content:
-        '承認役職が設定されていないため、承認できません。\n先に `/設定経費` で承認役職を設定してください。',
-    });
-    return;
-  }
-
-  const baseEmbed = message.embeds?.[0];
-  if (!baseEmbed) {
-    await interaction.editReply({ content: '対象の経費申請メッセージが見つかりませんでした。' });
-    return;
-  }
-
-  const { hasPermission, message: permError } = checkStatusActionPermission(
-    'approve',
-    member,
-    baseEmbed,
-    approverRoleIds,
-  );
-  if (!hasPermission) {
-    await interaction.editReply({ content: permError });
-    return;
-  }
-
-  const storeName = resolveStoreName(storeRoleConfig, storeId);
-  const now = new Date();
-  const tsUnix = Math.floor(now.getTime() / 1000);
-  const approvedAtText = `<t:${tsUnix}:f>`;
-
-  // Embed 更新
-  const fields = Array.isArray(baseEmbed.fields)
-    ? baseEmbed.fields.map(f => ({ ...f }))
-    : [];
-  const upsertField = (name, value, inline = true) => {
-    const found = fields.find(f => f.name === name);
-    if (found) {
-      found.value = value;
-      found.inline = inline;
-    } else {
-      fields.push({ name, value, inline });
-    }
-  };
-  upsertField('ステータス', '✅ 承認済み', true);
-  upsertField('承認者', `${member}`, true);
-  upsertField('承認時間', approvedAtText, true);
-
-  const newEmbed = EmbedBuilder.from(baseEmbed)
-    .setTitle('経費申請 ✅ 承認されました')
-    .setFields(fields)
-    .setTimestamp(now);
-
-  const newButtonsRow = buildStatusButtons(storeId, threadId, messageId, 'APPROVED');
-  await message.edit({ embeds: [newEmbed], components: [newButtonsRow] });
-
-  // パネルチャンネル側のログ更新
-  const parentChannel = thread.parent ?? thread;
-  const logMessageId = baseEmbed.footer?.text?.startsWith('LogID: ')
-    ? baseEmbed.footer.text.slice('LogID: '.length)
-    : null;
-  if (parentChannel && logMessageId) {
-    const logMessage = await parentChannel.messages.fetch(logMessageId).catch(() => null);
-    if (logMessage) {
-      let content = logMessage.content;
-      if (/^承認者：/m.test(content)) {
-        content = content.replace(
-          /^承認者：.*$/m,
-          `承認者：${member}　承認時間：${approvedAtText}`,
-        );
-      } else {
-        content = content.replace(
-          /------------------------------\s*$/m,
-          `承認者：${member}　承認時間：${approvedAtText}\n------------------------------`,
-        );
-      }
-      await logMessage.edit({ content });
-    }
-  }
-
   try {
-    await updateKeihiStatsOnApprove({
-      guild,
-      guildId,
-      storeId,
+    const { guild, member, customId } = interaction;
+
+    if (!guild) {
+      await interaction.reply({
+        content: 'ギルド情報が取得できませんでした。',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    const guildId = guild.id;
+
+    // keihi_request_approve::storeId::threadId::messageId::APPROVED
+    const parts = customId.split('::');
+    const [prefix, storeId, threadId, messageId] = parts;
+
+    // ここでは prefix の厳密チェックはしない（ルーティング側で済んでいる想定）
+    if (!storeId || !threadId || !messageId) {
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: 'ボタンIDの形式が不正です。',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+      return;
+    }
+
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // 対象スレッド & メッセージ取得
+    const thread = await guild.channels.fetch(threadId).catch(() => null);
+    if (!thread || !thread.isThread()) {
+      await interaction.editReply({ content: '対象のスレッドが見つかりませんでした。' });
+      return;
+    }
+
+    const message = await thread.messages.fetch(messageId).catch(() => null);
+    if (!message) {
+      await interaction.editReply({ content: '対象のメッセージが見つかりませんでした。' });
+      return;
+    }
+
+    // 設定読み込み
+    const [keihiConfig, storeRoleConfig] = await Promise.all([
+      loadKeihiConfig(guildId),
+      loadStoreRoleConfig(guildId).catch(() => null),
+    ]);
+
+    // 承認権限チェック
+    const approverRoleIds = collectApproverRoleIds(keihiConfig);
+    if (!approverRoleIds.length) {
+      await interaction.editReply({
+        content:
+          '承認役職が設定されていないため、承認できません。\n先に `/設定経費` で承認役職を設定してください。',
+      });
+      return;
+    }
+
+    const baseEmbed = message.embeds?.[0];
+    if (!baseEmbed) {
+      await interaction.editReply({
+        content: '対象の経費申請メッセージが見つかりませんでした。',
+      });
+      return;
+    }
+
+    const { hasPermission, message: permError } = checkStatusActionPermission(
+      'approve',
+      member,
       baseEmbed,
-      threadMessage: message,
-      approver: member,
-      approvedAtText,
+      approverRoleIds,
+    );
+    if (!hasPermission) {
+      await interaction.editReply({ content: permError });
+      return;
+    }
+
+    // 店舗名解決（ここで例外が出てもキャッチされる）
+    const storeName = resolveStoreName(storeRoleConfig, storeId);
+
+    const now = new Date();
+    const tsUnix = Math.floor(now.getTime() / 1000);
+    const approvedAtText = `<t:${tsUnix}:f>`;
+
+    // ---- Embed 更新（ステータス・承認者・承認時間） ----
+    const fields = Array.isArray(baseEmbed.fields)
+      ? baseEmbed.fields.map((f) => ({ ...f }))
+      : [];
+
+    const upsertField = (name, value, inline = true) => {
+      const found = fields.find((f) => f.name === name);
+      if (found) {
+        found.value = value;
+        found.inline = inline;
+      } else {
+        fields.push({ name, value, inline });
+      }
+    };
+
+    upsertField('ステータス', '✅ 承認済み', true);
+    upsertField('承認者', `${member}`, true);
+    upsertField('承認時間', approvedAtText, true);
+
+    const newEmbed = EmbedBuilder.from(baseEmbed)
+      .setTitle('経費申請 ✅ 承認されました')
+      .setFields(fields)
+      .setTimestamp(now);
+
+    const newButtonsRow = buildStatusButtons(storeId, threadId, messageId, 'APPROVED');
+    await message.edit({ embeds: [newEmbed], components: [newButtonsRow] });
+
+    // ---- パネルチャンネル側のログ更新 ----
+    const parentChannel = thread.parent ?? thread;
+    const logMessageId = baseEmbed.footer?.text?.startsWith('LogID: ')
+      ? baseEmbed.footer.text.slice('LogID: '.length)
+      : null;
+
+    if (parentChannel && logMessageId) {
+      const logMessage = await parentChannel.messages
+        .fetch(logMessageId)
+        .catch(() => null);
+
+      if (logMessage) {
+        let content = logMessage.content;
+
+        if (/^承認者：/m.test(content)) {
+          // 行が既にある場合は書き換え
+          content = content.replace(
+            /^承認者：.*$/m,
+            `承認者：${member}　承認時間：${approvedAtText}`,
+          );
+        } else {
+          // なければ末尾の線の直前に追記
+          content = content.replace(
+            /------------------------------\s*$/m,
+            `承認者：${member}　承認時間：${approvedAtText}\n------------------------------`,
+          );
+        }
+
+        await logMessage.edit({ content });
+      }
+    }
+
+    // ---- 日 / 月 / 年 JSON 集計 & CSV ----
+    try {
+      await updateKeihiStatsOnApprove({
+        guild,
+        guildId,
+        storeId,
+        baseEmbed,
+        threadMessage: message,
+        approver: member,
+      });
+    } catch (e) {
+      logger.error('[keihi] 年月日ファイル更新中にエラー:', e);
+    }
+
+    const originalDate = getEmbedFieldValue(baseEmbed, '日付');
+    const originalDepartment = getEmbedFieldValue(baseEmbed, '部署');
+    const originalItemName = getEmbedFieldValue(baseEmbed, '経費項目');
+    const originalInputUser = getEmbedFieldValue(baseEmbed, '入力者');
+    const originalInputTime = getEmbedFieldValue(baseEmbed, '入力時間');
+
+    await sendAdminLog(interaction, {
+      title: '経費申請承認',
+      description:
+        `✅ 店舗「${storeName}」の経費申請を承認しました。\n` +
+        `承認者：${member}\n承認時間：${approvedAtText}\n` +
+        `日付：${originalDate}　部署：${originalDepartment}　経費項目：${originalItemName}\n` +
+        `入力者：${originalInputUser}　入力時間：${originalInputTime}\n` +
+        `スレッドメッセージリンク：${message.url}`,
     });
-  } catch (e) {
-    console.error('[keihi] 年月日ファイル更新中にエラー:', e);
+
+    await interaction.editReply({ content: '経費申請を承認しました。' });
+  } catch (err) {
+    // ここまで来ると interactionCreate 側の try/catch でも拾われるけど、
+    // 念のためこの中でもログ＋返信を試みる
+    logger.error('[keihi] handleApproveButton で予期しないエラー', err);
+
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction
+        .reply({
+          content: '承認処理中にエラーが発生しました。',
+          flags: MessageFlags.Ephemeral,
+        })
+        .catch(() => {});
+    } else {
+      await interaction
+        .editReply({
+          content: '承認処理中にエラーが発生しました。',
+        })
+        .catch(() => {});
+    }
   }
-
-  const originalDate = getEmbedFieldValue(baseEmbed, '日付');
-  const originalDepartment = getEmbedFieldValue(baseEmbed, '部署');
-  const originalItemName = getEmbedFieldValue(baseEmbed, '経費項目');
-  const originalInputUser = getEmbedFieldValue(baseEmbed, '入力者');
-  const originalInputTime = getEmbedFieldValue(baseEmbed, '入力時間');
-
-  await sendSettingLog(interaction, {
-    title: '経費申請承認',
-    description:
-      `✅ 店舗「${storeName}」の経費申請を承認しました。\n` +
-      `承認者：${member}\n承認時間：${approvedAtText}\n` +
-      `日付：${originalDate}　部署：${originalDepartment}　経費項目：${originalItemName}\n` +
-      `入力者：${originalInputUser}　入力時間：${originalInputTime}\n` +
-      `スレッドメッセージリンク：${message.url}`,
-  });
-
-  await interaction.editReply({ content: '経費申請を承認しました。' });
 }
 
+// ----------------------------------------------------
+// 年月日 / 月 / 年 JSON 集計 & CSV 更新
+// ----------------------------------------------------
 async function updateKeihiStatsOnApprove({
   guild,
   guildId,
@@ -191,7 +251,6 @@ async function updateKeihiStatsOnApprove({
   baseEmbed,
   threadMessage,
   approver,
-  approvedAtText,
 }) {
   const dateStrRaw = getEmbedFieldValue(baseEmbed, '日付') || '';
   const dateStr = dateStrRaw.trim();
@@ -213,7 +272,7 @@ async function updateKeihiStatsOnApprove({
     if (m) return m.displayName || m.user?.username || fallback || null;
     return fallback || null;
   };
-  const formatDateTime = iso => {
+  const formatDateTime = (iso) => {
     const d = iso ? new Date(iso) : new Date();
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -246,10 +305,11 @@ async function updateKeihiStatsOnApprove({
       ? baseEmbed.footer.text.slice('LogID: '.length)
       : null;
 
+  // --- 日別 JSON ---
   const dailyData = (await loadKeihiDailyData(guildId, storeId, dateStr)) || {};
   if (!Array.isArray(dailyData.requests)) dailyData.requests = [];
 
-  let record = dailyData.requests.find(r => r.id === threadMessage.id);
+  let record = dailyData.requests.find((r) => r.id === threadMessage.id);
   const prevApprovedAmount =
     record && record.status === 'APPROVED' ? Number(record.amount || 0) : 0;
 
@@ -277,8 +337,10 @@ async function updateKeihiStatsOnApprove({
     申請者ID: inputUserId,
     requestAtText: inputTimeText || null,
     modifierId: modifierUserId || null,
-    modifier: modifierName && modifierName !== '不明' ? modifierName : '',
-    modifierName: modifierName && modifierName !== '不明' ? modifierName : '',
+    modifier:
+      modifierName && modifierName !== '不明' ? modifierName : '',
+    modifierName:
+      modifierName && modifierName !== '不明' ? modifierName : '',
     修正者ID: modifierUserId || null,
     modifierAtText:
       modifierTimeText && modifierTimeText !== '不明' ? modifierTimeText : '',
@@ -295,7 +357,7 @@ async function updateKeihiStatsOnApprove({
   dailyData.storeId = storeId;
   dailyData.date = dateStr;
   dailyData.totalApprovedAmount = dailyData.requests
-    .filter(r => r.status === 'APPROVED')
+    .filter((r) => r.status === 'APPROVED')
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
   dailyData.lastUpdated = nowIso;
 
@@ -303,18 +365,29 @@ async function updateKeihiStatsOnApprove({
 
   const diff = amount - prevApprovedAmount;
   if (!diff) {
-    await generateKeihiCsvFiles(guild, dailyData, null, null);
+    await generateKeihiCsvFiles(guild, storeId, dailyData, null, null);
+    try {
+      await generateKeihiCsvFiles(guild, storeId, dailyData, null, null);
+    } catch (e) {
+      logger.error('[keihi] CSV生成中にエラー (diff=0)', e);
+    }
     return;
   }
 
   const ymd = parseYmdParts(dateStr);
   if (!ymd) {
-    await generateKeihiCsvFiles(guild, dailyData, null, null);
+    await generateKeihiCsvFiles(guild, storeId, dailyData, null, null);
+    try {
+      await generateKeihiCsvFiles(guild, storeId, dailyData, null, null);
+    } catch (e) {
+      logger.error('[keihi] CSV生成中にエラー (ymd=null)', e);
+    }
     return;
   }
   const { yyyy, mm } = ymd;
   const monthKey = `${yyyy}-${mm}`;
 
+  // --- 月別 JSON ---
   const monthlyData =
     (await loadKeihiMonthlyData(guildId, storeId, monthKey)) || {};
   monthlyData.guildId = guildId;
@@ -323,13 +396,13 @@ async function updateKeihiStatsOnApprove({
   monthlyData.byDay = monthlyData.byDay || {};
   monthlyData.byDay[dateStr] =
     (Number(monthlyData.byDay[dateStr]) || 0) + diff;
-  monthlyData.totalApprovedAmount = Object.values(monthlyData.byDay).reduce(
-    (sum, v) => sum + (Number(v) || 0),
-    0,
-  );
+  monthlyData.totalApprovedAmount = Object.values(
+    monthlyData.byDay,
+  ).reduce((sum, v) => sum + (Number(v) || 0), 0);
   monthlyData.lastUpdated = nowIso;
   await saveKeihiMonthlyData(guildId, storeId, monthKey, monthlyData);
 
+  // --- 年別 JSON ---
   const yearlyData =
     (await loadKeihiYearlyData(guildId, storeId, yyyy)) || {};
   yearlyData.guildId = guildId;
@@ -338,14 +411,14 @@ async function updateKeihiStatsOnApprove({
   yearlyData.byMonth = yearlyData.byMonth || {};
   yearlyData.byMonth[monthKey] =
     (Number(yearlyData.byMonth[monthKey]) || 0) + diff;
-  yearlyData.totalApprovedAmount = Object.values(yearlyData.byMonth).reduce(
-    (sum, v) => sum + (Number(v) || 0),
-    0,
-  );
+  yearlyData.totalApprovedAmount = Object.values(
+    yearlyData.byMonth,
+  ).reduce((sum, v) => sum + (Number(v) || 0), 0);
   yearlyData.lastUpdated = nowIso;
-  await saveKeihiYearlyData(guildId, storeId, dateStr, yearlyData);
+  // ★ ここは yyyy を渡すのが正解
+  await saveKeihiYearlyData(guildId, storeId, yyyy, yearlyData);
 
-  await generateKeihiCsvFiles(guild, dailyData, monthlyData, yearlyData);
+  await generateKeihiCsvFiles(guild, storeId, dailyData, monthlyData, yearlyData);
 }
 
 module.exports = { handleApproveButton };

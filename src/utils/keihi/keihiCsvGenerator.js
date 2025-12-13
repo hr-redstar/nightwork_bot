@@ -41,13 +41,13 @@ async function writeCsv(objectPath, rows) {
 }
 
 // 日別 CSV: 1行1申請
-async function generateDailyCsv(guild, dailyData) {
+async function generateDailyCsv(guild, storeId, dailyData) {
   if (!dailyData || !Array.isArray(dailyData.requests) || !dailyData.requests.length) {
     return;
   }
 
   const guildName = guild.name;
-  const storeName = dailyData.storeId || '';
+  const storeName = storeId || '';
   const dateStr = dailyData.date || '';
 
   const header = [
@@ -89,11 +89,11 @@ async function generateDailyCsv(guild, dailyData) {
 }
 
 // 月別 CSV: 1行1日（byDay）
-async function generateMonthlyCsv(guild, monthlyData) {
+async function generateMonthlyCsv(guild, storeId, monthlyData) {
   if (!monthlyData || !monthlyData.byDay) return;
 
   const guildName = guild.name;
-  const storeName = monthlyData.storeId || '';
+  const storeName = storeId || '';
   const monthKey = monthlyData.month || '';
 
   const header = ['ギルド名', '店舗名', '対象月', '日付', '日別承認済み合計'];
@@ -120,11 +120,11 @@ async function generateMonthlyCsv(guild, monthlyData) {
 }
 
 // 年別 CSV: 1行1月（byMonth）
-async function generateYearlyCsv(guild, yearlyData) {
+async function generateYearlyCsv(guild, storeId, yearlyData) {
   if (!yearlyData || !yearlyData.byMonth) return;
 
   const guildName = guild.name;
-  const storeName = yearlyData.storeId || '';
+  const storeName = storeId || '';
   const year = yearlyData.year || '';
 
   const header = ['ギルド名', '店舗名', '年', '月', '承認済み合計'];
@@ -151,11 +151,11 @@ async function generateYearlyCsv(guild, yearlyData) {
 }
 
 // 四半期 CSV: 年別JSONの byMonth から集計
-async function generateQuarterCsv(guild, yearlyData) {
+async function generateQuarterCsv(guild, storeId, yearlyData) {
   if (!yearlyData || !yearlyData.byMonth) return;
 
   const guildName = guild.name;
-  const storeName = yearlyData.storeId || '';
+  const storeName = storeId || '';
   const year = yearlyData.year || '';
 
   const quarters = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
@@ -189,13 +189,13 @@ async function generateQuarterCsv(guild, yearlyData) {
   }
 }
 
-async function generateKeihiCsvFiles(guild, dailyData, monthlyData, yearlyData) {
+async function generateKeihiCsvFiles(guild, storeId, dailyData, monthlyData, yearlyData) {
   try {
-    if (dailyData) await generateDailyCsv(guild, dailyData);
-    if (monthlyData) await generateMonthlyCsv(guild, monthlyData);
+    if (dailyData) await generateDailyCsv(guild, storeId, dailyData);
+    if (monthlyData) await generateMonthlyCsv(guild, storeId, monthlyData);
     if (yearlyData) {
-      await generateYearlyCsv(guild, yearlyData);
-      await generateQuarterCsv(guild, yearlyData);
+      await generateYearlyCsv(guild, storeId, yearlyData);
+      await generateQuarterCsv(guild, storeId, yearlyData);
     }
   } catch (err) {
     console.error('[keihiCsvGenerator] CSV生成中にエラーが発生しました:', err);

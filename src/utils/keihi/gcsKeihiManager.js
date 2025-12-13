@@ -3,7 +3,7 @@
 // 経費データの GCS 読み書きユーティリティ
 //   - 日別 / 月別 / 年別 JSON & CSV
 //   - 四半期 CSV（四半期フォルダ配下、月別JSONから集計）
-//   - /設定経費 > 経費csv発行 で使用
+//   - /設定経費 &gt; 経費csv発行 で使用
 // ----------------------------------------------------
 
 const path = require('path');
@@ -16,131 +16,247 @@ const {
   getPublicUrl,
 } = require('../gcs');
 
-const DAILY_COMPACT_RE = /^\d{8}$/; // 20251206
-const DAILY_LABEL_RE = /^\d{4}-\d{2}-\d{2}$/; // 2025-12-06
-const MONTHLY_LABEL_RE = /^\d{4}-\d{2}$/; // 2025-12
-const MONTHLY_LEGACY_RE = /^\d{6}$/; // 202512
+const DAILY_COMPACT_RE = /^\d{8}$/;            // 20251206
+const DAILY_LABEL_RE = /^(\d{4})-(\d{2})-(\d{2})$/; // 2025-12-06
+const MONTHLY_LABEL_RE = /^\d{4}-\d{2}$/;       // 2025-12
+const MONTHLY_LEGACY_RE = /^\d{6}$/;           // 202512
 const YEARLY_LABEL_RE = /^\d{4}$/; // 2025
 const QUARTER_LABEL_RE = /^\d{4}_\d{2}~\d{2}$/; // 2025_01~03
 
-// ==============================
-// パスヘルパー（JSON）
-// ==============================
+// path.posix を使って "GCS/..." 形式を維持
+const join = (...segs) => path.posix.join(...segs);
+const ROOT = 'GCS';
 
-function getDailyJsonPath(guildId, storeName, dateLabel) {
-  const year = dateLabel.slice(0, 4);
-  const month = dateLabel.slice(5, 7);
-  const day = dateLabel.slice(8, 10);
+// ---------------------------------------------
+// 日付文字列の正規化ヘルパー
+// ---------------------------------------------
+function normalizeDateLabel(label) {
+  if (!label) throw new Error('date label is required');
 
-  const compact = `${year}${month}${day}`;
-  return path.join('GCS', guildId, 'keihi', storeName, year, month, day, `${compact}.json`);
+  // 2025/12/13 or 2025-12-13 → 2025-12-13
+  const replaced = String(label).trim().replace(/\//g, '-');
+
+  if (DAILY_LABEL_RE.test(replaced)) {
+    return replaced;
+  }
+
+  // 20251213 → 2025-12-13
+  const m = DAILY_COMPACT_RE.exec(replaced);
+  if (m) {
+    const v = m[0];
+    const y = v.slice(0, 4);
+    const mo = v.slice(4, 6);
+    const d = v.slice(6, 8);
+    return `${y}-${mo}-${d}`;
+  }
+
+  throw new Error(`unsupported date label format: ${label}`);
 }
 
-function getMonthlyJsonPath(guildId, storeName, monthLabel) {
-  const year = monthLabel.slice(0, 4);
-  const month = monthLabel.slice(5, 7);
-
-  return path.join('GCS', guildId, 'keihi', storeName, year, month, `${monthLabel}.json`);
+function splitDateParts(label) {
+  const normalized = normalizeDateLabel(label);
+  const m = DAILY_LABEL_RE.exec(normalized); // YYYY-MM-DD
+  const yyyy = m[1];
+  const mm = m[2];
+  const dd = m[3];
+  return { normalized, yyyy, mm, dd };
 }
 
-function getYearlyJsonPath(guildId, storeName, yearLabel) {
-  return path.join('GCS', guildId, 'keihi', storeName, yearLabel, `${yearLabel}.json`);
+function normalizeMonthLabel(label) {
+  if (!label) throw new Error('month label is required');
+  const trimmed = String(label).trim();
+
+  if (MONTHLY_LABEL_RE.test(trimmed)) {
+    return trimmed; // YYYY-MM
+  }
+  const m = MONTHLY_LEGACY_RE.exec(trimmed); // 202512 → 2025-12
+  if (m) {
+    const y = trimmed.slice(0, 4);
+    const mo = trimmed.slice(4, 6);
+    return `${y}-${mo}`;
+  }
+  throw new Error(`unsupported month label: ${label}`);
 }
 
-// 四半期は JSON を持たず、月別 JSON から集計する設計なので JSON パスは作らない
-
-// ==============================
-// パスヘルパー（CSV）
-// ==============================
-
-function getDailyCsvPath(guildId, storeName, dateLabel) {
-  const year = dateLabel.slice(0, 4);
-  const month = dateLabel.slice(5, 7);
-  const day = dateLabel.slice(8, 10);
-
-  const compact = `${year}${month}${day}`;
-  return path.join('GCS', guildId, 'keihi', storeName, year, month, day, `${compact}.csv`);
+function splitMonthParts(label) {
+  const normalized = normalizeMonthLabel(label);
+  const [yyyy, mm] = normalized.split('-');
+  return { normalized, yyyy, mm };
 }
 
-function getMonthlyCsvPath(guildId, storeName, monthLabel) {
-  const year = monthLabel.slice(0, 4);
-  const month = monthLabel.slice(5, 7);
-
-  return path.join('GCS', guildId, 'keihi', storeName, year, month, `${monthLabel}.csv`);
+function normalizeYearLabel(label) {
+  const trimmed = String(label).trim();
+  if (!YEARLY_LABEL_RE.test(trimmed)) {
+    throw new Error(`unsupported year label: ${label}`);
+  }
+  return trimmed;
 }
 
-function getYearlyCsvPath(guildId, storeName, yearLabel) {
-  return path.join('GCS', guildId, 'keihi', storeName, yearLabel, `${yearLabel}.csv`);
+// ---------------------------------------------
+// 日別パス (JSON / CSV)
+//   GCS/ギルドID/keihi/店舗名/年/月/日/年月日.json
+//   GCS/ギルドID/keihi/店舗名/年/月/日/年月日.csv
+// ---------------------------------------------
+function buildDailyBaseDir(guildId, storeId, dateLabel) {
+  const { normalized, yyyy, mm, dd } = splitDateParts(dateLabel);
+  const compact = `${yyyy}${mm}${dd}`;
+  return {
+    normalized,
+    compact,
+    dir: join(ROOT, String(guildId), 'keihi', String(storeId), yyyy, mm, dd),
+  };
 }
 
-function getQuarterCsvPath(guildId, storeName, quarterLabel) {
-  // quarterLabel: 'YYYY_01~03' など
-  return path.join('GCS', guildId, 'keihi', storeName, '四半期', `${quarterLabel}.csv`);
+function getDailyJsonPath(guildId, storeId, dateLabel) {
+  const { compact, dir } = buildDailyBaseDir(guildId, storeId, dateLabel);
+  return join(dir, `${compact}.json`);
 }
 
-// ==============================
-// 既存用: 日 / 月 / 年 データ読書き
-// ==============================
+function getDailyCsvPath(guildId, storeId, dateLabel) {
+  const { compact, dir } = buildDailyBaseDir(guildId, storeId, dateLabel);
+  return join(dir, `${compact}.csv`);
+}
 
-async function safeLoadJson(pathLogical, defaultValue) {
+// ---------------------------------------------
+// 月別パス
+//   GCS/ギルドID/keihi/店舗名/年/月/年月.json
+//   GCS/ギルドID/keihi/店舗名/年/月/年月.csv
+// ---------------------------------------------
+function buildMonthlyBaseDir(guildId, storeId, monthLabel) {
+  const { normalized, yyyy, mm } = splitMonthParts(monthLabel);
+  return {
+    normalized,
+    dir: join(ROOT, String(guildId), 'keihi', String(storeId), yyyy, mm),
+  };
+}
+
+function getMonthlyJsonPath(guildId, storeId, monthLabel) {
+  const { normalized, dir } = buildMonthlyBaseDir(guildId, storeId, monthLabel);
+  return join(dir, `${normalized}.json`);
+}
+
+function getMonthlyCsvPath(guildId, storeId, monthLabel) {
+  const { normalized, dir } = buildMonthlyBaseDir(guildId, storeId, monthLabel);
+  return join(dir, `${normalized}.csv`);
+}
+
+// ---------------------------------------------
+// 年別パス
+//   GCS/ギルドID/keihi/店舗名/年/年.json
+//   GCS/ギルドID/keihi/店舗名/年/年.csv
+// ---------------------------------------------
+function buildYearlyBaseDir(guildId, storeId, yearLabel) {
+  const yyyy = normalizeYearLabel(yearLabel);
+  return {
+    yyyy,
+    dir: join(ROOT, String(guildId), 'keihi', String(storeId), yyyy),
+  };
+}
+
+function getYearlyJsonPath(guildId, storeId, yearLabel) {
+  const { yyyy, dir } = buildYearlyBaseDir(guildId, storeId, yearLabel);
+  return join(dir, `${yyyy}.json`);
+}
+
+function getYearlyCsvPath(guildId, storeId, yearLabel) {
+  const { yyyy, dir } = buildYearlyBaseDir(guildId, storeId, yearLabel);
+  return join(dir, `${yyyy}.csv`);
+}
+
+// ---------------------------------------------
+// 四半期 CSV
+//   GCS/ギルドID/keihi/店舗名/四半期/2025_01~03.csv など
+// ---------------------------------------------
+function getQuarterlyCsvPath(guildId, storeId, quarterLabel) {
+  // quarterLabel 例: "2025_01~03" をそのままファイル名に使う
+  const safeLabel = String(quarterLabel).trim();
+  return join(
+    ROOT,
+    String(guildId),
+    'keihi',
+    String(storeId),
+    '四半期',
+    `${safeLabel}.csv`,
+  );
+}
+
+// ---------------------------------------------
+// 日別 JSON 読み書き
+// ---------------------------------------------
+async function loadKeihiDailyData(guildId, storeId, dateLabel) {
+  const primaryPath = getDailyJsonPath(guildId, storeId, dateLabel);
+
+  // ✅ 新仕様パスだけを見る
   try {
-    const data = await readJSON(pathLogical);
-    return data ?? defaultValue;
-  } catch (err) {
-    if (err && err.code === 'ENOENT') return defaultValue;
-    throw err;
+    return await readJSON(primaryPath);
+  } catch (e) {
+    // ファイルが無ければ null、それ以外のエラーはそのまま投げる
+    if (!e || e.code !== 'ENOENT') {
+      throw e;
+    }
+    return null;
   }
 }
 
-async function loadKeihiDailyData(guildId, storeName, dateLabel) {
-  const data = await readJsonWithLegacy(guildId, storeName, 'daily', dateLabel);
-  return data ?? {};
-}
-async function saveKeihiDailyData(guildId, storeName, dateLabel, data) {
-  const p = getDailyJsonPath(guildId, storeName, dateLabel);
-  await saveJSON(p, data ?? {});
-  return data;
+async function saveKeihiDailyData(guildId, storeId, dateLabel, data) {
+  const primaryPath = getDailyJsonPath(guildId, storeId, dateLabel);
+  await saveJSON(primaryPath, data);
+
+  // 旧パスへの保存が不要ならここはコメントアウトのままでOK
+  /*
+  const legacyLabel = normalizeDateLabel(dateLabel);
+  const legacyDir = join(
+    ROOT,
+    String(guildId),
+    'keihi',
+    String(storeId),
+    legacyLabel,
+  );
+  const legacyPath = join(legacyDir, `${legacyLabel}.json`);
+  await saveJSON(legacyPath, data);
+  */
 }
 
-async function loadKeihiMonthlyData(guildId, storeName, monthLabel) {
-  const data = await readJsonWithLegacy(guildId, storeName, 'monthly', monthLabel);
-  return data ?? {};
-}
-async function saveKeihiMonthlyData(guildId, storeName, monthLabel, data) {
-  const p = getMonthlyJsonPath(guildId, storeName, monthLabel);
-  await saveJSON(p, data ?? {});
-  return data;
+async function loadKeihiMonthlyData(guildId, storeId, monthLabel) {
+  const primaryPath = getMonthlyJsonPath(guildId, storeId, monthLabel);
+
+  try {
+    return await readJSON(primaryPath);
+  } catch (e1) {
+    return null;
+  }
 }
 
-async function loadKeihiYearlyData(guildId, storeName, yearLabel) {
-  const p = getYearlyJsonPath(guildId, storeName, yearLabel);
-  return safeLoadJson(p, {});
-}
-async function saveKeihiYearlyData(guildId, storeName, yearLabel, data) {
-  const p = getYearlyJsonPath(guildId, storeName, yearLabel);
-  await saveJSON(p, data ?? {});
-  return data;
+async function saveKeihiMonthlyData(guildId, storeId, monthLabel, data) {
+  const primaryPath = getMonthlyJsonPath(guildId, storeId, monthLabel);
+  await saveJSON(primaryPath, data);
 }
 
-// 互換ヘルパー
-async function getKeihiStoreData(guildId, storeName, dateLabel) {
-  return loadKeihiDailyData(guildId, storeName, dateLabel);
+async function loadKeihiYearlyData(guildId, storeId, yearLabel) {
+  const primaryPath = getYearlyJsonPath(guildId, storeId, yearLabel);
+  try {
+    return await readJSON(primaryPath);
+  } catch (e1) {
+    return null;
+  }
 }
-async function saveKeihiStoreData(guildId, storeName, data, dateLabel) {
-  return saveKeihiDailyData(guildId, storeName, dateLabel, data);
+
+async function saveKeihiYearlyData(guildId, storeId, yearLabel, data) {
+  const primaryPath = getYearlyJsonPath(guildId, storeId, yearLabel);
+  await saveJSON(primaryPath, data);
 }
 
 // ==============================
-// /設定経費 > 経費csv発行 用
+// /設定経費 &gt; 経費csv発行 用
 // ==============================
 
 function normalizeLabelFromBase(baseName, rangeType) {
   if (rangeType === 'daily') {
-    // 新フォーマット: 20251206 → 2025-12-06 で返す
+    // ✅ 新フォーマット: 20251213 → ラベルは 2025-12-13 に正規化
     if (DAILY_COMPACT_RE.test(baseName)) {
       return `${baseName.slice(0, 4)}-${baseName.slice(4, 6)}-${baseName.slice(6, 8)}`;
     }
-    // 旧フォーマットは読み込まない
+    // ❌ 旧フォーマット (2025-12-13.json) は daily ラベルに採用しない
     return null;
   }
 
@@ -159,21 +275,21 @@ function normalizeLabelFromBase(baseName, rangeType) {
   return null;
 }
 
-function getJsonPathByRange(guildId, storeName, rangeType, label) {
+function getJsonPathByRange(guildId, storeId, rangeType, label) {
   switch (rangeType) {
     case 'daily':
-      return getDailyJsonPath(guildId, storeName, label);
+      return getDailyJsonPath(guildId, storeId, label);
     case 'monthly':
-      return getMonthlyJsonPath(guildId, storeName, label);
+      return getMonthlyJsonPath(guildId, storeId, label);
     case 'yearly':
-      return getYearlyJsonPath(guildId, storeName, label);
+      return getYearlyJsonPath(guildId, storeId, label);
     default:
-      return getDailyJsonPath(guildId, storeName, label);
+      return getDailyJsonPath(guildId, storeId, label);
   }
 }
 
 // レガシー（ハイフンなし）パス
-function getLegacyJsonPath(guildId, storeName, rangeType, label) {
+function getLegacyJsonPath(guildId, storeId, rangeType, label) {
   if (rangeType === 'daily') {
     return null; // 旧フォーマットは読まない
   }
@@ -183,14 +299,22 @@ function getLegacyJsonPath(guildId, storeName, rangeType, label) {
     if (!MONTHLY_LEGACY_RE.test(compact)) return null;
     const year = compact.slice(0, 4);
     const month = compact.slice(4, 6);
-    return path.join('GCS', guildId, 'keihi', storeName, year, month, `${compact}.json`);
+    return join(
+      ROOT,
+      String(guildId),
+      'keihi',
+      String(storeId),
+      year,
+      month,
+      `${compact}.json`,
+    );
   }
 
   return null;
 }
 
-async function readJsonWithLegacy(guildId, storeName, rangeType, label) {
-  const primaryPath = getJsonPathByRange(guildId, storeName, rangeType, label);
+async function readJsonWithLegacy(guildId, storeId, rangeType, label) {
+  const primaryPath = getJsonPathByRange(guildId, storeId, rangeType, label);
   try {
     const data = await readJSON(primaryPath);
     if (data != null) return data;
@@ -198,7 +322,7 @@ async function readJsonWithLegacy(guildId, storeName, rangeType, label) {
     if (!err || err.code !== 'ENOENT') throw err;
   }
 
-  const legacyPath = getLegacyJsonPath(guildId, storeName, rangeType, label);
+  const legacyPath = getLegacyJsonPath(guildId, storeId, rangeType, label);
   if (!legacyPath) return null;
 
   try {
@@ -209,18 +333,18 @@ async function readJsonWithLegacy(guildId, storeName, rangeType, label) {
   }
 }
 
-function getCsvPathByRange(guildId, storeName, rangeType, label) {
+function getCsvPathByRange(guildId, storeId, rangeType, label) {
   switch (rangeType) {
     case 'daily':
-      return getDailyCsvPath(guildId, storeName, label);
+      return getDailyCsvPath(guildId, storeId, label);
     case 'monthly':
-      return getMonthlyCsvPath(guildId, storeName, label);
+      return getMonthlyCsvPath(guildId, storeId, label);
     case 'yearly':
-      return getYearlyCsvPath(guildId, storeName, label);
+      return getYearlyCsvPath(guildId, storeId, label);
     case 'quarter':
-      return getQuarterCsvPath(guildId, storeName, label);
+      return getQuarterlyCsvPath(guildId, storeId, label);
     default:
-      return getDailyCsvPath(guildId, storeName, label);
+      return getDailyCsvPath(guildId, storeId, label);
   }
 }
 
@@ -230,14 +354,14 @@ function getCsvPathByRange(guildId, storeName, rangeType, label) {
  *    1〜3月 / 4〜6月 / 7〜9月 / 10〜12月 をまとめてラベル化
  *  - ラベル形式: 'YYYY_01~03' など
  */
-async function listQuarterTargetsFromMonthlyJson(guildId, storeName) {
-  const root = path.join('GCS', guildId, 'keihi', storeName);
+async function listQuarterTargetsFromMonthlyJson(guildId, storeId) {
+  const root = join(ROOT, String(guildId), 'keihi', String(storeId));
   const files = await listFiles(root);
 
   const monthlyLabels = (files || [])
-    .filter(f => f.endsWith('.json'))
-    .map(f => path.basename(f, '.json'))
-    .filter(label => MONTHLY_LABEL_RE.test(label));
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => path.posix.basename(f, '.json'))
+    .filter((label) => MONTHLY_LABEL_RE.test(label));
 
   const yearMonthMap = new Map(); // year -> Set(monthNumber)
 
@@ -276,6 +400,7 @@ async function listQuarterTargetsFromMonthlyJson(guildId, storeName) {
     }
   }
 
+  // 新しい順
   quarterLabels.sort((a, b) => (a < b ? 1 : -1));
   return quarterLabels;
 }
@@ -288,19 +413,20 @@ async function listQuarterTargetsFromMonthlyJson(guildId, storeName) {
  *  - rangeType = 'yearly'  → 'YYYY'
  *  - rangeType = 'quarter' → 'YYYY_01~03' など（月別JSONを集計して生成）
  */
-async function listKeihiJsonTargets(guildId, storeName, rangeType) {
+async function listKeihiJsonTargets(guildId, storeId, rangeType) {
   if (rangeType === 'quarter') {
-    return listQuarterTargetsFromMonthlyJson(guildId, storeName);
+    return listQuarterTargetsFromMonthlyJson(guildId, storeId);
   }
 
-  const root = path.join('GCS', guildId, 'keihi', storeName);
+  const root = join(ROOT, String(guildId), 'keihi', String(storeId));
   const files = await listFiles(root);
 
   const labels = new Set();
 
+  // まずは各 .json の baseName から直接ラベルを取る
   for (const f of files || []) {
     if (!f.endsWith('.json')) continue;
-    const base = path.basename(f, '.json');
+    const base = path.posix.basename(f, '.json');
     const normalized = normalizeLabelFromBase(base, rangeType);
     if (normalized) labels.add(normalized);
   }
@@ -309,12 +435,10 @@ async function listKeihiJsonTargets(guildId, storeName, rangeType) {
   if (rangeType === 'monthly') {
     for (const f of files || []) {
       if (!f.endsWith('.json')) continue;
-      const base = path.basename(f, '.json');
-      const dailyMatch = DAILY_COMPACT_RE.test(base)
-        ? base
-        : DAILY_LABEL_RE.test(base)
-        ? base.replace(/-/g, '')
-        : null;
+      const base = path.posix.basename(f, '.json');
+
+    // ✅ 新形式の 8桁ファイル名だけを見る
+    const dailyMatch = DAILY_COMPACT_RE.test(base) ? base : null;
       if (dailyMatch) {
         const yyyy = dailyMatch.slice(0, 4);
         const mm = dailyMatch.slice(4, 6);
@@ -323,7 +447,7 @@ async function listKeihiJsonTargets(guildId, storeName, rangeType) {
     }
   }
 
-  const result = Array.from(labels).sort((a, b) => (a < b ? 1 : -1));
+  const result = Array.from(labels).sort((a, b) => (a < b ? 1 : -1)); // 新しい順
 
   return result;
 }
@@ -342,7 +466,7 @@ function extractKeihiRecords(jsonData) {
 
   if (typeof jsonData === 'object') {
     const values = Object.values(jsonData).filter(
-      v => v && typeof v === 'object' && !Array.isArray(v),
+      (v) => v && typeof v === 'object' && !Array.isArray(v),
     );
     return values;
   }
@@ -390,7 +514,9 @@ function escapeCsvCell(value) {
 }
 
 function buildCsvRows(records, headerKeys) {
-  return records.map(rec => headerKeys.map(key => escapeCsvCell(rec && rec[key])).join(','));
+  return records.map((rec) =>
+    headerKeys.map((key) => escapeCsvCell(rec && rec[key])).join(','),
+  );
 }
 
 /**
@@ -398,12 +524,6 @@ function buildCsvRows(records, headerKeys) {
  *
  * 内部の JSON は英語キーでもOK。
  * ここで必要な情報だけ抜き出して、列名を
- *   メッセージid ステータス 日付 部署 金額 備考
- *   申請者名 申請時間 修正者名 修正時間 承認者名 承認時間
- * に揃える。
- *
- * 日付 / 部署 / 金額 / 備考 は「最新の値」を使う想定。
- * （承認時に embed から読んで JSON に書いているので、修正が入っていればその値が入っている前提）
  */
 function normalizeRecordForCsv(rec) {
   if (!rec || typeof rec !== 'object') return {};
@@ -459,28 +579,35 @@ function getMonthlyLabelsForQuarter(quarterLabel) {
  *
  * 四半期の場合は、対象四半期の「月別JSON」を全部まとめて CSV にします。
  */
-async function buildKeihiCsvForPeriod(guildId, storeName, rangeType, label) {
+async function buildKeihiCsvForPeriod(guildId, storeId, rangeType, label) {
   let records = [];
 
-  const collectDailyByPrefix = async prefixes => {
-    const dailyLabels = await listKeihiJsonTargets(guildId, storeName, 'daily');
-    const targetLabels = dailyLabels.filter(dl => prefixes.some(p => dl.startsWith(p)));
+  const collectDailyByPrefix = async (prefixes) => {
+    const dailyLabels = await listKeihiJsonTargets(guildId, storeId, 'daily');
+    const targetLabels = dailyLabels.filter((dl) =>
+      prefixes.some((p) => dl.startsWith(p)),
+    );
 
     for (const dl of targetLabels) {
-      const jsonData = await readJsonWithLegacy(guildId, storeName, 'daily', dl);
+      const jsonData = await readJsonWithLegacy(guildId, storeId, 'daily', dl);
       if (jsonData) records.push(...extractKeihiRecords(jsonData));
     }
   };
 
   if (rangeType === 'quarter') {
     const monthLabels = getMonthlyLabelsForQuarter(label); // ['YYYY-MM', ...]
-    const monthPrefixes = monthLabels.map(m => `${m}-`);
+    const monthPrefixes = monthLabels.map((m) => `${m}-`);
     await collectDailyByPrefix(monthPrefixes);
 
     // 日次データが無い場合は月別集計JSONで埋める
     if (!records.length) {
       for (const monthLabel of monthLabels) {
-        const jsonData = await readJsonWithLegacy(guildId, storeName, 'monthly', monthLabel);
+        const jsonData = await readJsonWithLegacy(
+          guildId,
+          storeId,
+          'monthly',
+          monthLabel,
+        );
         if (jsonData) records.push(...extractKeihiRecords(jsonData));
       }
     }
@@ -488,25 +615,36 @@ async function buildKeihiCsvForPeriod(guildId, storeName, rangeType, label) {
     await collectDailyByPrefix([`${label}-`]);
 
     if (!records.length) {
-      const jsonData = await readJsonWithLegacy(guildId, storeName, 'monthly', label);
+      const jsonData = await readJsonWithLegacy(
+        guildId,
+        storeId,
+        'monthly',
+        label,
+      );
       records = extractKeihiRecords(jsonData);
     }
   } else if (rangeType === 'yearly') {
     await collectDailyByPrefix([`${label}-`]);
 
     if (!records.length) {
-      const jsonData = await readJsonWithLegacy(guildId, storeName, 'yearly', label);
+      const jsonData = await readJsonWithLegacy(
+        guildId,
+        storeId,
+        'yearly',
+        label,
+      );
       records = extractKeihiRecords(jsonData);
     }
   } else {
-    const jsonData = await readJsonWithLegacy(guildId, storeName, rangeType, label);
+    // daily
+    const jsonData = await readJsonWithLegacy(guildId, storeId, rangeType, label);
     records = extractKeihiRecords(jsonData);
   }
 
   // 日本語カラムに整形
   records = records.map(normalizeRecordForCsv);
 
-  const csvPath = getCsvPathByRange(guildId, storeName, rangeType, label);
+  const csvPath = getCsvPathByRange(guildId, storeId, rangeType, label);
 
   if (!records.length) {
     const emptyBuffer = Buffer.from('', 'utf8');
@@ -514,7 +652,7 @@ async function buildKeihiCsvForPeriod(guildId, storeName, rangeType, label) {
     const publicUrl = getPublicUrl(csvPath);
     return {
       buffer: emptyBuffer,
-      fileName: path.basename(csvPath),
+      fileName: path.posix.basename(csvPath),
       publicUrl,
     };
   }
@@ -549,7 +687,7 @@ async function buildKeihiCsvForPeriod(guildId, storeName, rangeType, label) {
 
   return {
     buffer,
-    fileName: path.basename(csvPath),
+    fileName: path.posix.basename(csvPath),
     publicUrl,
   };
 }
@@ -571,16 +709,13 @@ module.exports = {
   getDailyJsonPath,
   getMonthlyJsonPath,
   getYearlyJsonPath,
-  getDailyCsvPath,
-  getMonthlyCsvPath,
-  getYearlyCsvPath,
-  getQuarterCsvPath,
+  getDailyCsvPath, // 修正: getDailyCsvPath
+  getMonthlyCsvPath, // 修正: getMonthlyCsvPath
+  getYearlyCsvPath, // 修正: getYearlyCsvPath
+  getQuarterlyCsvPath, // 修正: getQuarterlyCsvPath
 
-  // /設定経費 > 経費csv発行 用
+  // /設定経費 &gt; 経費csv発行 用
   listKeihiJsonTargets,
   buildKeihiCsvForPeriod,
 
-  // 互換
-  getKeihiStoreData,
-  saveKeihiStoreData,
 };

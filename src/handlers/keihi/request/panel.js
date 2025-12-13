@@ -12,30 +12,7 @@ const {
 
 const logger = require('../../../utils/logger');
 const { IDS: KEIHI_IDS } = require('./ids');
-
-/**
- * setting/panel の resolveStoreName を安全に呼び出すヘルパー
- * （循環 require 対策として遅延 require）
- * @param {any} storeRoleConfig
- * @param {string} storeId
- * @returns {string}
- */
-function resolveStoreNameSafe(storeRoleConfig, storeId) {
-  try {
-    // ★ ここで初めて require する（module cache が効くので負荷は小さい）
-    const settingPanel = require('../setting/panel');
-    if (
-      settingPanel &&
-      typeof settingPanel.resolveStoreNameSafe === 'function'
-    ) {
-      return settingPanel.resolveStoreNameSafe(storeRoleConfig, storeId);
-    }
-  } catch (err) {
-    // ここでコケても storeId をそのまま返せば致命傷にはならない
-    logger.warn('[keihi/request/panel] resolveStoreNameSafe での読み込みに失敗', err);
-  }
-  return storeId;
-}
+const { resolveStoreName } = require('../setting/storeNameResolver'); // ★ 追加
 
 /**
  * positionIds と storeRoleConfig からロールID配列を作る共通処理
@@ -123,7 +100,7 @@ function formatRoleLines(storeRoleConfig, positionIds, roleIds) {
  * @param {any} storeRoleConfig
  */
 function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
-  const storeName = resolveStoreNameSafe(storeRoleConfig, storeId);
+  const storeName = resolveStoreName(storeRoleConfig, storeId); // ★ ここで共通 resolver
 
   const panelConfig = keihiConfig.panels?.[storeId] || {};
 
@@ -241,7 +218,7 @@ async function upsertStorePanelMessage(
         .setLabel('申請役職')
         .setStyle(ButtonStyle.Secondary),
     );
-    
+
     const row2 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(
@@ -257,7 +234,7 @@ async function upsertStorePanelMessage(
     };
     
     let sentMessage;
-    
+
     // 既存のメッセージIDがあれば、それを編集する
     if (panelConfig.messageId) {
       try {
@@ -267,9 +244,12 @@ async function upsertStorePanelMessage(
         sentMessage = await oldMessage.edit(messagePayload);
       } catch (err) {
         // メッセージが見つからない(10008)場合は、新規送信にフォールバック
-        if (err.code !== 10008) { // Unknown Message
-          logger.warn(`[keihi/request/panel] パネル (ID: ${panelConfig.messageId}) の編集に失敗、新規投稿を試みます`, err);
-        } 
+        if (err.code !== 10008) {
+          logger.warn(
+            `[keihi/request/panel] パネル (ID: ${panelConfig.messageId}) の編集に失敗、新規投稿を試みます`,
+            err,
+          );
+        }
         sentMessage = await channel.send(messagePayload);
       }
     } else {
@@ -297,5 +277,6 @@ async function upsertStorePanelMessage(
 module.exports = {
   buildStorePanelEmbed,
   upsertStorePanelMessage,
-  resolveStoreNameSafe, // エクスポートに追加
+  // resolveRoleIdsFromPositions が他でも必要ならここで export しておく
+  // resolveRoleIdsFromPositions,
 };
