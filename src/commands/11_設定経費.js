@@ -7,7 +7,7 @@ const {
 } = require('discord.js');
 
 const { sendCommandLog } = require('../utils/config/configLogger');
-const { postKeihiSettingPanel } = require('../handlers/keihi/setting/keihiPanel_Setting');
+// ★ ここでは panel.js を require しない（循環対策）
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,15 +20,20 @@ module.exports = {
    */
   async execute(interaction) {
     try {
-      // ✅ ここを ephemeral: true から flags に変更
+      // 応答を遅延 (ephemeral)
       await interaction.deferReply({
         flags: MessageFlags.Ephemeral,
       });
 
-      // コマンドログ出力（別チャンネルなので公開でOK）
+      // コマンドログ出力
       await sendCommandLog(interaction);
 
-      // 設定パネル送信 or 更新（公開メッセージはここで扱う）
+      // ★ ここで初めて panel.js を読み込む（遅延 require）
+      const {
+        postKeihiSettingPanel,
+      } = require('../handlers/keihi/setting/panel');
+
+      // 設定パネル送信 / 更新
       await postKeihiSettingPanel(interaction);
     } catch (err) {
       console.error('[/設定経費] エラー:', err);

@@ -17,21 +17,12 @@ const {
   loadKeihiStoreConfig,
   saveKeihiStoreConfig,
 } = require('../../../utils/keihi/keihiStoreConfigManager');
-const { upsertStorePanelMessage } = require('./panel');
+const {
+  upsertStorePanelMessage,
+  resolveStoreNameSafe,
+  resolveRoleIdsFromPositions,
+} = require('./panel');
 const logger = require('../../../utils/logger');
-
-// ----------------------------------------------------
-// positionIds と storeRoleConfig からロールID配列を作る共通処理
-// ----------------------------------------------------
-function resolveRoleIdsFromPositions(storeRoleConfig, positionIds) {
-  if (!storeRoleConfig || !Array.isArray(positionIds)) return [];
-
-  const positionRoles =
-    storeRoleConfig.positionRoles || storeRoleConfig.positionRoleMap || {};
-
-  const roleIds = positionIds.flatMap((posId) => positionRoles[posId] || []);
-  return [...new Set(roleIds.filter(Boolean))];
-}
 
 // ----------------------------------------------------
 // 経費申請ボタンを押してよいロール一覧を取得
@@ -211,20 +202,6 @@ async function addMembersToThread(thread, guild, requester, allowedRoleIds) {
 async function refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig) {
   const panelConfig = keihiConfig.panels?.[storeId];
 
-  const oldMessageId = panelConfig?.messageId || null;
-  const channelId = panelConfig?.channelId || null;
-
-  // 既存パネルがあれば先に削除を試みる
-  if (channelId && oldMessageId) {
-    const channel = await guild.channels.fetch(channelId).catch(() => null);
-    if (channel && channel.isTextBased()) {
-      const oldMsg = await channel.messages.fetch(oldMessageId).catch(() => null);
-      if (oldMsg) {
-        await oldMsg.delete().catch(() => {});
-      }
-    }
-  }
-
   // 新しいパネルを送信 / 更新
   const updatedPanelMessage = await upsertStorePanelMessage(
     guild,
@@ -233,24 +210,12 @@ async function refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig)
     storeRoleConfig,
   );
 
-  if (!updatedPanelMessage || !panelConfig) return;
+  if (!updatedPanelMessage) return;
 
-  if (updatedPanelMessage.id !== oldMessageId) {
-    const latestConfig = await loadKeihiConfig(guild.id);
-    if (!latestConfig.panels) latestConfig.panels = {};
-    if (!latestConfig.panels[storeId]) latestConfig.panels[storeId] = {};
-
-    latestConfig.panels[storeId].channelId = channelId || latestConfig.panels[storeId].channelId;
-    latestConfig.panels[storeId].messageId = updatedPanelMessage.id;
-    await saveKeihiConfig(guild.id, latestConfig);
-
-    // 店舗別 config も更新
-    const storeConfig = await loadKeihiStoreConfig(guild.id, storeId).catch(() => ({}));
-    storeConfig.storeId = storeId;
-    storeConfig.channelId = latestConfig.panels[storeId].channelId;
-    storeConfig.messageId = updatedPanelMessage.id;
-    await saveKeihiStoreConfig(guild.id, storeId, storeConfig);
-  }
+  // upsertStorePanelMessage で keihiConfig オブジェクトは更新されているので、
+  // それをそのまま保存する。
+  // 注意：この関数は keihiConfig を直接変更します。
+  await saveKeihiConfig(guild.id, keihiConfig);
 }
 
 module.exports = {
@@ -259,4 +224,6 @@ module.exports = {
   findOrCreateExpenseThread,
   addMembersToThread,
   refreshPanelAndSave,
+  resolveStoreNameSafe,
+  resolveRoleIdsFromPositions,
 };

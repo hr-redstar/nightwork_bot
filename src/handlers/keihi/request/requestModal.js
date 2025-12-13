@@ -21,9 +21,10 @@ const {
 const {
   loadKeihiConfig,
 } = require('../../../utils/keihi/keihiConfigManager');
-const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const {
+  loadStoreRoleConfig,
+} = require('../../../utils/config/storeRoleConfigManager');
 const { sendAdminLog } = require('../../../utils/config/configLogger');
-const { resolveStoreName } = require('../setting/panel');
 
 const {
   validateAndGetData,
@@ -31,9 +32,12 @@ const {
   addMembersToThread,
   collectAllowedRoleIdsForRequest,
   refreshPanelAndSave,
+  resolveRoleIdsFromPositions,
+  resolveStoreNameSafe, // helpers.jsからインポートされる
 } = require('./helpers.js');
 const { IDS: REQ_IDS } = require('./requestIds');
 const { IDS: STATUS_IDS } = require('./statusIds');
+const logger = require('../../../utils/logger');
 
 /**
  * 経費申請モーダル送信時
@@ -90,7 +94,9 @@ async function handleRequestModalSubmit(interaction) {
     }
 
     // 申請パネルチャンネル
-    const channel = await guild.channels.fetch(panelConfig.channelId).catch(() => null);
+    const channel = await guild.channels
+      .fetch(panelConfig.channelId)
+      .catch(() => null);
     if (!channel || !channel.isTextBased()) {
       await interaction.editReply({
         content: '経費申請ログ用のチャンネルに送信できません。',
@@ -98,9 +104,13 @@ async function handleRequestModalSubmit(interaction) {
       return;
     }
 
-    const storeName = resolveStoreName(storeRoleConfig, storeId);
+    const storeName = resolveStoreNameSafe(storeRoleConfig, storeId);
 
-    const thread = await findOrCreateExpenseThread(channel, dateStr, storeName);
+    const thread = await findOrCreateExpenseThread(
+      channel,
+      dateStr,
+      storeName,
+    );
 
     // 3. スレッドにメンバーを追加（店舗ごとの権限＋旧 roles.request も含む）
     const { allowedRoleIds } = collectAllowedRoleIdsForRequest(
@@ -179,7 +189,10 @@ async function handleRequestModalSubmit(interaction) {
         .setStyle(ButtonStyle.Danger),
     );
 
-    await threadMessage.edit({ embeds: [finalEmbed], components: [finalButtonsRow] });
+    await threadMessage.edit({
+      embeds: [finalEmbed],
+      components: [finalButtonsRow],
+    });
 
     // 8. 管理者ログを送信
     try {
@@ -204,14 +217,16 @@ async function handleRequestModalSubmit(interaction) {
 
     // 9. ユーザーへの最終応答
     await interaction.editReply({
-      content: `店舗「${storeName}」で経費申請を登録しました。\nスレッド: ${threadMessage.url}`,
+      content:
+        `店舗「${storeName}」で経費申請を登録しました。\n` +
+        `スレッド: ${threadMessage.url}`,
     });
 
-    // 10. 経費申請パネルを再送信して最新化
+    // 10. 経費申請パネルを再描画して最新化
     try {
       await refreshPanelAndSave(guild, storeId, keihiConfig, storeRoleConfig);
     } catch (e) {
-      console.error('経費申請パネルの再送信中にエラーが発生しました:', e);
+      console.error('経費申請パネルの再描画中にエラーが発生しました:', e);
     }
   } catch (error) {
     console.error('経費申請モーダル処理中にエラーが発生しました:', error);

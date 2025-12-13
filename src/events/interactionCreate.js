@@ -8,9 +8,7 @@ const logger = require('../utils/logger');
 // --- 各機能のハンドラー ---
 const { handleInteractionError } = require('../utils/errorHandlers');
 const { handleCommand } = require('../handlers/commandHandler');
-
 const { handleUriageInteraction } = require('../handlers/uriageBotHandler.js');
-const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
 const { handleInteraction: handleChatGPTBot } = require('../handlers/chat_gptBotHandler');
 const { handleInteraction: handleConfigInteraction } = require('../handlers/configBotHandler.js');
 
@@ -79,6 +77,8 @@ module.exports = {
 
           // --- 経費（新仕様 keihi_* に統一）---
           if (customId.startsWith('keihi_')) {
+            // 循環参照対策のため、ここで遅延 require する
+            const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
             return handleKeihiInteraction(interaction);
           }
 
@@ -111,7 +111,10 @@ module.exports = {
         }
 
           // --- 経費統一ルール keihi_ ---
-          if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
+          if (customId.startsWith('keihi_')) {
+            const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
+            return handleKeihiInteraction(interaction);
+          }
 
         // --- ChatGPT ---
         if (customId.startsWith('chatgpt_')) {
@@ -142,7 +145,10 @@ module.exports = {
         }
 
           // --- 経費モーダル（新仕様 keihi_）---
-          if (customId.startsWith('keihi_')) return handleKeihiInteraction(interaction);
+          if (customId.startsWith('keihi_')) {
+            const { handleInteraction: handleKeihiInteraction } = require('../handlers/keihiBotHandler');
+            return handleKeihiInteraction(interaction);
+          }
 
         // --- ChatGPT ---
         if (customId.startsWith('chatgpt_')) {

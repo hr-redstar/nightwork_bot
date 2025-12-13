@@ -1110,3 +1110,81 @@ TypeError: resolveStoreName is not a function
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async refreshPanelAndSave (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\helpers.js:229:31)
     at async handleRequestRoleSelect (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\roleConfig.js:277:3)
+[[31merror[39m 2025-12-10 10:37:20] [31m💥 Discordクライアントエラー: resolveStoreName is not a function[39m
+[[31merror[39m 2025-12-13 09:24:53] [31m[interactionCreate] ルートエラー: Identifier 'storeName' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js:132
+    const storeName = resolveStoreName(storeRoleConfig, storeId);
+          ^
+
+SyntaxError: Identifier 'storeName' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\index.js:9:38)
+[[31merror[39m 2025-12-13 09:25:32] [31m[interactionCreate] ルートエラー: Identifier 'storeName' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js:132
+    const storeName = resolveStoreName(storeRoleConfig, storeId);
+          ^
+
+SyntaxError: Identifier 'storeName' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\index.js:9:38)
+[[31merror[39m 2025-12-13 09:25:48] [31m[interactionCreate] ルートエラー: Identifier 'storeName' has already been declared[39m
+C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js:132
+    const storeName = resolveStoreName(storeRoleConfig, storeId);
+          ^
+
+SyntaxError: Identifier 'storeName' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\index.js:9:38)
+[[31merror[39m 2025-12-13 09:26:19] [31m[interactionCreate] ルートエラー: Cannot find module '../../common/commonHelpers'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\index.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\index.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../common/commonHelpers'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\index.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\index.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihiBotHandler.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\events\interactionCreate.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\handlers\keihi\request\requestModal.js:29:30)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2025-12-13 09:27:06] [31m💥 Discordクライアントエラー: resolveStoreName is not a function[39m
+[[31merror[39m 2025-12-13 09:59:25] [31m💥 Discordクライアントエラー: resolveStoreName is not a function[39m
+[[31merror[39m 2025-12-13 10:00:17] [31m💥 Discordクライアントエラー: resolveStoreName is not a function[39m

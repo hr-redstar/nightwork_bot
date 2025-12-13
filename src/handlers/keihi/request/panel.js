@@ -11,8 +11,31 @@ const {
 } = require('discord.js');
 
 const logger = require('../../../utils/logger');
-const { resolveStoreName } = require('../setting/panel');
 const { IDS: KEIHI_IDS } = require('./ids');
+
+/**
+ * setting/panel の resolveStoreName を安全に呼び出すヘルパー
+ * （循環 require 対策として遅延 require）
+ * @param {any} storeRoleConfig
+ * @param {string} storeId
+ * @returns {string}
+ */
+function resolveStoreNameSafe(storeRoleConfig, storeId) {
+  try {
+    // ★ ここで初めて require する（module cache が効くので負荷は小さい）
+    const settingPanel = require('../setting/panel');
+    if (
+      settingPanel &&
+      typeof settingPanel.resolveStoreNameSafe === 'function'
+    ) {
+      return settingPanel.resolveStoreNameSafe(storeRoleConfig, storeId);
+    }
+  } catch (err) {
+    // ここでコケても storeId をそのまま返せば致命傷にはならない
+    logger.warn('[keihi/request/panel] resolveStoreNameSafe での読み込みに失敗', err);
+  }
+  return storeId;
+}
 
 /**
  * positionIds と storeRoleConfig からロールID配列を作る共通処理
@@ -100,7 +123,7 @@ function formatRoleLines(storeRoleConfig, positionIds, roleIds) {
  * @param {any} storeRoleConfig
  */
 function buildStorePanelEmbed(guild, storeId, keihiConfig, storeRoleConfig) {
-  const storeName = resolveStoreName(storeRoleConfig, storeId);
+  const storeName = resolveStoreNameSafe(storeRoleConfig, storeId);
 
   const panelConfig = keihiConfig.panels?.[storeId] || {};
 
@@ -218,7 +241,7 @@ async function upsertStorePanelMessage(
         .setLabel('申請役職')
         .setStyle(ButtonStyle.Secondary),
     );
-
+    
     const row2 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(
@@ -227,39 +250,41 @@ async function upsertStorePanelMessage(
         .setLabel('経費申請')
         .setStyle(ButtonStyle.Primary),
     );
-
-    // 既存のメッセージがあれば取得して削除する
-    if (panelConfig.messageId) {
-      try {
-        const oldMessage = await channel.messages.fetch(panelConfig.messageId);
-        await oldMessage.delete();
-      } catch (err) {
-        // メッセージが見つからない(10008)場合は無視して進む
-        if (err.code !== 10008) {
-          // Unknown Message
-          logger.warn(
-            `[keihi/request/panel] 古いパネル (ID: ${panelConfig.messageId}) の削除に失敗`,
-            err,
-          );
-        }
-      }
-    }
-
-    const sent = await channel.send({
+    
+    const messagePayload = {
       embeds: [embed],
       components: [row1, row2],
-    });
-
-    // keihiConfig.panels の存在は上で確認済みだが念のため
+    };
+    
+    let sentMessage;
+    
+    // 既存のメッセージIDがあれば、それを編集する
+    if (panelConfig.messageId) {
+      try {
+        const oldMessage = await channel.messages.fetch(panelConfig.messageId, {
+          force: true, // キャッシュを無視してAPIから直接取得
+        });
+        sentMessage = await oldMessage.edit(messagePayload);
+      } catch (err) {
+        // メッセージが見つからない(10008)場合は、新規送信にフォールバック
+        if (err.code !== 10008) { // Unknown Message
+          logger.warn(`[keihi/request/panel] パネル (ID: ${panelConfig.messageId}) の編集に失敗、新規投稿を試みます`, err);
+        } 
+        sentMessage = await channel.send(messagePayload);
+      }
+    } else {
+      // 既存メッセージがなければ新規送信
+      sentMessage = await channel.send(messagePayload);
+    }
+    
+    // ここで config を更新（保存は呼び出し側）
     if (!keihiConfig.panels) keihiConfig.panels = {};
     if (!keihiConfig.panels[storeId]) {
-      keihiConfig.panels[storeId] = panelConfig || {};
+      keihiConfig.panels[storeId] = {};
     }
+    keihiConfig.panels[storeId].messageId = sentMessage.id;
 
-    // ここで config を更新（保存は呼び出し側）
-    keihiConfig.panels[storeId].messageId = sent.id;
-
-    return sent;
+    return sentMessage;
   } catch (err) {
     logger.error(
       `[keihi/request/panel] 店舗ID ${storeId} のパネル更新失敗`,
@@ -272,4 +297,5 @@ async function upsertStorePanelMessage(
 module.exports = {
   buildStorePanelEmbed,
   upsertStorePanelMessage,
+  resolveStoreNameSafe, // エクスポートに追加
 };
