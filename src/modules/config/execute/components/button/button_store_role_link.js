@@ -6,7 +6,7 @@
 const selectStoreForStoreRole = require('../../select/storeRole/select_store_for_storeRole.js');
 
 module.exports = {
-  customId: 'config_store_role_link',
+  customId: 'config:store:role:link',
 
   async handle(interaction) {
     return selectStoreForStoreRole.show(interaction);

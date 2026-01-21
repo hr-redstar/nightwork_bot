@@ -76,23 +76,23 @@ async function sendConfigPanel(channel) {
 
   const buttons = [
     [
-      { id: 'config_store_edit', label: '店舗名編集', style: ButtonStyle.Primary },
-      { id: 'config_role_edit', label: '役職編集', style: ButtonStyle.Primary },
-      { id: 'config_store_role_link', label: '店舗とロール紐づけ', style: ButtonStyle.Secondary },
-      { id: 'config_position_role_link', label: '役職とロール紐づけ', style: ButtonStyle.Secondary },
+      { id: 'config:store:edit', label: '店舗名編集', style: ButtonStyle.Primary },
+      { id: 'config:role:edit', label: '役職編集', style: ButtonStyle.Primary },
+      { id: 'config:store:role:link', label: '店舗とロール紐づけ', style: ButtonStyle.Secondary },
+      { id: 'config:position:role:link', label: '役職とロール紐づけ', style: ButtonStyle.Secondary },
     ],
     [
-      { id: 'config_user_register', label: 'ユーザー情報登録', style: ButtonStyle.Success },
-      { id: 'config_command_role', label: 'コマンド実行役職', style: ButtonStyle.Secondary },
+      { id: 'config:user:register', label: 'ユーザー情報登録', style: ButtonStyle.Success },
+      { id: 'config:command:role', label: 'コマンド実行役職', style: ButtonStyle.Secondary },
     ],
     [
-      { id: 'config_global_log', label: 'グローバルログ', style: ButtonStyle.Secondary },
-      { id: 'config_admin_log', label: '管理者ログ', style: ButtonStyle.Secondary },
-      { id: 'config_command_thread', label: 'コマンドログ', style: ButtonStyle.Secondary },
-      { id: 'config_setting_thread', label: '設定ログ', style: ButtonStyle.Secondary },
+      { id: 'config:global:log', label: 'グローバルログ', style: ButtonStyle.Secondary },
+      { id: 'config:admin:log', label: '管理者ログ', style: ButtonStyle.Secondary },
+      { id: 'config:command:thread', label: 'コマンドログ', style: ButtonStyle.Secondary },
+      { id: 'config:setting:thread', label: '設定ログ', style: ButtonStyle.Secondary },
     ],
     [
-      { id: 'config_slack_auto', label: 'Slack通知', style: ButtonStyle.Primary },
+      { id: 'config:slack:auto', label: 'Slack通知', style: ButtonStyle.Primary },
     ],
   ];
 
