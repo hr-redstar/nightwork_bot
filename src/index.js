@@ -12,6 +12,7 @@ const { DEV_GUILD_IDS } = require('./utils/config/envConfig');
 const { deployCommands } = require('../scripts/deployGuildCommands');
 
 require('./utils/gcs'); // requireするだけでgcs.jsが初期化され、ログが出力されます
+const { initSyutCron } = require('./utils/syut/syutCron');
 
 const {
   DISCORD_TOKEN,
@@ -115,4 +116,6 @@ function loadCommands(dir) {
   // app.listen(PORT, () => {
   //   logger.info(`🌐 Express サーバー起動: ポート ${PORT}`);
   // });
+  // --- Cron開始 ---
+  initSyutCron(client);
 })();
