@@ -1,8 +1,8 @@
 ﻿﻿const { ButtonStyle } = require('discord.js');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
-const { getGuildConfig, saveGuildConfig } = require('../../utils/config/gcsConfigManager');
-const { buildPanel } = require('../../utils/ui/panelBuilder');
-const logger = require('../../utils/logger');
+const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+const { getGuildConfig, saveGuildConfig } = require('../../../utils/config/gcsConfigManager');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
+const logger = require('../../../utils/logger');
 
 /**
  * 設定パネルを送信・更新

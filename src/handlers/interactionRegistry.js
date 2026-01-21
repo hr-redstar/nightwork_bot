@@ -36,7 +36,4 @@ module.exports = {
     // ChatGPT
     'chatgpt': require('../modules/chat_gpt').handleChatGptInteraction,
     'chat_gpt': require('../modules/chat_gpt').handleChatGptInteraction,
-
-    // 設定系共通
-    'setting': require('../handlers/setting/common/settingRouter').routeSettingInteraction,
 };

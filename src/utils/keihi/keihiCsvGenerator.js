@@ -9,7 +9,7 @@
 
 const fs = require('fs/promises');
 const path = require('path');
-const logger = require('../../logger');
+const logger = require('../logger');
 
 const LOCAL_GCS_ROOT = path.resolve(process.cwd(), 'local_data', 'gcs');
 

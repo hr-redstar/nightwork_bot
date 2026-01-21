@@ -8,7 +8,7 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { loadStoreRoleConfig } = require('../../../../utils/config/storeRoleConfigManager.js');
+const { loadStoreRoleConfig } = require('../../../../../utils/config/storeRoleConfigManager.js');
 
 module.exports = {
   customId: 'config_select_store_for_store_role',
