@@ -11,6 +11,47 @@ const path = require('path');
 const logger = require('./logger');
 const { Storage } = require('@google-cloud/storage'); // eslint-disable-line no-unused-vars
 
+// リトライ設定
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY_MS = 1000;
+
+/**
+ * 永続的エラー（リトライすべきでない）かチェック
+ */
+function isPermanentError(err) {
+  // 認証エラー、バケット不存在、権限エラーなど
+  if (err.code === 401 || err.code === 403 || err.code === 404) return true;
+  if (err.message && err.message.includes('credentials')) return true;
+  if (err.message && err.message.includes('not found')) return true;
+  return false;
+}
+
+/**
+ * 指数バックオフでリトライ
+ */
+async function retryWithBackoff(fn, maxRetries = MAX_RETRIES) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      // 永続的エラーは即座に失敗
+      if (isPermanentError(err)) {
+        throw err;
+      }
+
+      // 最後の試行で失敗したら例外をスロー
+      if (attempt === maxRetries - 1) {
+        throw err;
+      }
+
+      // 指数バックオフで待機
+      const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt);
+      logger.warn(`[gcs.js] Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms: ${err.message}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 const USE_GCS =
   process.env.USE_GCS === 'true' || process.env.GCS_ENABLED === 'true';
 const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME || '';
@@ -61,7 +102,7 @@ function toLocalPath(objectPath) {
   return { logicalPath, filePath };
 }
 
-// JSON を読み込み
+// JSON を読み込み（リトライ付き）
 async function readJSON(objectPath) {
   const { logicalPath, filePath } = toLocalPath(objectPath);
 
@@ -70,20 +111,22 @@ async function readJSON(objectPath) {
       `[gcs.js] readJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );
     const file = bucket.file(logicalPath);
-    try {
-      const [buf] = await file.download();
-      if (!buf || !buf.length) return null;
-      return JSON.parse(buf.toString('utf8'));
-    } catch (err) {
-      if (err.code === 404) {
-        logger.debug(
-          `[gcs.js] readJSON (gcs): not found "${logicalPath}"`
-        );
-        return null;
+
+    return await retryWithBackoff(async () => {
+      try {
+        const [buf] = await file.download();
+        if (!buf || !buf.length) return null;
+        return JSON.parse(buf.toString('utf8'));
+      } catch (err) {
+        if (err.code === 404) {
+          logger.debug(
+            `[gcs.js] readJSON (gcs): not found "${logicalPath}"`
+          );
+          return null;
+        }
+        throw err;
       }
-      logger.error('[gcs.js] readJSON (gcs) エラー:', err);
-      throw err;
-    }
+    });
   } else {
     logger.debug(
       `[gcs.js] readJSON (local): logical="${logicalPath}" -> "${filePath}"`
@@ -104,25 +147,24 @@ async function readJSON(objectPath) {
   }
 }
 
-// JSON を保存
+// JSON を保存（リトライ付き）
 async function saveJSON(objectPath, data) {
   const { logicalPath, filePath } = toLocalPath(objectPath);
-  const json = JSON.stringify(data ?? {}, null, 2);
+  const jsonStr = JSON.stringify(data ?? {}, null, 2);
 
   if (useGcsMode && bucket) {
     logger.debug(
       `[gcs.js] saveJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );
     const file = bucket.file(logicalPath);
-    try {
-      await file.save(json, {
+
+    return await retryWithBackoff(async () => {
+      await file.save(jsonStr, {
+        contentType: 'application/json',
         resumable: false,
-        contentType: 'application/json; charset=utf-8',
       });
-    } catch (err) {
-      logger.error('[gcs.js] saveJSON (gcs) エラー:', err);
-      throw err;
-    }
+      logger.debug(`[gcs.js] saveJSON (gcs): saved "${logicalPath}"`);
+    });
   } else {
     logger.debug(
       `[gcs.js] saveJSON (local): logical="${logicalPath}" -> "${filePath}"`

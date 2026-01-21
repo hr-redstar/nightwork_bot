@@ -1,5 +1,6 @@
 const path = require('path');
 const { readJSON, saveJSON } = require('./gcs');
+const logger = require('./logger');
 
 /**
  * 設定管理の基底クラス
@@ -14,6 +15,16 @@ class BaseConfigManager {
     constructor({ baseDir, fileName = 'config.json' }) {
         this.baseDir = baseDir;
         this.fileName = fileName;
+    }
+
+    /**
+     * データバリデーション（継承先で実装必須）
+     * @param {Object} data 
+     * @throws {Error} バリデーションエラー
+     */
+    validate(data) {
+        // デフォルトは何もしない（継承先でオーバーライド推奨）
+        // throw new Error('validate() must be implemented in subclass');
     }
 
     /**
@@ -35,24 +46,41 @@ class BaseConfigManager {
     }
 
     /**
-     * JSON読み込み（共通）
+     * JSON読み込み（共通）- エラー処理完全カプセル化
      */
     async _load(filePath, defaults = {}) {
         try {
             const data = await readJSON(filePath);
-            return { ...defaults, ...(data || {}) };
+            const merged = { ...defaults, ...(data || {}) };
+
+            // バリデーション実行
+            this.validate(merged);
+
+            return merged;
         } catch (err) {
-            if (err && err.code === 'ENOENT') return { ...defaults };
-            throw err;
+            if (err && err.code === 'ENOENT') {
+                // ファイルが存在しない場合はデフォルト値を返す
+                return { ...defaults };
+            }
+
+            // その他のエラーは詳細情報を付与して再スロー
+            throw new Error(`[${this.constructor.name}] Failed to load config from ${filePath}: ${err.message}`);
         }
     }
 
     /**
-     * JSON保存（共通）
+     * JSON保存（共通）- エラー処理完全カプセル化
      */
     async _save(filePath, data) {
-        await saveJSON(filePath, data || {});
-        return data;
+        try {
+            // バリデーション実行
+            this.validate(data);
+
+            await saveJSON(filePath, data || {});
+            return data;
+        } catch (err) {
+            throw new Error(`[${this.constructor.name}] Failed to save config to ${filePath}: ${err.message}`);
+        }
     }
 
     // --- Public API ---
