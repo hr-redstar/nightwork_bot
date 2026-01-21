@@ -1,5 +1,4 @@
-const { handleSettingInteraction } = require('./setting');
-const { handleRequestInteraction } = require('./request');
+const router = require('./router');
 const { handleInteractionError } = require('../../utils/errorHandlers');
 
 /**
@@ -8,14 +7,10 @@ const { handleInteractionError } = require('../../utils/errorHandlers');
  */
 async function handleKeihiInteraction(interaction) {
   try {
-    const customId = interaction.customId || '';
-
-    if (customId.startsWith('keihi_config') || customId.startsWith('keihi_setting')) {
-      return await handleSettingInteraction(interaction);
-    }
-
-    if (customId.startsWith('keihi_request')) {
-      return await handleRequestInteraction(interaction);
+    const handled = await router.dispatch(interaction);
+    if (!handled) {
+      // 必要ならログ出力
+      // console.log(`[Keihi] Unhandled interaction: ${interaction.customId}`);
     }
   } catch (err) {
     await handleInteractionError(interaction, err);

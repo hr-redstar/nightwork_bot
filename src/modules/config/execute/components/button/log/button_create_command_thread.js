@@ -4,7 +4,7 @@ const { sendSettingLog } = require('../../../../../../utils/config/configLogger'
 const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {
-  customId: 'CONFIG_CREATE_COMMAND_THREAD',
+  customId: 'config:command:thread',
 
   async handle(interaction) {
     const channel = interaction.channel;

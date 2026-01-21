@@ -28,14 +28,18 @@ function buildPanel({ title, description, fields = [], buttons = [], color = nul
 
             rows.push(
                 new ActionRowBuilder().addComponents(
-                    rowButtons.map(b =>
-                        new ButtonBuilder()
+                    rowButtons.map(b => {
+                        const btn = new ButtonBuilder()
                             .setCustomId(b.id)
                             .setLabel(b.label)
                             .setStyle(b.style)
-                            .setDisabled(!!b.disabled)
-                            .setEmoji(b.emoji || undefined)
-                    )
+                            .setDisabled(!!b.disabled);
+
+                        if (b.emoji) {
+                            btn.setEmoji(b.emoji);
+                        }
+                        return btn;
+                    })
                 )
             );
         }

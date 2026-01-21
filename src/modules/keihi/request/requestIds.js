@@ -10,10 +10,10 @@
 
 const IDS = {
   // 経費項目セレクト
-  REQUEST_ITEM_SELECT: 'keihi_request_request_item',
+  REQUEST_ITEM_SELECT: 'keihi:request:item:select',
 
   // 経費申請モーダル
-  REQUEST_MODAL: 'keihi_request_request_modal',
+  REQUEST_MODAL: 'keihi:request:submit:modal',
 };
 
 module.exports = { IDS };

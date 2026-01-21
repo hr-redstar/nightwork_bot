@@ -3,10 +3,10 @@
 // 経費「申請パネル」用 customId 一元管理
 // ----------------------------------------------------
 
-const PREFIX = 'keihi_request';
+const PREFIX = 'keihi:request';
 
-const ITEM_CONFIG_MODAL_BASE = `${PREFIX}:modal_item_config`;
-const ITEM_CONFIG_BUTTON_BASE = `${PREFIX}:btn:item_config`;
+const ITEM_CONFIG_MODAL_BASE = `${PREFIX}:item:config_modal`;
+const ITEM_CONFIG_BUTTON_BASE = `${PREFIX}:item:config_btn`;
 
 function normalizeStoreKey(storeKey) {
   // ":" 連続の互換もあるので落とす
@@ -22,9 +22,9 @@ const IDS = {
   },
 
   PREFIX: {
-    BUTTON: `${PREFIX}:btn`,
-    VIEW_ROLE_SELECT: `${PREFIX}:sel_view_roles`,
-    REQUEST_ROLE_SELECT: `${PREFIX}:sel_req_roles`,
+    BUTTON: `${PREFIX}:btn`, // kept generic for dynamic logic?
+    VIEW_ROLE_SELECT: `${PREFIX}:role:view_select`,
+    REQUEST_ROLE_SELECT: `${PREFIX}:role:req_select`,
     // startsWith 用（末尾 ":" なし）
     ITEM_CONFIG_MODAL: ITEM_CONFIG_MODAL_BASE,
   },

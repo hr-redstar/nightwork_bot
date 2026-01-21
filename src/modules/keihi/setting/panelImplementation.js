@@ -9,6 +9,8 @@ const {
   ButtonStyle,
   EmbedBuilder,
 } = require('discord.js');
+const { KEIHI_SETTING_PANEL_SCHEMA } = require('./panelSchema');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
 const logger = require('../../../utils/logger');
 const { sendCommandLog } = require('../../../utils/config/configLogger');
 const {
@@ -32,27 +34,8 @@ const {
 } = require('./approver');
 const { resolveStoreName } = require('./storeNameResolver');
 
-function buildSettingButtonsRow1() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_SET_PANEL)
-      .setLabel('経費申請パネル設置')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_SET_APPROVER)
-      .setLabel('承認役職')
-      .setStyle(ButtonStyle.Secondary),
-  );
-}
-
-function buildSettingButtonsRow2() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_EXPORT_CSV)
-      .setLabel('経費CSV発行')
-      .setStyle(ButtonStyle.Success),
-  );
-}
+// function buildSettingButtonsRow1() ... removed (replaced by Schema)
+// function buildSettingButtonsRow2() ... removed (replaced by Schema)
 
 function roleMentionFromIds(guild, ids = []) {
   const mentions = ids
@@ -138,29 +121,33 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   const panelFieldValue =
     panelLines.length > 0
       ? panelLines.join('\n')
-      : '未設置。ボタンから経費申請パネルを設置してください。';
+      : KEIHI_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'panels').fallback;
 
   const approverValue = describeApprovers(guild, storeRoleConfig, keihiConfig);
 
-  const embed = new EmbedBuilder()
-    .setTitle('💸 経費設定パネル')
-    .setColor(0x5a5f7b)
-    .addFields(
-      {
-        name: '経費申請パネル一覧',
-        value: panelFieldValue,
-      },
-      {
-        name: '承認役職',
-        value: approverValue,
-      },
-    )
-    .setTimestamp(new Date());
-
-  return {
-    embeds: [embed],
-    components: [buildSettingButtonsRow1(), buildSettingButtonsRow2()],
+  // Schema Mapping
+  const dataMap = {
+    panels: panelFieldValue,
+    approvers: approverValue || KEIHI_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'approvers').fallback,
   };
+
+  const embedFields = KEIHI_SETTING_PANEL_SCHEMA.fields.map(f => ({
+    name: f.name,
+    value: dataMap[f.key] || f.fallback
+  }));
+
+  const panel = buildPanel({
+    title: KEIHI_SETTING_PANEL_SCHEMA.title,
+    description: KEIHI_SETTING_PANEL_SCHEMA.description,
+    color: KEIHI_SETTING_PANEL_SCHEMA.color,
+    fields: embedFields,
+    buttons: KEIHI_SETTING_PANEL_SCHEMA.buttons
+  });
+
+  // Note: buildPanel returns { embeds: [...], components: [...] } which works as payload.
+  // Manually ensure timestamp is set if builder doesn't (Builder does setTimestamp())
+
+  return panel;
 }
 
 async function postKeihiSettingPanel(interaction) {

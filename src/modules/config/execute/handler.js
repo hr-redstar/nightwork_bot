@@ -52,16 +52,37 @@ const router = new InteractionRouter();
 
 // --- Buttons ---
 router.on('config:store:edit', (i) => buttonStoreEdit.execute(i));
+router.on('config_store_edit', (i) => buttonStoreEdit.execute(i)); // Legacy
+
 router.on('config:role:edit', (i) => buttonRoleEdit.execute(i));
-router.on('config:store:role:link', (i) => selectStoreForStoreRole.show(i)); // Button triggers select menu
+router.on('config_role_edit', (i) => buttonRoleEdit.execute(i)); // Legacy
+
+router.on('config:store:role:link', (i) => selectStoreForStoreRole.show(i));
+router.on('config_store_role_link', (i) => selectStoreForStoreRole.show(i)); // Legacy
+
 router.on('config:position:role:link', (i) => buttonPositionRoleLink.handle(i));
+router.on('config_position_role_link', (i) => buttonPositionRoleLink.handle(i)); // Legacy
+
 router.on('config:user:register', (i) => buttonUserRegister.execute(i));
-router.on('config:global:log', (i) => selectGlobalLog.show(i)); // Button triggers select menu
-router.on('config:admin:log', (i) => selectAdminLog.show(i)); // Button triggers select menu
+router.on('config_user_register', (i) => buttonUserRegister.execute(i)); // Legacy
+
+router.on('config:global:log', (i) => selectGlobalLog.show(i));
+router.on('config_global_log', (i) => selectGlobalLog.show(i)); // Legacy
+
+router.on('config:admin:log', (i) => selectAdminLog.show(i));
+router.on('config_admin_log', (i) => selectAdminLog.show(i)); // Legacy
+
 router.on('config:command:thread', (i) => buttonCreateCommandThread.handle(i));
+router.on('config_command_thread', (i) => buttonCreateCommandThread.handle(i)); // Legacy
+
 router.on('config:setting:thread', (i) => buttonCreateSettingThread.handle(i));
+router.on('config_setting_thread', (i) => buttonCreateSettingThread.handle(i)); // Legacy
+
 router.on('config:command:role', (i) => handleCommandRole(i));
+router.on('config_command_role', (i) => handleCommandRole(i)); // Legacy
+
 router.on('config:slack:auto', (i) => buttonSlackAutomation.handle(i));
+router.on('config_slack_auto', (i) => buttonSlackAutomation.handle(i)); // Legacy
 
 // --- User Registration Flow Buttons (Dynamic) ---
 router.on(/^config_user_goto_position_/, async (i) => {

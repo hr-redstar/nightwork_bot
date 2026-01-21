@@ -1,7 +1,7 @@
 // src/handlers/uriage/setting/ids.js
 // 売上「設定パネル」用 customId 一覧
 
-const PREFIX = 'uriage_config';
+const PREFIX = 'uriage:setting';
 
 const CSV_PERIOD_VALUE_PREFIX = {
   DATE: 'date:',
@@ -14,27 +14,27 @@ const IDS = {
   PREFIX,
 
   // 設定パネル系
-  BTN_SET_PANEL: `${PREFIX}:btn:set_panel`,
-  BTN_SET_APPROVER: `${PREFIX}:btn:set_approver`,
-  BTN_EXPORT_CSV: `${PREFIX}:btn:export_csv`,
-  BUTTON_EXPORT_CSV: `${PREFIX}:btn:export_csv`, // alias
+  BTN_SET_PANEL: `${PREFIX}:panel:refresh`,
+  BTN_SET_APPROVER: `${PREFIX}:approver:set`,
+  BTN_EXPORT_CSV: `${PREFIX}:csv:export`,
+  BUTTON_EXPORT_CSV: `${PREFIX}:csv:export`, // alias
 
-  SEL_STORE_FOR_PANEL: `${PREFIX}:sel:store_for_panel`,
-  PANEL_CHANNEL_PREFIX: `${PREFIX}:sel:panel_channel:`,
-  SEL_APPROVER_ROLES: `${PREFIX}:sel:approver_roles`,
+  SEL_STORE_FOR_PANEL: `${PREFIX}:panel:store_select`,
+  PANEL_CHANNEL_PREFIX: `${PREFIX}:panel:channel_select:`,
+  SEL_APPROVER_ROLES: `${PREFIX}:approver:role_select`,
 
   // CSV発行フロー
-  SELECT_STORE_FOR_CSV: `${PREFIX}:select:csv_store`,
-  BUTTON_CSV_RANGE_DAILY: `${PREFIX}:btn:csv_range_daily`,   // 年月日
-  BUTTON_CSV_RANGE_MONTHLY: `${PREFIX}:btn:csv_range_monthly`, // 年月
-  BUTTON_CSV_RANGE_YEARLY: `${PREFIX}:btn:csv_range_yearly`,   // 年
-  BUTTON_CSV_RANGE_QUARTER: `${PREFIX}:btn:csv_range_quarter`, // 四半期
-  SELECT_CSV_TARGET: `${PREFIX}:select:csv_target`,
+  SELECT_STORE_FOR_CSV: `${PREFIX}:csv:store_select`,
+  BUTTON_CSV_RANGE_DAILY: `${PREFIX}:csv:range:daily`,   // 年月日
+  BUTTON_CSV_RANGE_MONTHLY: `${PREFIX}:csv:range:monthly`, // 年月
+  BUTTON_CSV_RANGE_YEARLY: `${PREFIX}:csv:range:yearly`,   // 年
+  BUTTON_CSV_RANGE_QUARTER: `${PREFIX}:csv:range:quarter`, // 四半期
+  SELECT_CSV_TARGET: `${PREFIX}:csv:target_select`,
 
-  // 旧CSVセレクト互換（必要なら維持）
-  SEL_CSV_STORE: `${PREFIX}:sel:csv_store`,
-  SEL_CSV_PERIOD: `${PREFIX}:sel:csv_period`,
-  BTN_CSV_KIND_PREFIX: `${PREFIX}:btn:csv_kind:`,
+  // 旧CSVセレクト互換（必要なら維持 - Routerで吸収するが定数は残しておく）
+  SEL_CSV_STORE: `${PREFIX}:csv:store_select_legacy`,
+  SEL_CSV_PERIOD: `${PREFIX}:csv:period_select_legacy`,
+  BTN_CSV_KIND_PREFIX: `${PREFIX}:csv:kind:`,
 };
 
 module.exports = { IDS, CSV_PERIOD_VALUE_PREFIX };
