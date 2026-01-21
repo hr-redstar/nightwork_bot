@@ -67,7 +67,8 @@ module.exports = {
       if (customId) {
         // 特別なPrefix (Registryに入れるのが難しい場合や既存ロジック優先)
         if (customId.startsWith('approval:')) {
-          // TODO: Approval module handler
+          const { routeApprovalInteraction } = require('../modules/common/approval/approvalRouter');
+          await routeApprovalInteraction(interaction);
           return;
         }
 

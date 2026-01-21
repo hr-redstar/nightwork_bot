@@ -1,23 +1,25 @@
-// src/commands/91_メッセージファイル化.js
-const {
-  SlashCommandBuilder,
-  ChannelType,
-} = require('discord.js');
+const { SlashCommandBuilder, ChannelType } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
 const { exportTextChannelMessages } = require('../modules/message/execute/exportTextChannelMessages');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('メッセージファイル化')
-    .setDescription('テキストチャンネルのこれまでのメッセージを全てファイル化します')
-    .addChannelOption((option) =>
-      option
-        .setName('channel')
-        .setDescription('対象チャンネル（未指定なら実行チャンネル）')
-        .addChannelTypes(ChannelType.GuildText)
-        .setRequired(false)
-    ),
+class ExportMessagesCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: true });
+    this.data = new SlashCommandBuilder()
+      .setName('メッセージファイル化')
+      .setDescription('テキストチャンネルのこれまでのメッセージを全てファイル化します')
+      .addChannelOption((option) =>
+        option
+          .setName('channel')
+          .setDescription('対象チャンネル（未指定なら実行チャンネル）')
+          .addChannelTypes(ChannelType.GuildText)
+          .setRequired(false)
+      );
+  }
 
-  async execute(interaction) {
+  async run(interaction) {
     await exportTextChannelMessages(interaction);
-  },
-};
+  }
+}
+
+module.exports = new ExportMessagesCommand();
