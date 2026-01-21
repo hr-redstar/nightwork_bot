@@ -67,8 +67,8 @@ module.exports = {
       if (customId) {
         // 特別なPrefix (Registryに入れるのが難しい場合や既存ロジック優先)
         if (customId.startsWith('approval:')) {
-          const { routeApprovalInteraction } = require('../modules/common/approval/approvalRouter');
-          await routeApprovalInteraction(interaction);
+          // TODO: Common Approval Module is not fully implemented yet.
+          // Requires context binding (e.g. redis/db) to map messageId to logic.
           return;
         }
 
