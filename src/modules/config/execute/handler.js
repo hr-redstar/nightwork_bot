@@ -1,16 +1,21 @@
 ﻿﻿// src/modules/config/execute/handler.js
 // ----------------------------------------------------
 // 設定パネルのボタン / セレクト / モーダル dispatcher
+// InteractionRouter 使用版
 // ----------------------------------------------------
 
-const { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } = require('discord.js');
+const { MessageFlags } = require('discord.js');
+const InteractionRouter = require('../../../structures/InteractionRouter');
+const logger = require('../../../utils/logger');
+const { getRegistrationState } = require('./select/user/registrationState.js');
 
 // ==============================
-// ボタン
+// コンポーネントのインポート
 // ==============================
+// --- Button ---
 const buttonStoreEdit = require('./components/button/button_store_edit.js');
 const buttonRoleEdit = require('./components/button/button_role_edit.js');
-const buttonStoreRoleLink = require('./components/button/button_store_role_link.js');
+const buttonStoreRoleLink = require('./components/button/button_store_role_link.js'); // This button triggers selectStoreForStoreRole.show
 const buttonPositionRoleLink = require('./components/button/button_position_role_link.js');
 const buttonUserRegister = require('./components/button/button_user_register.js');
 const buttonCreateCommandThread = require('./components/button/log/button_create_command_thread.js');
@@ -18,12 +23,9 @@ const buttonCreateSettingThread = require('./components/button/log/button_create
 const buttonSlackAutomation = require('./components/modal/slack/button_slack_automation.js');
 const { handleCommandRole } = require('./commandRoleHandler.js');
 
-// ==============================
-// セレクト
-// ==============================
+// --- Select ---
 const selectStoreForStoreRole = require('./select/storeRole/select_store_for_storeRole.js');
 const selectRolesForStore = require('./select/storeRole/select_roles_for_store.js');
-
 const selectPositionForRoleLink = require('./select/positionRole/select_position_for_roleLink.js');
 const selectRolesForPosition = require('./select/positionRole/select_roles_for_position.js');
 
@@ -37,149 +39,92 @@ const selectBirthDay = require('./select/user/select_user_birth_day.js');
 const selectGlobalLog = require('./select/log/select_global_log.js');
 const selectAdminLog = require('./select/log/select_admin_log.js');
 
-// ==============================
-// モーダル
-// ==============================
+// --- Modal ---
 const modalStoreEdit = require('./components/modal/modal_store_edit.js');
 const modalRoleEdit = require('./components/modal/modal_role_edit.js');
 const modalUserInfo = require('./components/modal/modal_user_info.js');
 const modalSlackWebhook = require('./components/modal/slack/modal_slack_webhook.js');
-const logger = require('../../../utils/logger');
-const {
-  getRegistrationState,
-} = require('./select/user/registrationState.js');
+
+// ==============================
+// ルーター定義
+// ==============================
+const router = new InteractionRouter();
+
+// --- Buttons ---
+router.on('config:store:edit', (i) => buttonStoreEdit.execute(i));
+router.on('config:role:edit', (i) => buttonRoleEdit.execute(i));
+router.on('config:store:role:link', (i) => selectStoreForStoreRole.show(i)); // Button triggers select menu
+router.on('config:position:role:link', (i) => buttonPositionRoleLink.handle(i));
+router.on('config:user:register', (i) => buttonUserRegister.execute(i));
+router.on('config:global:log', (i) => selectGlobalLog.show(i)); // Button triggers select menu
+router.on('config:admin:log', (i) => selectAdminLog.show(i)); // Button triggers select menu
+router.on('config:command:thread', (i) => buttonCreateCommandThread.handle(i));
+router.on('config:setting:thread', (i) => buttonCreateSettingThread.handle(i));
+router.on('config:command:role', (i) => handleCommandRole(i));
+router.on('config:slack:auto', (i) => buttonSlackAutomation.handle(i));
+
+// --- User Registration Flow Buttons (Dynamic) ---
+router.on(/^config_user_goto_position_/, async (i) => {
+  const stateId = i.customId.replace('config_user_goto_position_', '');
+  const state = getRegistrationState(stateId);
+  if (!state) {
+    await i.reply({ content: '⏳ セッションが期限切れです。再度最初から登録してください。', flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await selectUserChoosePosition.show(i, stateId, state.storeName);
+});
+router.on(/^config_user_goto_birth_year_/, async (i) => {
+  const stateId = i.customId.replace('config_user_goto_birth_year_', '');
+  const state = getRegistrationState(stateId);
+  if (!state) {
+    await i.reply({ content: '⏳ セッションが期限切れです。再度最初から登録してください。', flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await selectBirthYear.show(i, stateId);
+});
+router.on(/^config_user_goto_userinfo_/, async (i) => {
+  const stateId = i.customId.replace('config_user_goto_userinfo_', '');
+  const state = getRegistrationState(stateId);
+  if (!state) {
+    await i.reply({ content: '⏳ セッションが期限切れです。再度最初から登録してください。', flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await modalUserInfo.show(i, stateId);
+});
+router.on(/^config_user_birth_year_next__/, (i) => selectBirthYear.handleNext(i));
+router.on(/^config_user_birth_month_next__/, (i) => selectBirthMonth.handleNext(i));
+router.on(/^config_user_birth_day_next__/, (i) => selectBirthDay.handleNext(i));
+
+
+// --- Select Menus ---
+// config_command_role_select is handled by collector, so no direct router entry needed.
+router.on('config_select_store_for_store_role_value', (i) => selectStoreForStoreRole.handle(i));
+router.on(/^config_select_roles_for_store_value_/, (i) => selectRolesForStore.handle(i));
+router.on('config_select_position_for_role_link_value', (i) => selectPositionForRoleLink.handle(i));
+router.on(/^config_select_roles_for_position_value_/, (i) => selectRolesForPosition.handle(i));
+
+router.on('config_user_select_member', (i) => selectUserChooseMember.handle(i));
+router.on(/^config_user_select_store_/, (i) => selectUserChooseStore.handle(i));
+router.on(/^config_user_select_position_/, (i) => selectUserChoosePosition.handle(i));
+router.on(/^config_user_select_birth_year_/, (i) => selectBirthYear.handle(i));
+router.on(/^config_user_select_birth_month_/, (i) => selectBirthMonth.handle(i));
+router.on(/^config_user_select_birth_day_/, (i) => selectBirthDay.handle(i));
+
+router.on('config_select_global_log_value', (i) => selectGlobalLog.handle(i));
+router.on('config_select_admin_log_value', (i) => selectAdminLog.handle(i));
+
+// --- Modals ---
+router.on('config_store_edit_modal', (i) => modalStoreEdit.handle(i));
+router.on('config_role_edit_modal', (i) => modalRoleEdit.handle(i));
+router.on(/^config_user_info_modal_/, (i) => modalUserInfo.handle(i));
+router.on('config_slack_webhook_modal_submit', (i) => modalSlackWebhook.handle(i));
+
 
 // =====================================================
 // handleInteraction（共通 dispatcher）
 // =====================================================
-
 async function handleInteraction(interaction) {
   try {
-    const id = interaction.customId;
-
-    // --------------------------------
-    // BUTTON
-    // --------------------------------
-    if (interaction.isButton()) {
-      if (id === 'config:store:edit') { await buttonStoreEdit.execute(interaction); return true; }
-      if (id === 'config:role:edit') { await buttonRoleEdit.execute(interaction); return true; }
-
-      if (id === 'config:store:role:link') { await selectStoreForStoreRole.show(interaction); return true; }
-      if (id === 'config:position:role:link') { await buttonPositionRoleLink.handle(interaction); return true; }
-
-
-      if (id === 'config:user:register') { await buttonUserRegister.execute(interaction); return true; }
-
-      if (id === 'config:global:log') { await selectGlobalLog.show(interaction); return true; }
-      if (id === 'config:admin:log') { await selectAdminLog.show(interaction); return true; }
-
-      if (id === 'config:command:thread') { await buttonCreateCommandThread.handle(interaction); return true; }
-      if (id === 'config:setting:thread') { await buttonCreateSettingThread.handle(interaction); return true; }
-
-
-      if (id === 'config:command:role') { await handleCommandRole(interaction); return true; }
-
-      if (id === 'config:slack:auto') { await buttonSlackAutomation.handle(interaction); return true; }
-
-      // --- ユーザー登録フローの「次へ」ボタン ---
-      if (id.startsWith('config_user_goto_position_')) {
-        const stateId = id.replace('config_user_goto_position_', '');
-        const state = getRegistrationState(stateId);
-        if (!state) {
-          await interaction.reply({
-            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
-            flags: MessageFlags.Ephemeral,
-          });
-          return true;
-        }
-        await selectUserChoosePosition.show(interaction, stateId, state.storeName);
-        return true;
-      }
-      if (id.startsWith('config_user_goto_birth_year_')) {
-        const stateId = id.replace('config_user_goto_birth_year_', '');
-        const state = getRegistrationState(stateId);
-        if (!state) {
-          await interaction.reply({
-            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
-            flags: MessageFlags.Ephemeral,
-          });
-          return true;
-        }
-        await selectBirthYear.show(interaction, stateId);
-        return true;
-      }
-      if (id.startsWith('config_user_goto_userinfo_')) {
-        const stateId = id.replace('config_user_goto_userinfo_', '');
-        const state = getRegistrationState(stateId);
-        if (!state) {
-          await interaction.reply({
-            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
-            flags: MessageFlags.Ephemeral,
-          });
-          return true;
-        }
-        await modalUserInfo.show(interaction, stateId);
-        return true;
-      }
-
-      // 誕生年「次へ」ボタン
-      if (id.startsWith('config_user_birth_year_next__')) {
-        return selectBirthYear.handleNext(interaction);
-      }
-      // 誕生月「次へ」ボタン
-      if (id.startsWith('config_user_birth_month_next__')) {
-        return selectBirthMonth.handleNext(interaction);
-      }
-      // 誕生日「次へ」ボタン
-      if (id.startsWith('config_user_birth_day_next__')) {
-        return selectBirthDay.handleNext(interaction);
-      }
-    }
-
-    // --------------------------------
-    // SELECT MENUS
-    // --------------------------------
-    if (interaction.isAnySelectMenu()) {
-      if (id === 'config_command_role_select') {
-        // このセレクトメニューはcollectorで処理済み
-        return false;
-      }
-      if (id === 'config_select_store_for_store_role_value') {
-        await selectStoreForStoreRole.handle(interaction); return true;
-      }
-      if (id.startsWith('config_select_roles_for_store_value_')) {
-        await selectRolesForStore.handle(interaction); return true;
-      }
-
-      if (id === 'config_select_position_for_role_link_value') {
-        await selectPositionForRoleLink.handle(interaction); return true;
-      }
-      if (id.startsWith('config_select_roles_for_position_value_')) {
-        await selectRolesForPosition.handle(interaction); return true;
-      }
-
-      if (id === 'config_user_select_member') { await selectUserChooseMember.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_store_')) { await selectUserChooseStore.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_position_')) { await selectUserChoosePosition.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_birth_year_')) { await selectBirthYear.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_birth_month_')) { await selectBirthMonth.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_birth_day_')) { await selectBirthDay.handle(interaction); return true; }
-
-      if (id === 'config_select_global_log_value') { await selectGlobalLog.handle(interaction); return true; }
-      if (id === 'config_select_admin_log_value') { await selectAdminLog.handle(interaction); return true; }
-    }
-
-    // --------------------------------
-    // MODALS
-    // --------------------------------
-    if (interaction.isModalSubmit()) {
-      if (id === 'config_store_edit_modal') { await modalStoreEdit.handle(interaction); return true; }
-      if (id === 'config_role_edit_modal') { await modalRoleEdit.handle(interaction); return true; }
-
-      if (id.startsWith('config_user_info_modal_')) { await modalUserInfo.handle(interaction); return true; }
-
-      if (id === 'config_slack_webhook_modal_submit') { await modalSlackWebhook.handle(interaction); return true; }
-    }
 
     return false; // 未処理
   } catch (err) {

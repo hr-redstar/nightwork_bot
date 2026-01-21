@@ -15,18 +15,8 @@ async function handleConfigInteraction(interaction) {
         const { customId } = interaction;
         if (!customId) return;
 
-        // --- 管理設定系 (config:*) ---
-        if (customId.startsWith('config:')) {
-            const parts = customId.split(':');
-            const action = parts[1];
-            const subAction = parts[2];
-
-            const { handleSettingAction } = require('./setting/settingActions');
-            return await handleSettingAction(interaction, action, subAction);
-        }
-
-        // --- 実行系 (config_*) ---
-        if (customId.startsWith('config_')) {
+        // config系すべて
+        if (customId.startsWith('config') || customId.startsWith('config_') || customId.startsWith('config:')) {
             const { handleInteraction } = require('./execute/handler');
             return await handleInteraction(interaction);
         }
