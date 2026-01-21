@@ -37554,3 +37554,87 @@ Require stack:
 [[32minfo[39m 2026-01-22 05:07:10] [32m📜 12個のギルドコマンドを登録します...[39m
 [[32minfo[39m 2026-01-22 05:07:10] [32m✅ ギルド [1432111625787277604] に 12個のコマンドを登録しました。[39m
 [[32minfo[39m 2026-01-22 05:07:10] [32m✅ ギルド [1412549933365592127] に 12個のコマンドを登録しました。[39m
+[[31merror[39m 2026-01-22 05:07:12] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定経費[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定売上[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定kpi[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定出退勤[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定店内状況_ひっかけ一覧[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定接客ログ[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定chat_gpt[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: メッセージ[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: メッセージファイル化[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定ダイス[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定くじ引き[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] ✅ コマンド読み込み: 設定level[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[DeployGuild] 📦 合計 12 件のコマンドをロード完了[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m🧪 開発用ギルドID一覧: 1432111625787277604, 1412549933365592127, 1381612524838846594, 1441596309512650904[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m🧪 DEV_GUILD_IDS (raw): 1432111625787277604,1412549933365592127,1381612524838846594,1441596309512650904[39m
+[[31merror[39m 2026-01-22 05:07:12] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定経費[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定売上[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定kpi[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定出退勤[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定店内状況_ひっかけ一覧[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定接客ログ[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定chat_gpt[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /メッセージ[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /メッセージファイル化[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定ダイス[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定くじ引き[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📝 コマンド読込: /設定level[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m[BOOT_ID] PID:18956 Loading C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\uriage\report\index.js[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📡 イベント読込: interactionCreate[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📡 イベント読込: messageCreate[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📡 イベント読込: clientReady[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m📜 12個のギルドコマンドを登録します...[39m
+[[32minfo[39m 2026-01-22 05:07:12] [32m✅ ギルド [1432111625787277604] に 12個のコマンドを登録しました。[39m
+[[32minfo[39m 2026-01-22 05:07:13] [32m✅ ギルド [1412549933365592127] に 12個のコマンドを登録しました。[39m
+[[32minfo[39m 2026-01-22 05:07:14] [32m🕒 node-cron スケジュール起動[39m
+[[32minfo[39m 2026-01-22 05:07:14] [32m✅ ログイン完了: ナイトワーク向け 業務改善bot#5220 | 接続ギルド数: 4[39m
+[[33mwarn[39m 2026-01-22 05:07:14] [33m[ready] GCS初期化に失敗:[39m
+[[32minfo[39m 2026-01-22 05:07:14] [32m🕒 node-cron スケジュール起動[39m
+[[32minfo[39m 2026-01-22 05:07:14] [32m⏰ 出退勤自動通知cron 起動済み[39m
+[[32minfo[39m 2026-01-22 05:07:14] [32m🌐 環境: development | GUILD_ID: 1432111625787277604,1412549933365592127[39m
