@@ -31,10 +31,14 @@ async function handleTennaiHikkakeInteraction(interaction) {
         }
 
         // --- 実行報告系 (hikkake_report_*) ---
-        if (customId.startsWith('hikkake_report_')) {
-            const { handleHikkakeReport, handleHikkakeReportModal } = require('./execute/hikkakeReport');
+        if (customId.startsWith('hikkake_report_') || customId.startsWith('hikkake_edit_select')) {
+            const { handleHikkakeReport, handleHikkakeReportModal, handleHikkakeEditSelect } = require('./execute/hikkakeReport');
+
             if (interaction.isModalSubmit()) {
                 return await handleHikkakeReportModal(interaction);
+            }
+            if (interaction.isStringSelectMenu() && customId.startsWith('hikkake_edit_select')) {
+                return await handleHikkakeEditSelect(interaction);
             }
             return await handleHikkakeReport(interaction);
         }
