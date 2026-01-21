@@ -61,25 +61,25 @@ async function handleInteraction(interaction) {
     // BUTTON
     // --------------------------------
     if (interaction.isButton()) {
-      if (id === 'config_store_edit') { await buttonStoreEdit.execute(interaction); return true; }
-      if (id === 'config_role_edit') { await buttonRoleEdit.execute(interaction); return true; }
+      if (id === 'config:store:edit') { await buttonStoreEdit.execute(interaction); return true; }
+      if (id === 'config:role:edit') { await buttonRoleEdit.execute(interaction); return true; }
 
-      if (id === 'config_store_role_link') { await selectStoreForStoreRole.show(interaction); return true; }
-      if (id === 'config_position_role_link') { await buttonPositionRoleLink.handle(interaction); return true; }
-
-
-      if (id === 'config_user_register') { await buttonUserRegister.execute(interaction); return true; }
-
-      if (id === 'config_global_log') { await selectGlobalLog.show(interaction); return true; }
-      if (id === 'config_admin_log') { await selectAdminLog.show(interaction); return true; }
-
-      if (id === 'config_command_thread') { await buttonCreateCommandThread.handle(interaction); return true; }
-      if (id === 'config_setting_thread') { await buttonCreateSettingThread.handle(interaction); return true; }
+      if (id === 'config:store:role:link') { await selectStoreForStoreRole.show(interaction); return true; }
+      if (id === 'config:position:role:link') { await buttonPositionRoleLink.handle(interaction); return true; }
 
 
-      if (id === 'config_command_role') { await handleCommandRole(interaction); return true; }
+      if (id === 'config:user:register') { await buttonUserRegister.execute(interaction); return true; }
 
-      if (id === 'config_slack_auto') { await buttonSlackAutomation.handle(interaction); return true; }
+      if (id === 'config:global:log') { await selectGlobalLog.show(interaction); return true; }
+      if (id === 'config:admin:log') { await selectAdminLog.show(interaction); return true; }
+
+      if (id === 'config:command:thread') { await buttonCreateCommandThread.handle(interaction); return true; }
+      if (id === 'config:setting:thread') { await buttonCreateSettingThread.handle(interaction); return true; }
+
+
+      if (id === 'config:command:role') { await handleCommandRole(interaction); return true; }
+
+      if (id === 'config:slack:auto') { await buttonSlackAutomation.handle(interaction); return true; }
 
       // --- ユーザー登録フローの「次へ」ボタン ---
       if (id.startsWith('config_user_goto_position_')) {

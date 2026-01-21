@@ -6,7 +6,7 @@
 const step1 = require('../../select/user/select_user_chooseMember.js');
 
 module.exports = {
-  customId: 'config_user_register',
+  customId: 'config:user:register',
 
   async execute(interaction) {
     return step1.show(interaction);
