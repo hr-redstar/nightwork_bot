@@ -190,6 +190,7 @@ async function notifyApproveRole({ guild, channel, user, values }) {
         `総売上：¥${values.totalSales}`,
       ],
       payload: { type: 'kpi', guildId: guild.id, applicantId: user.id },
+      idPrefix: 'kpi:approval',
     });
   } catch (err) {
     logger.error('[KPI] notifyApproveRole error:', err);
