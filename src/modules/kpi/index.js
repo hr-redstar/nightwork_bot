@@ -52,17 +52,19 @@ async function handleKpiInteraction(interaction) {
 
         // --- 承認フロー (Approval) ---
         if (action === 'approval') {
-            // kpi:approval:accept etc.
-            // ここで KPI 用の承認ロジックを呼び出す
-            // 今回は簡易的に「承認機能は準備中」と返すか、共通ルーターに context を渡す
-            // 現状はログ出力に留め、エラーにならないようにする
-            logger.info(`[KPI] Approval action: ${subAction}`);
-            if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({
-                    content: '✅ 承認操作を受け付けました（ロジック未実装）',
-                    flags: MessageFlags.Ephemeral,
-                });
+            const { handleApproveAccept, handleApproveReject, handleApproveEdit } = require('./approve/approveHandlers');
+
+            if (subAction === 'accept') {
+                return await handleApproveAccept(interaction);
             }
+            if (subAction === 'delete' || subAction === 'reject') {
+                return await handleApproveReject(interaction);
+            }
+            if (subAction === 'edit') {
+                return await handleApproveEdit(interaction);
+            }
+
+            logger.warn(`[KPI] Unknown approval action: ${subAction}`);
             return;
         }
 
