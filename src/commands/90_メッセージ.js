@@ -1,20 +1,20 @@
-// 
-
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('メッセージ')
-    .setDescription('接客ログ設定パネルを表示します'),
-
-  async execute(interaction) {
-    try {
-      await interaction.reply({
-        content: '接客ログ設定パネル（未実装）',
-        flags: MessageFlags.Ephemeral,
-      });
-    } catch (err) {
-      console.error('[/メッセージ] エラー:', err);
-    }
+class MessageCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: false });
+    this.data = new SlashCommandBuilder()
+      .setName('メッセージ')
+      .setDescription('メッセージを表示します（未実装）');
   }
-};
+
+  async run(interaction) {
+    await interaction.reply({
+      content: 'メッセージコマンド（未実装）',
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+}
+
+module.exports = new MessageCommand();

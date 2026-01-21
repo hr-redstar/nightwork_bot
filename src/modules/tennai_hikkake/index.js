@@ -4,7 +4,7 @@
 // ----------------------------------------------------
 
 const logger = require('../../utils/logger');
-const { MessageFlags } = require('discord.js');
+const { handleInteractionError } = require('../../utils/errorHandlers');
 
 /**
  * 店内状況・ひっかけ機能のインタラクションハンドラー
@@ -55,13 +55,7 @@ async function handleTennaiHikkakeInteraction(interaction) {
         logger.warn(`[TennaiHikkake] Unknown action: ${customId}`);
 
     } catch (err) {
-        logger.error('[TennaiHikkake] Error handling interaction', err);
-        if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({
-                content: '⚠️ エラーが発生しました。',
-                flags: MessageFlags.Ephemeral,
-            }).catch(() => { });
-        }
+        await handleInteractionError(interaction, err);
     }
 }
 

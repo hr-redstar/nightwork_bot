@@ -1,13 +1,19 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
 const { sendKuzibikiSettingPanel } = require('../modules/kuzibiki/setting/sendKuzibikiSettingPanel');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('設定くじ引き')
-    .setDescription('くじ引きの設定パネルを表示します')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+class KuzibikiSettingCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: true });
+    this.data = new SlashCommandBuilder()
+      .setName('設定くじ引き')
+      .setDescription('くじ引きの設定パネルを表示します')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+  }
 
-  async execute(interaction) {
+  async run(interaction) {
     await sendKuzibikiSettingPanel(interaction);
-  },
-};
+  }
+}
+
+module.exports = new KuzibikiSettingCommand();

@@ -1,28 +1,19 @@
-const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const logger = require('../utils/logger');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
 const { postUriageSettingPanel } = require('../modules/uriage/setting/panel');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('設定売上')
-    .setDescription('売上機能に関する設定パネルを表示します')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+class UriageSettingCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: true });
+    this.data = new SlashCommandBuilder()
+      .setName('設定売上')
+      .setDescription('売上機能に関する設定パネルを表示します')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
+  }
 
-  /**
-   * @param {import('discord.js').ChatInputCommandInteraction} interaction
-   */
-  async execute(interaction) {
-    try {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      await postUriageSettingPanel(interaction);
-    } catch (err) {
-      logger.error('[/設定売上] エラー:', err);
-      const content = '⚠️ 売上設定パネルの表示中にエラーが発生しました。';
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content });
-      } else {
-        await interaction.reply({ content });
-      }
-    }
-  },
-};
+  async run(interaction) {
+    await postUriageSettingPanel(interaction);
+  }
+}
+
+module.exports = new UriageSettingCommand();

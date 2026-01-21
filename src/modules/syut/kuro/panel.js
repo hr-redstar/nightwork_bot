@@ -1,16 +1,33 @@
-// src/handlers/syut/kuroPanel.js
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ButtonStyle } = require('discord.js');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
 
-function buildKuroPanelEmbed(storeName, info) {
-  return new EmbedBuilder()
-    .setTitle(`🕴️ 黒服出退勤パネル ${storeName}`)
-    .addFields(
-      { name: '黒服設定', value: `役職：${info?.role || '未設定'}`, inline: false },
-      { name: '📅 本日の黒服一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
-    )
-    .setColor('#000000')
-    .setTimestamp();
+function createKuroPanel(storeName, info) {
+  const fields = [
+    { name: '黒服設定', value: `役職：${info?.role || '未設定'}`, inline: false },
+    { name: '📅 本日の黒服一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
+  ];
+
+  const buttons = [
+    [
+      { id: `kuro_today_setup:${storeName}`, label: '📢 本日の黒服設置', style: ButtonStyle.Primary },
+      { id: `kuro_role_setup:${storeName}`, label: '🧩 役職/ロール設定', style: ButtonStyle.Secondary },
+    ],
+    [
+      { id: `kuro_register:${storeName}`, label: '🕒 出退勤登録', style: ButtonStyle.Success },
+      { id: `kuro_manual_register:${storeName}`, label: '✏️ 手入力出退勤登録', style: ButtonStyle.Danger },
+    ]
+  ];
+
+  const panel = buildPanel({
+    title: `🕴️ 黒服出退勤パネル ${storeName}`,
+    description: '',
+    fields: fields,
+    buttons: buttons
+  });
+
+  panel.embeds[0].setColor('#000000').setTimestamp();
+  return panel;
 }
 
 async function postKuroPanel(channel, storeName) {
@@ -18,18 +35,8 @@ async function postKuroPanel(channel, storeName) {
   const config = await getSyutConfig(guildId);
   const info = config.kurofukuPanelList?.[storeName] || null;
 
-  const embed = buildKuroPanelEmbed(storeName, info);
-
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`kuro_today_setup:${storeName}`).setLabel('📢 本日の黒服設置').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId(`kuro_role_setup:${storeName}`).setLabel('🧩 役職/ロール設定').setStyle(ButtonStyle.Secondary),
-  );
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`kuro_register:${storeName}`).setLabel('🕒 出退勤登録').setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`kuro_manual_register:${storeName}`).setLabel('✏️ 手入力出退勤登録').setStyle(ButtonStyle.Danger),
-  );
-
-  const msg = await channel.send({ embeds: [embed], components: [row1, row2] });
+  const content = createKuroPanel(storeName, info);
+  const msg = await channel.send(content);
 
   config.kurofukuPanelList ||= {};
   config.kurofukuPanelList[storeName] ||= {};
@@ -51,8 +58,8 @@ async function updateKuroPanelMessage(guild, storeName) {
   const msg = await panelChannel.messages.fetch(info.panelMessageId).catch(() => null);
   if (!msg) return;
 
-  const embed = buildKuroPanelEmbed(storeName, info);
-  await msg.edit({ embeds: [embed], components: msg.components });
+  const content = createKuroPanel(storeName, info);
+  await msg.edit(content);
 }
 
 module.exports = { postKuroPanel, updateKuroPanelMessage };

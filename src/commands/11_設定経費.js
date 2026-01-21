@@ -1,48 +1,21 @@
-﻿﻿// src/commands/11_設定経費.js
-
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  MessageFlags,
-} = require('discord.js');
-
+﻿﻿const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
 const { sendCommandLog } = require('../utils/config/configLogger');
+const { postKeihiSettingPanel } = require('../modules/keihi/setting/panel');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('設定経費')
-    .setDescription('経費設定パネルを送信/更新します。')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+class KeihiSettingCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: true });
+    this.data = new SlashCommandBuilder()
+      .setName('設定経費')
+      .setDescription('経費設定パネルを送信/更新します。')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
+  }
 
-  /**
-   * @param {import('discord.js').ChatInputCommandInteraction} interaction
-   */
-  async execute(interaction) {
-    try {
-      await interaction.deferReply({
-        flags: MessageFlags.Ephemeral,
-      });
+  async run(interaction) {
+    await sendCommandLog(interaction);
+    await postKeihiSettingPanel(interaction);
+  }
+}
 
-      await sendCommandLog(interaction);
-
-      const {
-        postKeihiSettingPanel,
-      } = require('../modules/keihi/setting/panel');
-
-      await postKeihiSettingPanel(interaction);
-    } catch (err) {
-      console.error('[/設定経費] エラー:', err);
-
-      if (interaction.deferred) {
-        await interaction.editReply({
-          content: '⚠️ 経費設定パネルの表示中にエラーが発生しました。',
-        });
-      } else if (!interaction.replied) {
-        await interaction.reply({
-          content: '⚠️ 経費設定パネルの表示中にエラーが発生しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-    }
-  },
-};
+module.exports = new KeihiSettingCommand();

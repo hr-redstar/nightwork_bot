@@ -4,7 +4,7 @@
 // ----------------------------------------------------
 
 const logger = require('../../utils/logger');
-const { MessageFlags } = require('discord.js');
+const { handleInteractionError } = require('../../utils/errorHandlers');
 
 /**
  * 出退勤機能のインタラクションハンドラー
@@ -45,7 +45,7 @@ async function handleSyutInteraction(interaction) {
         }
 
     } catch (err) {
-        logger.error('[Syut] Error handling interaction', err);
+        await handleInteractionError(interaction, err);
     }
 }
 

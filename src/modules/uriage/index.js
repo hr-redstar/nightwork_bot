@@ -20,37 +20,43 @@ async function handleUriageInteraction(interaction) {
 
   if (!interaction.customId) return;
 
-  const { customId } = interaction;
+  try {
 
-  // 設定系のインタラクション (パネル/ロール/CSV発行など)
-  if (customId.startsWith('uriage_setting') || customId.startsWith('uriage_config') || customId.startsWith('uriage:setting')) {
-    return handleUriageSettingInteraction(interaction);
-  }
+    const { customId } = interaction;
 
-  // 報告系のインタラクション (報告/承認/修正/削除など)
-  if (customId.startsWith('uriage_report') || customId.startsWith('uriage:report')) {
-    return handleUriageReportInteraction(interaction);
-  }
-
-  // 新しい共通ボタン形式のルーティング
-  const parts = customId.split(':');
-  if (parts[0] === 'uriage' && parts.length === 3) {
-    const [feature, action, targetId] = parts;
-
-    // actionStatus.js のハンドラは storeId を customId から取得するため、
-    // 一時的に古い形式の customId を模倣して呼び出す。
-    // 将来的に actionStatus.js が interaction のコンテキストから storeId を
-    // 取得するようになれば、この模倣は不要になる。
-    interaction.customId = `uriage_report_status:${action}::dummyStoreId::${targetId}`;
-
-    switch (action) {
-      case 'approve':
-        return handleApproveButton(interaction);
-      case 'edit':
-        return handleModifyButton(interaction);
-      case 'delete':
-        return handleDeleteButton(interaction);
+    // 設定系のインタラクション (パネル/ロール/CSV発行など)
+    if (customId.startsWith('uriage_setting') || customId.startsWith('uriage_config') || customId.startsWith('uriage:setting')) {
+      return handleUriageSettingInteraction(interaction);
     }
+
+    // 報告系のインタラクション (報告/承認/修正/削除など)
+    if (customId.startsWith('uriage_report') || customId.startsWith('uriage:report')) {
+      return handleUriageReportInteraction(interaction);
+    }
+
+    // 新しい共通ボタン形式のルーティング
+    const parts = customId.split(':');
+    if (parts[0] === 'uriage' && parts.length === 3) {
+      const [feature, action, targetId] = parts;
+
+      // actionStatus.js のハンドラは storeId を customId から取得するため、
+      // 一時的に古い形式の customId を模倣して呼び出す。
+      // 将来的に actionStatus.js が interaction のコンテキストから storeId を
+      // 取得するようになれば、この模倣は不要になる。
+      interaction.customId = `uriage_report_status:${action}::dummyStoreId::${targetId}`;
+
+      switch (action) {
+        case 'approve':
+          return handleApproveButton(interaction);
+        case 'edit':
+          return handleModifyButton(interaction);
+        case 'delete':
+          return handleDeleteButton(interaction);
+      }
+    }
+  } catch (err) {
+    const { handleInteractionError } = require('../../utils/errorHandlers');
+    await handleInteractionError(interaction, err);
   }
 }
 

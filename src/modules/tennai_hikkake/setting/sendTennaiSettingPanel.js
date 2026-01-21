@@ -1,16 +1,7 @@
 // modules/tennai_hikkake/setting/sendTennaiSettingPanel.js
-// ----------------------------------------------------
-// 店内状況・ひっかけ 設定パネル（管理用）表示
-// ----------------------------------------------------
-
-const {
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-} = require('discord.js');
-
+const { ButtonStyle } = require('discord.js');
 const logger = require('../../../utils/logger');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
 const getBotFooter = require('../../common/utils/embed/getBotFooter');
 const getEmbedColor = require('../../common/utils/embed/getEmbedColor');
 const { readHikkakeConfig } = require('../../../utils/tennai_hikkake/gcsTennaiHikkake');
@@ -25,64 +16,41 @@ async function sendTennaiSettingPanel(interaction) {
         // --------------------------------------------
         const config = await readHikkakeConfig(guild.id);
 
-        // ※ Tennai Hikkakeは店舗ごとに複数パネルがある可能性があるが、とりあえず基本を表示
         const panelChannelId = config?.panelChannelId;
         const approveRoleId = config?.approveRoleId;
 
-        const panelChannelText = panelChannelId
-            ? `<#${panelChannelId}>`
-            : '未設定';
-
-        const approveRoleText = approveRoleId
-            ? `<@&${approveRoleId}>`
-            : '未設定';
+        const panelChannelText = panelChannelId ? `<#${panelChannelId}>` : '未設定';
+        const approveRoleText = approveRoleId ? `<@&${approveRoleId}>` : '未設定';
 
         // --------------------------------------------
-        // Embed (Template based)
+        // Panel Construction
         // --------------------------------------------
-        const embed = new EmbedBuilder()
-            .setTitle('🏪 店内状況・ひっかけ設定パネル')
-            .setDescription('店内状況・ひっかけ機能に関する設定を行うパネルです。')
-            .addFields(
-                {
-                    name: '設置店舗',
-                    value: `店舗名：${panelChannelText}`,
-                    inline: false,
-                },
-                {
-                    name: '機能名承認役職',
-                    value: `役職名：${approveRoleText}`,
-                    inline: false,
-                }
-            )
+        const fields = [
+            { name: '設置店舗', value: `店舗名：${panelChannelText}`, inline: false },
+            { name: '機能名承認役職', value: `役職名：${approveRoleText}`, inline: false }
+        ];
+
+        const buttons = [[
+            { id: 'tennai_hikkake:setting:install', label: 'パネル設置', style: ButtonStyle.Primary },
+            { id: 'tennai_hikkake:setting:approveRole', label: '承認役職設定', style: ButtonStyle.Secondary }
+        ]];
+
+        const panel = buildPanel({
+            title: '🏪 店内状況・ひっかけ設定パネル',
+            description: '店内状況・ひっかけ機能に関する設定を行うパネルです。',
+            fields: fields,
+            buttons: buttons
+        });
+
+        // Apply dynamic styles
+        panel.embeds[0]
             .setColor(getEmbedColor('tennai_hikkake', config))
-            .setFooter(getBotFooter(interaction))
-            .setTimestamp();
-
-        // --------------------------------------------
-        // Buttons
-        // --------------------------------------------
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('tennai_hikkake:setting:install')
-                .setLabel('パネル設置')
-                .setStyle(ButtonStyle.Primary),
-
-            new ButtonBuilder()
-                .setCustomId('tennai_hikkake:setting:approveRole')
-                .setLabel('承認役職設定')
-                .setStyle(ButtonStyle.Secondary)
-        );
-
-        const response = {
-            embeds: [embed],
-            components: [row],
-        };
+            .setFooter(getBotFooter(interaction));
 
         if (interaction.replied || interaction.deferred) {
-            await interaction.editReply(response);
+            await interaction.editReply(panel);
         } else {
-            await interaction.reply(response);
+            await interaction.reply(panel);
         }
     } catch (err) {
         logger.error('[TennaiHikkake] sendTennaiSettingPanel error:', err);

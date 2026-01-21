@@ -6,6 +6,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const { getSyutConfig, getDailySyuttaikin } = require('./syutConfigManager'); // 本来は autoPost.js で使う想定
+const logger = require('../../logger');
 
 // ★ 環境変数に Discord Bot トークンとテストチャンネルID を設定してください
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -16,7 +17,7 @@ const client = new Client({
 });
 
 client.once('ready', async () => {
-  console.log(`✅ ログイン成功: ${client.user.tag}`);
+  logger.info(`✅ ログイン成功: ${client.user.tag}`);
   await testPostTodaysCast(client);
   process.exit(0);
 });
@@ -27,18 +28,18 @@ client.once('ready', async () => {
 async function testPostTodaysCast(client) {
   // 任意のギルドIDを指定（複数でも可）
   const guild = client.guilds.cache.first();
-  if (!guild) return console.error('⚠️ ギルドが見つかりません。');
+  if (!guild) return logger.error('⚠️ ギルドが見つかりません。');
 
   const config = await getSyutConfig(guild.id);
   const storeEntries = Object.entries(config.castPanelList || {});
-  if (storeEntries.length === 0) return console.log('⚠️ castPanelList が空です。');
+  if (storeEntries.length === 0) return logger.info('⚠️ castPanelList が空です。');
 
   for (const [storeName, info] of storeEntries) {
-    console.log(`\n--- 店舗: ${storeName} ---`);
+    logger.info(`\n--- 店舗: ${storeName} ---`);
     const channelId = TEST_CHANNEL_ID || info.channel?.replace(/[<#>]/g, '');
     const channel = guild.channels.cache.get(channelId);
     if (!channel) {
-      console.warn(`⚠️ チャンネルが存在しません (${channelId})`);
+      logger.warn(`⚠️ チャンネルが存在しません (${channelId})`);
       continue;
     }
 
@@ -63,7 +64,7 @@ async function testPostTodaysCast(client) {
 
     // 実際の投稿
     await channel.send({ embeds: [embed] });
-    console.log(`✅ 投稿完了: ${storeName}`);
+    logger.info(`✅ 投稿完了: ${storeName}`);
   }
 }
 

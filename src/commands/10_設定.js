@@ -1,22 +1,23 @@
-﻿﻿const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { sendMainSettingPanel } = require('../modules/config/setting/sendMainSettingPanel');
+﻿﻿const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const BaseCommand = require('../structures/BaseCommand');
+const { sendConfigPanel } = require('../modules/config/execute/configPanel');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('設定')
-    .setDescription('設定パネルを設置・更新します')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+class ConfigCommand extends BaseCommand {
+  constructor() {
+    super({ ephemeral: true, defer: true });
+    this.data = new SlashCommandBuilder()
+      .setName('設定')
+      .setDescription('設定パネルを設置・更新します')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+  }
 
-  async execute(interaction) {
-    try {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      await sendMainSettingPanel(interaction.channel);
-      await interaction.deleteReply();
-    } catch (err) {
-      console.error('❌ /設定 コマンド実行エラー:', err);
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: '❌ 設定パネル設置中にエラーが発生しました。' }).catch(() => { });
-      }
-    }
-  },
-};
+  async run(interaction) {
+    // メイン設定パネルを送信
+    await sendConfigPanel(interaction.channel);
+
+    // 完了メッセージ（すぐに削除）
+    await interaction.deleteReply();
+  }
+}
+
+module.exports = new ConfigCommand();

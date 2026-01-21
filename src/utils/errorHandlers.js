@@ -1,28 +1,21 @@
-/**
- * src/utils/errorHandlers.js
- * エラー処理関連のヘルパー関数
- */
-const { MessageFlags } = require('discord.js');
 const logger = require('./logger');
 
-/**
- * インタラクションに対して、エフェメラルなエラーメッセージを返信する
- * @param {import('discord.js').Interaction} interaction
- * @param {string} message 返信するメッセージ
- */
-async function handleInteractionError(interaction, message) {
-  if (!interaction?.isRepliable()) {
-    logger.warn('返信不可能なインタラクションに対してエラーメッセージを送信しようとしました。');
-    return;
-  }
+async function handleInteractionError(interaction, error) {
+  logger.error(error);
 
-  const replyOptions = { content: message, flags: MessageFlags.Ephemeral };
+  const message = '⚠️ 処理中にエラーが発生しました。管理者に連絡してください。';
+
   try {
-    if (interaction.replied || interaction.deferred) await interaction.followUp(replyOptions);
-    else await interaction.reply(replyOptions);
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ content: message });
+    } else {
+      await interaction.reply({ content: message, ephemeral: true });
+    }
   } catch (e) {
-    logger.error(`❌ インタラクションへのエラー返信に失敗しました (ID: ${interaction.id}):`, e);
+    logger.error('Failed to send error reply', e);
   }
 }
 
-module.exports = { handleInteractionError };
+module.exports = {
+  handleInteractionError,
+};

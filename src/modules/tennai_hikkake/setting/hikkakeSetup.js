@@ -4,6 +4,7 @@
  */
 const { ActionRowBuilder, StringSelectMenuBuilder, ChannelSelectMenuBuilder, ChannelType, MessageFlags } = require('discord.js');
 const { getStoreList } = require('../../../utils/config/configAccessor');
+const logger = require('../../../utils/logger');
 // const { saveHikkakeConfig } = require('../../utils/tennai_hikkake/hikkakeDataManager'); // データマネージャーは別途作成
 
 /**
@@ -87,7 +88,7 @@ async function handleChannelSelectForHikkake(interaction) {
     });
 
   } catch (error) {
-    console.error('パネル設置エラー:', error);
+    logger.error('パネル設置エラー:', error);
     await interaction.update({
       content: '❌ パネルの投稿または設定の保存に失敗しました。',
       components: []

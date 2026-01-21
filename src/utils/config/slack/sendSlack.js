@@ -4,6 +4,7 @@
 
 const axios = require('axios');
 const { getGuildConfig } = require('../gcsConfigManager');
+const logger = require('../../logger');
 
 /**
  * グローバルログ送信用 Slack 送信関数
@@ -19,7 +20,7 @@ async function sendSlackGlobalLog(guildId, text) {
   try {
     await axios.post(webhook, { text });
   } catch (err) {
-    console.error('Slack送信エラー:', err.message);
+    logger.error('Slack送信エラー:', err.message);
   }
 }
 

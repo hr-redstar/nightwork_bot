@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { DEV_GUILD_IDS } = require('./config/envConfig'); // ← 追加
+const logger = require('./logger');
 
 // 契約データをローカルJSONで保持（将来的にはDB化想定）
 const SUBSCRIPTION_PATH = path.join(__dirname, '../../data-svml/subscription.json');
@@ -13,8 +14,8 @@ const SUBSCRIPTION_PATH = path.join(__dirname, '../../data-svml/subscription.jso
  */
 function isGuildSubscribed(guildId) {
   // 🧪 開発ホワイトリストを優先判定
-    if (DEV_GUILD_IDS.includes(guildId)) {
-    console.log(`🧪 開発ホワイトリスト適用: ${guildId} → 無制限モード`);
+  if (DEV_GUILD_IDS.includes(guildId)) {
+    logger.info(`🧪 開発ホワイトリスト適用: ${guildId} → 無制限モード`);
     return true;
   }
 
@@ -25,7 +26,7 @@ function isGuildSubscribed(guildId) {
     const guild = data.guilds?.find(g => g.id === guildId);
     return guild?.active === true;
   } catch (err) {
-    console.error('⚠️ サブスクリプションデータ読み込みエラー:', err);
+    logger.error('⚠️ サブスクリプションデータ読み込みエラー:', err);
     return false;
   }
 }
@@ -39,7 +40,7 @@ function setSubscriptionStatus(guildId, active) {
     try {
       data = JSON.parse(fs.readFileSync(SUBSCRIPTION_PATH, 'utf8'));
     } catch {
-      console.warn('⚠️ subscription.json が壊れているため再作成します。');
+      logger.warn('⚠️ subscription.json が壊れているため再作成します。');
     }
   }
 
@@ -51,7 +52,7 @@ function setSubscriptionStatus(guildId, active) {
   }
 
   fs.writeFileSync(SUBSCRIPTION_PATH, JSON.stringify(data, null, 2), 'utf8');
-  console.log(`💾 契約状態を更新しました: ${guildId} → ${active ? '有効' : '無効'}`);
+  logger.info(`💾 契約状態を更新しました: ${guildId} → ${active ? '有効' : '無効'}`);
 }
 
 module.exports = { isGuildSubscribed, setSubscriptionStatus };

@@ -5659,3 +5659,1670 @@ Require stack:
     at require (node:internal/modules/helpers:152:16)
     at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\components\modal\modal_store_edit.js:18:29)
     at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:32:34] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../modules/config/setting/sendMainSettingPanel'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../modules/config/setting/sendMainSettingPanel'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js:3:34)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:32:34] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../modules/config/setting/sendMainSettingPanel'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../modules/config/setting/sendMainSettingPanel'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js:3:34)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:32:43] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:32:44] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:33:35] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:33:35] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:34:24] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:34:24] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:34:26] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:34:27] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:42:36] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:42:36] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:42:59] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:43:00] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:43:23] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:43:23] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:43:25] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:43:25] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:02] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:02] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:50] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:50] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:51] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:44:52] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:45:37] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:45:37] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:05] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:06] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:08] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:08] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:08] [31m⚠️ Promise未処理拒否: SyntaxError: Unexpected token 'catch'[39m
+[[31merror[39m 2026-01-22 04:46:10] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:10] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:34] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:34] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:36] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:46:36] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:07] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:07] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:09] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:09] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:14] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:47:14] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:54:21] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:54:21] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:05] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:05] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:08] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:08] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:11] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:12] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:13] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:14] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:56] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 04:55:57] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:04:10] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:04:10] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:04:42] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:04:42] [31m💥 未処理例外: Cannot find module '../../logger'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\syutCron.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../logger'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\syutCron.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\utils\syut\syutCron.js:2:16)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:04] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:04] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:23] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:23] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:41] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:41] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:43] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:43] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:45] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:05:46] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:06:01] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:06:02] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:06:03] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:06:03] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:07:09] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:07:10] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:07:12] [31m[DeployGuild] ❌ コマンド読み込み失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\commandLoader.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\scripts\deployGuildCommands.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+[[31merror[39m 2026-01-22 05:07:12] [31m❌ コマンド読込失敗: 10_設定.js Cannot find module '../../utils/config/storeRoleConfigManager'[39m
+[31mRequire stack:[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js[39m
+[31m- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js[39m
+Error: Cannot find module '../../utils/config/storeRoleConfigManager'
+Require stack:
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\commands\10_設定.js
+- C:\Users\User\Desktop\nightwork_bot - コピー\src\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\User\Desktop\nightwork_bot - コピー\src\modules\config\execute\configPanel.js:2:33)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)

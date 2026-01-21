@@ -1,50 +1,51 @@
 // src/handlers/syut/syutPanel_Cast.js
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ButtonStyle } = require('discord.js');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
 
 /**
- * 内部：Embed作成（時間＋チャンネル）
- * @param {string} storeName
- * @param {object} info
- * @returns {EmbedBuilder}
+ * キャスト出退勤パネル生成 (Embed + Buttons)
  */
-function buildCastPanelEmbed(storeName, info) {
-  const timeText = info?.time || '未設定';
-  const channelText = info?.channel || '未設定';
+function createCastPanel(storeName, info) {
+  const fields = [
+    { name: 'キャスト設定', value: `役職：${info?.role || '未設定'}`, inline: false },
+    { name: '📅 本日のキャスト一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
+  ];
 
-  return new EmbedBuilder()
-    .setTitle(`👗 キャスト出退勤パネル ${storeName}`)
-    .addFields(
-      { name: 'キャスト設定', value: `役職：${info?.role || '未設定'}`, inline: false },
-      { name: '📅 本日のキャスト一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
-    )
-    .setColor('#e91e63')
-    .setTimestamp();
+  const buttons = [
+    [
+      { id: `cast_today_setup:${storeName}`, label: '📢 本日のキャスト設置', style: ButtonStyle.Primary },
+      { id: `cast_role_setup:${storeName}`, label: '🧩 役職/ロール設定', style: ButtonStyle.Secondary },
+    ],
+    [
+      { id: `cast_register:${storeName}`, label: '🕒 出退勤登録', style: ButtonStyle.Success },
+      { id: `cast_manual_register:${storeName}`, label: '✏️ 手入力出退勤登録', style: ButtonStyle.Danger },
+    ]
+  ];
+
+  const panel = buildPanel({
+    title: `👗 キャスト出退勤パネル ${storeName}`,
+    description: '',
+    fields: fields,
+    buttons: buttons
+  });
+
+  panel.embeds[0].setColor('#e91e63').setTimestamp();
+  return panel;
 }
 
 /**
  * キャスト出退勤パネルを新規作成
- * メッセージIDを config に保持して後で編集できるようにする
  */
 async function postCastPanel(channel, storeName) {
   const guildId = channel.guild.id;
   const config = await getSyutConfig(guildId);
   const info = config.castPanelList?.[storeName] || null;
 
-  const embed = buildCastPanelEmbed(storeName, info);
+  const content = createCastPanel(storeName, info);
+  const msg = await channel.send(content);
 
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`cast_today_setup:${storeName}`).setLabel('📢 本日のキャスト設置').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId(`cast_role_setup:${storeName}`).setLabel('🧩 役職/ロール設定').setStyle(ButtonStyle.Secondary),
-  );
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`cast_register:${storeName}`).setLabel('🕒 出退勤登録').setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`cast_manual_register:${storeName}`).setLabel('✏️ 手入力出退勤登録').setStyle(ButtonStyle.Danger),
-  );
-
-  const msg = await channel.send({ embeds: [embed], components: [row1, row2] });
-
-  // panelMessageId を保存（以後更新時に編集可能）
+  // panelMessageId を保存
   config.castPanelList ||= {};
   config.castPanelList[storeName] ||= {};
   config.castPanelList[storeName].panelMessageId = msg.id;
@@ -54,12 +55,12 @@ async function postCastPanel(channel, storeName) {
 }
 
 /**
- * 設置済みパネルの埋め込みを更新（時間/チャンネル変更反映）
+ * 設置済みパネルの埋め込みを更新
  */
 async function updateCastPanelMessage(guild, storeName) {
   const config = await getSyutConfig(guild.id);
   const info = config.castPanelList?.[storeName];
-  if (!info?.panelMessageId || !info?.panelChannelId) return; // panelChannelId は設置時に自動設定
+  if (!info?.panelMessageId || !info?.panelChannelId) return;
 
   const panelChannel = guild.channels.cache.get(info.panelChannelId);
   if (!panelChannel) return;
@@ -67,8 +68,8 @@ async function updateCastPanelMessage(guild, storeName) {
   const msg = await panelChannel.messages.fetch(info.panelMessageId).catch(() => null);
   if (!msg) return;
 
-  const embed = buildCastPanelEmbed(storeName, info);
-  await msg.edit({ embeds: [embed], components: msg.components });
+  const content = createCastPanel(storeName, info);
+  await msg.edit(content);
 }
 
 module.exports = { postCastPanel, updateCastPanelMessage };

@@ -60,13 +60,8 @@ async function handleKpiInteraction(interaction) {
         }
 
     } catch (err) {
-        logger.error('[KPI] Error handling interaction', err);
-        if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({
-                content: '⚠️ エラーが発生しました。',
-                flags: MessageFlags.Ephemeral,
-            }).catch(() => { });
-        }
+        const { handleInteractionError } = require('../../utils/errorHandlers');
+        await handleInteractionError(interaction, err);
     }
 }
 

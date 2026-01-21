@@ -9,6 +9,7 @@
 
 const fs = require('fs/promises');
 const path = require('path');
+const logger = require('../../logger');
 
 const LOCAL_GCS_ROOT = path.resolve(process.cwd(), 'local_data', 'gcs');
 
@@ -64,7 +65,7 @@ async function writeCsv(objectPath, rows) {
   const localPath = objectPathToLocal(objectPath);
   await fs.mkdir(path.dirname(localPath), { recursive: true });
   await fs.writeFile(localPath, csvText, 'utf8');
-  console.log(`[keihiCsvGenerator] CSVを書き出しました: ${localPath}`);
+  logger.info(`[keihiCsvGenerator] CSVを書き出しました: ${localPath}`);
 }
 
 // 日別 CSV: 1行1申請
@@ -232,7 +233,7 @@ async function generateKeihiCsvFiles(guild, storeId, dailyData, monthlyData, yea
       await generateQuarterCsv(guild, storeId, yearlyData);
     }
   } catch (err) {
-    console.error('[keihiCsvGenerator] CSV生成中にエラーが発生しました:', err);
+    logger.error('[keihiCsvGenerator] CSV生成中にエラーが発生しました:', err);
   }
 }
 
