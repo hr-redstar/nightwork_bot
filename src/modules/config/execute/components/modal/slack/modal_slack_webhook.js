@@ -8,9 +8,9 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { getGuildConfig, saveGuildConfig } = require('../../../../../utils/config/gcsConfigManager');
-const { sendSettingLog } = require('../../../configLogger');
-const { sendAdminLog } = require('../../../configLogger');
+const { getGuildConfig, saveGuildConfig } = require('../../../../../../utils/config/gcsConfigManager');
+const { sendSettingLog } = require('../../../../../../utils/config/configLogger');
+const { sendAdminLog } = require('../../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {
