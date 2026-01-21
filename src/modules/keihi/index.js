@@ -1,16 +1,18 @@
 const router = require('./router');
+const logger = require('../../utils/logger');
 const { handleInteractionError } = require('../../utils/errorHandlers');
 
 /**
- * keihi_* 系インタラクションのエントリーポイント
+ * 経費機能のインタラクションハンドラー
  * @param {import('discord.js').Interaction} interaction
  */
 async function handleKeihiInteraction(interaction) {
   try {
+    if (!interaction.customId) return;
+
     const handled = await router.dispatch(interaction);
     if (!handled) {
-      // 必要ならログ出力
-      // console.log(`[Keihi] Unhandled interaction: ${interaction.customId}`);
+      logger.debug(`[Keihi] Unhandled interaction: ${interaction.customId}`);
     }
   } catch (err) {
     await handleInteractionError(interaction, err);

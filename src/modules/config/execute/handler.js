@@ -7,6 +7,7 @@
 const { MessageFlags } = require('discord.js');
 const InteractionRouter = require('../../../structures/InteractionRouter');
 const logger = require('../../../utils/logger');
+const { handleInteractionError } = require('../../../utils/errorHandlers');
 const { getRegistrationState } = require('./select/user/registrationState.js');
 
 // ==============================
@@ -152,13 +153,7 @@ async function handleInteraction(interaction) {
     }
     return handled;
   } catch (err) {
-    logger.error('[configBotHandlers] エラー:', err);
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: '⚠️ 設定パネル処理中にエラーが発生しました。',
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    await handleInteractionError(interaction, err);
     return false;
   }
 }

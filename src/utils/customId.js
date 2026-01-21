@@ -33,11 +33,22 @@ function parseCustomId(customId) {
  * @param {string} params.target
  * @param {string} [params.id]
  * @returns {string}
+ * @throws {Error} CustomIDがDiscordの100文字制限を超える場合
  */
 function buildCustomId({ domain, action, target, id }) {
     const parts = [domain, action, target];
     if (id) parts.push(id);
-    return parts.join(':');
+
+    const customId = parts.join(':');
+
+    // Discord CustomID制限: 100文字
+    if (customId.length > 100) {
+        throw new Error(
+            `CustomID exceeds Discord limit (${customId.length}/100 chars): ${customId.substring(0, 50)}...`
+        );
+    }
+
+    return customId;
 }
 
 /**
