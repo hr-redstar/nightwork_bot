@@ -33,5 +33,21 @@ async function readTennaiData(guildId, store, file = '店内状況.json') {
   return await readJSON(path);
 }
 
-module.exports = { saveTennaiStatus, saveHikkakeList, saveCustomerLog, readTennaiData };
+/**
+ * 設定(config.json)を読み込み
+ */
+async function readHikkakeConfig(guildId) {
+  const path = `GCS/${guildId}/tennai_hikkake/config.json`;
+  return await readJSON(path) || {};
+}
+
+/**
+ * 設定(config.json)を保存
+ */
+async function saveHikkakeConfig(guildId, data) {
+  const path = `GCS/${guildId}/tennai_hikkake/config.json`;
+  await saveJSON(path, data);
+}
+
+module.exports = { saveTennaiStatus, saveHikkakeList, saveCustomerLog, readTennaiData, saveHikkakeConfig, readHikkakeConfig };
 

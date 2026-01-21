@@ -1,10 +1,9 @@
-﻿﻿// src/handlers/configBotHandler.js
+﻿﻿﻿﻿// src/handlers/configBotHandler.js
 // ----------------------------------------------------
 // 設定パネルのボタン / セレクト / モーダル dispatcher
 // ----------------------------------------------------
 
-const logger = require('../utils/logger');
-const { MessageFlags } = require('discord.js');
+const { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } = require('discord.js');
 
 // ==============================
 // ボタン
@@ -45,6 +44,10 @@ const modalStoreEdit = require('./config/components/modal/modal_store_edit.js');
 const modalRoleEdit = require('./config/components/modal/modal_role_edit.js');
 const modalUserInfo = require('./config/components/modal/modal_user_info.js');
 const modalSlackWebhook = require('./config/components/modal/slack/modal_slack_webhook.js');
+const logger = require('../utils/logger');
+const {
+  getRegistrationState,
+} = require('./config/select/user/registrationState.js');
 
 // =====================================================
 // handleInteraction（共通 dispatcher）
@@ -80,23 +83,42 @@ async function handleInteraction(interaction) {
 
       // --- ユーザー登録フローの「次へ」ボタン ---
       if (id.startsWith('config_user_goto_position_')) {
-        const parts = id.replace('config_user_goto_position_', '').split('_');
-        const userId = parts[0];
-        const storeName = parts.slice(1).join('_');
-        await selectUserChoosePosition.show(interaction, userId, storeName); 
+        const stateId = id.replace('config_user_goto_position_', '');
+        const state = getRegistrationState(stateId);
+        if (!state) {
+          await interaction.reply({
+            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
+            flags: MessageFlags.Ephemeral,
+          });
+          return true;
+        }
+        await selectUserChoosePosition.show(interaction, stateId, state.storeName);
         return true;
       }
       if (id.startsWith('config_user_goto_birth_year_')) {
-        const parts = id.replace('config_user_goto_birth_year_', '').split('_');
-        const [userId, storeName, positionId] = parts;
-        await selectBirthYear.show(interaction, userId, storeName, positionId);
+        const stateId = id.replace('config_user_goto_birth_year_', '');
+        const state = getRegistrationState(stateId);
+        if (!state) {
+          await interaction.reply({
+            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
+            flags: MessageFlags.Ephemeral,
+          });
+          return true;
+        }
+        await selectBirthYear.show(interaction, stateId);
         return true;
       }
       if (id.startsWith('config_user_goto_userinfo_')) {
-        const raw = id.replace('config_user_goto_userinfo_', '');
-        const parts = raw.split('_');
-        const [userId, storeName, positionId, year, month, day] = parts;
-        await modalUserInfo.show(interaction, userId, storeName, positionId, year, month, day);
+        const stateId = id.replace('config_user_goto_userinfo_', '');
+        const state = getRegistrationState(stateId);
+        if (!state) {
+          await interaction.reply({
+            content: '⏳ セッションが期限切れです。再度最初から登録してください。',
+            flags: MessageFlags.Ephemeral,
+          });
+          return true;
+        }
+        await modalUserInfo.show(interaction, stateId);
         return true;
       }
 
@@ -140,7 +162,6 @@ async function handleInteraction(interaction) {
       if (id.startsWith('config_user_select_store_')) { await selectUserChooseStore.handle(interaction); return true; }
       if (id.startsWith('config_user_select_position_')) { await selectUserChoosePosition.handle(interaction); return true; }
       if (id.startsWith('config_user_select_birth_year_')) { await selectBirthYear.handle(interaction); return true; }
-      if (id.startsWith('config_user_select_birth_year_extra_')) { await selectBirthYear.handle(interaction); return true; }
       if (id.startsWith('config_user_select_birth_month_')) { await selectBirthMonth.handle(interaction); return true; }
       if (id.startsWith('config_user_select_birth_day_')) { await selectBirthDay.handle(interaction); return true; }
 

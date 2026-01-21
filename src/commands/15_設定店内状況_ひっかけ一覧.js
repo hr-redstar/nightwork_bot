@@ -1,49 +1,13 @@
-// src/commands/設定店内状況_ひっかけ一覧.js
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendTennaiSettingPanel } = require('../modules/tennai_hikkake/setting/sendTennaiSettingPanel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定店内状況_ひっかけ一覧')
-    .setDescription('店内状況・ひっかけ一覧設定パネルを設置します（管理者向け）')
+    .setDescription('店内状況・ひっかけの設定パネルを表示します')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    try {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-      // Embed作成
-      const embed = new EmbedBuilder()
-        .setColor('#2b2d31')
-        .setTitle('🏠 店内状況_ひっかけ一覧設定パネル')
-        .setDescription(
-          '出退勤・接客ログ・店内状況_ひっかけ入力内容から自動的に『店内状況』『客数一覧』を作成します。\n\n' +
-          '📍 **全店舗の店内状況一覧**\n' +
-          '　➡️ 各店舗の状況をまとめた一覧を出力\n\n' +
-          '🏬 **店舗ごとの店内状況・客数一覧**\n' +
-          '　➡️ 個別の店舗情報を送信できます'
-        )
-        .setFooter({ text: `実行者：${interaction.user.tag}` })
-        .setTimestamp();
-
-      // ボタン定義
-      const buttonRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId('setup_hikkake_all')
-          .setLabel('🧠 ひっかけ用店内状況設置')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('setup_hikkake_store')
-          .setLabel('🧾 店舗ごとの店内状況・客数一覧設置')
-          .setStyle(ButtonStyle.Success)
-      );
-
-      await interaction.editReply({ embeds: [embed], components: [buttonRow] });
-
-    } catch (error) {
-      console.error('設定店内状況_ひっかけ一覧 エラー:', error);
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: '⚠️ パネル設置中にエラーが発生しました。' }).catch(() => {});
-      }
-    }
+    await sendTennaiSettingPanel(interaction);
   },
 };

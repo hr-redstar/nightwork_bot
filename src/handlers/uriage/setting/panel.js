@@ -24,6 +24,7 @@ const {
 } = require('../../../utils/uriage/uriageConfigManager');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { sendCommandLog } = require('../../../utils/config/configLogger');
+const getBotFooter = require('../../../modules/common/utils/embed/getBotFooter');
 const { IDS } = require('./ids');
 
 // ----------------------------------------------------
@@ -166,7 +167,7 @@ async function buildUriageSettingPanelPayload(guild, uriageConfig) {
     let line = `・${storeName}：${channelMention}`;
     if (panel.messageId) {
       const url = `https://discord.com/channels/${guildId}/${panel.channelId}/${panel.messageId}`;
-      line += ` [パネル](${url})`;
+      line += ` パネル`;
     }
     panelLines.push(line);
   }
@@ -354,9 +355,7 @@ async function sendUriagePanel(channel, storeId) {
 
   const embed = new EmbedBuilder()
     .setTitle(`売上報告パネル - ${storeName}`)
-    .setDescription(
-      '下のボタンから閲覧・申請役職を設定し、「売上報告」ボタンで報告を行ってください。',
-    )
+    .setDescription('日付　総売り　現金　カード,売掛　 諸経費')
     .setColor(0x54a0ff)
     .addFields(
       {
@@ -370,6 +369,7 @@ async function sendUriagePanel(channel, storeId) {
         inline: false,
       },
     );
+  embed.setFooter(getBotFooter(channel)).setTimestamp();
 
   const rolesRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -408,10 +408,88 @@ async function sendUriagePanel(channel, storeId) {
   return sent;
 }
 
+/**
+ * 既存の売上報告パネルを最新の設定で更新する
+ * @param {import('discord.js').Guild} guild
+ * @param {string} storeId
+ */
+async function refreshUriageReportPanelMessage(guild, storeId) {
+  const guildId = guild.id;
+
+  const [storeConfig, storeRoleConfig] = await Promise.all([
+    loadUriageStoreConfig(guildId, storeId),
+    loadStoreRoleConfig(guildId).catch(() => null),
+  ]);
+
+  if (!storeConfig?.channelId || !storeConfig?.messageId) return false;
+
+  const storeName = resolveStoreName(storeRoleConfig, storeId);
+  const roles = storeRoleConfig?.roles || [];
+  const positionRoles =
+    storeRoleConfig?.positionRoles ||
+    storeRoleConfig?.positionRoleMap ||
+    {};
+
+  const mentionPositions = (ids = []) => {
+    if (!ids || !ids.length) return '未設定';
+    return ids
+      .map(posId => {
+        const positionName = roles.find(r => String(r.id) === String(posId))?.name;
+        const roleIdsRaw = positionRoles[posId] || positionRoles[String(posId)] || [];
+        const roleIds = Array.isArray(roleIdsRaw) ? roleIdsRaw : roleIdsRaw ? [roleIdsRaw] : [];
+
+        if (positionName || roleIds.length) {
+          const mention =
+            roleIds.length > 0
+              ? roleIds
+                  .map(rid => (guild.roles.cache.get(rid) ? `<@&${rid}>` : `ロールID: ${rid}`))
+                  .join(' ')
+              : 'ロール未設定';
+          return `${positionName || posId}：${mention}`;
+        }
+
+        const role = guild.roles.cache.get(posId);
+        const name = role?.name || `ロールID: ${posId}`;
+        const mention = role ? `<@&${role.id}>` : `ロールID: ${posId}`;
+        return `${name}：${mention}`;
+      })
+      .join('\n');
+  };
+
+  const embed = new EmbedBuilder()
+    .setTitle(`売上報告パネル - ${storeName}`)
+    .setDescription('日付　総売り　現金　カード,売掛　 諸経費')
+    .setColor(0x54a0ff)
+    .addFields(
+      { name: '閲覧役職', value: mentionPositions(storeConfig.viewRoleIds), inline: false },
+      { name: '申請役職', value: mentionPositions(storeConfig.requestRoleIds), inline: false },
+    );
+  embed.setFooter(getBotFooter(guild)).setTimestamp();
+
+  const rolesRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`uriage_report:btn:view_roles:${storeId}`).setLabel('閲覧役職').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`uriage_report:btn:request_roles:${storeId}`).setLabel('申請役職').setStyle(ButtonStyle.Secondary),
+  );
+
+  const reportRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`uriage_report:btn:report:${storeId}`).setLabel('売上報告').setStyle(ButtonStyle.Primary),
+  );
+
+  const channel = await guild.channels.fetch(storeConfig.channelId).catch(() => null);
+  if (!channel || !channel.isTextBased()) return false;
+
+  const message = await channel.messages.fetch(storeConfig.messageId).catch(() => null);
+  if (!message) return false;
+
+  await message.edit({ embeds: [embed], components: [rolesRow, reportRow] });
+  return true;
+}
+
 module.exports = {
   resolveStoreName,
   buildUriageSettingPanelPayload,
   postUriageSettingPanel,
   refreshUriageSettingPanelMessage,
   sendUriagePanel,
+  refreshUriageReportPanelMessage,
 };

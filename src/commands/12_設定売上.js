@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('../utils/logger');
-const { postUriageSettingPanel } = require('../handlers/uriage/setting/panel');
+const { postUriageSettingPanel } = require('../modules/uriage/setting/panel');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,7 +13,6 @@ module.exports = {
    */
   async execute(interaction) {
     try {
-      // コマンド実行者のみに見えるようエフェメラルで応答
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await postUriageSettingPanel(interaction);
     } catch (err) {

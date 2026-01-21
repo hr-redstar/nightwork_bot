@@ -3,7 +3,7 @@ const {
   SlashCommandBuilder,
   ChannelType,
 } = require('discord.js');
-const { exportTextChannelMessages } = require('../handlers/message/exportTextChannelMessages');
+const { exportTextChannelMessages } = require('../modules/message/execute/exportTextChannelMessages');
 
 module.exports = {
   data: new SlashCommandBuilder()

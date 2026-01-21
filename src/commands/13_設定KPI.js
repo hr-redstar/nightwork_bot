@@ -1,24 +1,18 @@
 // src/commands/13_設定KPI.js
-const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { postKpiPanel } = require('../handlers/KPI/kpiPanel');
+// ----------------------------------------------------
+// /設定kpi
+// KPI 設定パネル（共通テンプレート）を表示
+// ----------------------------------------------------
+
+const { SlashCommandBuilder } = require('discord.js');
+const { sendKpiSettingPanel } = require('../modules/kpi/setting/sendKpiSettingPanel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('設定kpi')
-    .setDescription('KPI設定パネルを設置します（管理者用）')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDescription('KPIの設定パネルを表示します'),
 
   async execute(interaction) {
-    try {
-      // 先に応答を保留
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      await postKpiPanel(interaction.channel);
-      await interaction.deleteReply();
-    } catch (err) {
-      console.error('❌ /設定KPI 実行エラー:', err);
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: '⚠️ KPI設定パネルの設置中にエラーが発生しました。' }).catch(() => {});
-      }
-    }
+    await sendKpiSettingPanel(interaction);
   },
 };

@@ -36,7 +36,7 @@ module.exports = {
       try {
         initializeGCS();
       } catch (e) {
-        logger.warn('[ready] GCS初期化に失敗:', e.message);
+        logger.warn('[ready] GCS初期化に失敗:', e?.stack || e);
       }
 
       // ⭐⭐⭐ ここでマイグレーション実行 ⭐⭐⭐

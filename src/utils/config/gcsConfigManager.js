@@ -6,11 +6,12 @@
 const { readJSON, saveJSON } = require('../gcs');
 const logger = require('../logger');
 
+const CURRENT_CONFIG_VERSION = 1;
+
 function configPath(guildId) {
   return `${guildId}/config/config.json`;
 }
 
-// デフォルト構造（足りないキーを補完する用）
 function defaultGuildConfig() {
   return {
     globalLogChannel: null,
@@ -19,8 +20,61 @@ function defaultGuildConfig() {
     settingLogThread: null,
     slackWebhookUrl: null,
     commandExecutorRoleId: null,
-    // 必要ならここに増やしていく
+    configPanelMessageId: null,
+    configMetadata: {
+      version: CURRENT_CONFIG_VERSION,
+      updatedAt: new Date().toISOString(),
+    },
   };
+}
+
+const STRING_FIELDS = [
+  'globalLogChannel',
+  'adminLogChannel',
+  'commandLogThread',
+  'settingLogThread',
+  'slackWebhookUrl',
+  'commandExecutorRoleId',
+  'configPanelMessageId',
+];
+
+function ensureString(value) {
+  return typeof value === 'string' ? value : null;
+}
+
+function buildConfigMetadata(rawMetadata = {}) {
+  const version =
+    typeof rawMetadata?.version === 'number'
+      ? rawMetadata.version
+      : CURRENT_CONFIG_VERSION;
+  return {
+    version: Math.max(version, CURRENT_CONFIG_VERSION),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function normalizeGuildConfig(raw) {
+  const data = raw || {};
+  const merged = {
+    ...defaultGuildConfig(),
+    ...data,
+  };
+
+  // Normalize keys for backward compatibility. The `...Id` version is the canonical one.
+  merged.globalLogChannelId = ensureString(data.globalLogChannelId || data.globalLogChannel);
+  merged.adminLogChannelId = ensureString(data.adminLogChannelId || data.adminLogChannel);
+  merged.commandLogThreadId = ensureString(data.commandLogThreadId || data.commandLogThread);
+  merged.settingLogThreadId = ensureString(data.settingLogThreadId || data.settingLogThread);
+
+  for (const key of STRING_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(merged, key)) {
+      merged[key] = ensureString(merged[key]);
+    }
+  }
+
+  merged.configMetadata = buildConfigMetadata(data.configMetadata);
+
+  return merged;
 }
 
 // --------------------------------------------------
@@ -31,11 +85,7 @@ async function getGuildConfig(guildId) {
 
   try {
     const data = (await readJSON(path)) || {};
-    // デフォルトとマージして不足キーを埋める
-    return {
-      ...defaultGuildConfig(),
-      ...data,
-    };
+    return normalizeGuildConfig(data);
   } catch (err) {
     logger.error('❌ config.json の取得エラー:', err);
     return defaultGuildConfig();
@@ -54,9 +104,10 @@ async function saveGuildConfig(guildId, partialConfig) {
       ...current,
       ...partialConfig,
     };
+    const normalized = normalizeGuildConfig(merged);
 
-    await saveJSON(path, merged);
-    return merged;
+    await saveJSON(path, normalized);
+    return normalized;
   } catch (err) {
     logger.error('❌ config.json の保存エラー:', err);
   }
@@ -69,10 +120,15 @@ async function setGuildConfig(guildId, config) {
   const path = configPath(guildId);
 
   try {
-    await saveJSON(path, config);
+    const normalized = normalizeGuildConfig(config);
+    await saveJSON(path, normalized);
   } catch (err) {
     logger.error('❌ config.json の保存エラー(setGuildConfig):', err);
   }
+}
+
+async function updateGuildConfig(guildId, patch) {
+  return saveGuildConfig(guildId, patch);
 }
 
 module.exports = {
@@ -80,4 +136,5 @@ module.exports = {
   getGuildConfig,
   saveGuildConfig,
   setGuildConfig, // 旧コード用のエイリアス
+  updateGuildConfig,
 };

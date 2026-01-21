@@ -26,6 +26,33 @@ function escapeCsv(value) {
   return `"${s.replace(/"/g, '""')}"`;
 }
 
+function normalizeTimeForCsv(v) {
+  const s = String(v ?? '').trim();
+  // Discord timestamp: <t:1234567890> または <t:1234567890:f> など
+  // HTMLエスケープされた &lt;t:...&gt; にも対応
+  const m = s.match(/^(?:<|&lt;)t:(\d+)(?::[tTdDfFR])?(?:>|&gt;)$/);
+  if (!m) return s;
+
+  const ms = Number(m[1]) * 1000;
+  if (!Number.isFinite(ms)) return s;
+
+  try {
+    return new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+      .format(new Date(ms))
+      .replace(/\//g, '-');
+  } catch {
+    return s;
+  }
+}
+
 function rowsToCsv(rows) {
   return rows
     .map((row) => row.map(escapeCsv).join(','))
@@ -46,41 +73,48 @@ async function generateDailyCsv(guild, storeId, dailyData) {
     return;
   }
 
-  const guildName = guild.name;
-  const storeName = storeId || '';
+  const storeName = dailyData.storeName || storeId || '';
   const dateStr = dailyData.date || '';
 
   const header = [
-    'ギルド名',
-    '店舗名',
+    'メッセージid',
+    'ステータス',
     '日付',
     '部署',
     '経費項目',
     '金額',
     '備考',
-    'ロール',
-    '入力者',
-    '承認者',
-    '承認日時',
-    'ステータス',
+    '申請者名',
+    '申請時間',
+    '修正者名',
+    '修正時間',
+    '承認者名',
+    '承認時間',
   ];
 
   const rows = [header];
+  const seen = new Set();
 
   for (const r of dailyData.requests) {
+    // 重複排除: 同じメッセージIDがあればスキップ
+    const key = String(r.id || '');
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+
     rows.push([
-      guildName,
-      storeName,
+      r.id || '',
+      r.statusJa || '',
       r.date || dateStr,
       r.department || '',
       r.item || '',
       r.amount != null ? Number(r.amount) : '',
       r.note || '',
-      r.roles || '',
-      r.requester || '',
-      r.approvedBy || '',
-      r.approvedAt || '',
-      r.status || '',
+      r.requesterName || '',
+      normalizeTimeForCsv(r.requestAtText || r.inputTimeText || r.requestedAt),
+      r.modifierName || '',
+      normalizeTimeForCsv(r.modifierAtText || r.modifiedAt),
+      r.approvedByName || '',
+      normalizeTimeForCsv(r.approvedAtText || r.approvedAt),
     ]);
   }
 

@@ -1,7 +1,7 @@
 // src/events/messageCreate.js
 const { Events } = require('discord.js');
-const { handleChatGptThreadMessage } = require('../handlers/chat_gpt/threadMessageHandler'); // このファイルが chatGptThreadLogManager.js を使っているはずです
-const { handleAnswerChannelMessage } = require('../handlers/chat_gpt/answerChannelMessageHandler'); // このファイルが messageLogContext.js を使っているはずです
+const { handleChatGptThreadMessage } = require('../modules/chat_gpt/execute/threadMessageHandler');
+const { handleAnswerChannelMessage } = require('../modules/chat_gpt/execute/answerChannelMessageHandler');
 
 module.exports = {
   name: Events.MessageCreate,
