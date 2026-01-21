@@ -13,12 +13,12 @@ function buildCastPanelEmbed(storeName, info) {
   const channelText = info?.channel || '未設定';
 
   return new EmbedBuilder()
-    .setTitle(`👗 キャスト出退勤パネル｜${storeName}`)
-    .setDescription('キャストの出退勤登録・本日一覧投稿を管理します。')
+    .setTitle(`👗 キャスト出退勤パネル ${storeName}`)
     .addFields(
-      { name: '🎭 キャスト設定', value: '役職：未設定 / ロール：未設定', inline: false },
-      { name: '📅 本日のキャスト一覧　時間：', value: `${timeText}\n${channelText}`, inline: false },
+      { name: 'キャスト設定', value: `役職：${info?.role || '未設定'}`, inline: false },
+      { name: '📅 本日のキャスト一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
     )
+    .setColor('#e91e63')
     .setTimestamp();
 }
 

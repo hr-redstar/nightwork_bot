@@ -1,105 +1,58 @@
-// src/modules/syut/kuro/panel.js
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+// src/handlers/syut/kuroPanel.js
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
-const { getTodayAttendance } = require('../../../utils/syut/gcsSyut');
 
-/**
- * 出退勤データをEmbed表示用にフォーマット
- * @param {Object} attendanceData
- * @returns {string}
- */
-function formatAttendanceList(attendanceData) {
-  if (!attendanceData || Object.keys(attendanceData).length === 0) {
-    return '本日の出勤者はいません。';
-  }
-
-  const sortedEntries = Object.values(attendanceData).sort((a, b) => {
-    const timeA = a.in || '99:99'; // Sort by check-in time
-    const timeB = b.in || '99:99';
-    return timeA.localeCompare(timeB);
-  });
-
-  let formattedList = '';
-  let lastInTime = '';
-
-  for (const entry of sortedEntries) {
-    const inTime = entry.in || '未出勤';
-    const outTime = entry.out || '未退勤';
-
-    if (inTime !== lastInTime) {
-      if (formattedList !== '') formattedList += '\n';
-      formattedList += `**${inTime}**\n`;
-      lastInTime = inTime;
-    }
-    formattedList += `${entry.name} 退勤：${outTime} \n`;
-  }
-  return formattedList;
-}
-
-/**
- * 黒服出退勤パネルを新規作成
- */
-async function createBlackPanel(interaction, storeName, channelId) {
-  const ch = interaction.guild.channels.cache.get(channelId);
-  if (!ch) return interaction.reply({ content: '⚠️ チャンネルが見つかりません。', flags: MessageFlags.Ephemeral });
-
-  // パネルを送信
-  const message = await ch.send({ content: 'パネルを準備中...' });
-
-  const config = await getSyutConfig(interaction.guild.id);
-  config.kurofukuPanelList ||= {};
-  config.kurofukuPanelList[storeName] = {
-    channelId: channelId,
-    panelMessageId: message.id
-  };
-  await saveSyutConfig(interaction.guild.id, config);
-
-  await interaction.reply({ content: '✅ 黒服出退勤パネルを設置しました。', flags: MessageFlags.Ephemeral });
-
-  // パネルを更新して初期表示
-  await updateBlackPanel(interaction.guild, storeName, channelId, message.id);
-}
-
-/**
- * 黒服出退勤パネルを更新
- */
-async function updateBlackPanel(guild, storeName, channelId, messageId = null) {
-  const ch = guild.channels.cache.get(channelId);
-  if (!ch) return;
-
-  const config = await getSyutConfig(guild.id);
-  const panelMessageId = messageId || config.kurofukuPanelList?.[storeName]?.panelMessageId;
-  if (!panelMessageId) return;
-
-  const attendanceData = await getTodayAttendance(guild.id, storeName);
-  const attendanceList = formatAttendanceList(attendanceData);
-
-  const embed = new EmbedBuilder()
-    .setTitle(`🕴️ 黒服 出退勤パネル｜${storeName}`)
-    .setDescription(
-      [
-        '黒服設定',
-        `役職：${config.kurofukuPanelList?.[storeName]?.role || '未設定'}`,
-        '',
-        `**本日の黒服一覧 ${new Date().toLocaleDateString('ja-JP')}**\n${attendanceList}`,
-      ].join('\n')
+function buildKuroPanelEmbed(storeName, info) {
+  return new EmbedBuilder()
+    .setTitle(`🕴️ 黒服出退勤パネル ${storeName}`)
+    .addFields(
+      { name: '黒服設定', value: `役職：${info?.role || '未設定'}`, inline: false },
+      { name: '📅 本日の黒服一覧', value: `時間：${info?.time || '未設定'}\n${info?.channel || '未設定'}`, inline: false },
     )
-    .setColor(0x34495e);
+    .setColor('#000000')
+    .setTimestamp();
+}
+
+async function postKuroPanel(channel, storeName) {
+  const guildId = channel.guild.id;
+  const config = await getSyutConfig(guildId);
+  const info = config.kurofukuPanelList?.[storeName] || null;
+
+  const embed = buildKuroPanelEmbed(storeName, info);
 
   const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`kuro_today_setup:${storeName}`).setLabel('📢 本日の黒服設置').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(`kuro_role_setup:${storeName}`).setLabel('🧩 役職/ロール設定').setStyle(ButtonStyle.Secondary),
   );
   const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`kuro_register:${storeName}`).setLabel('🟢 出退勤登録').setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`kuro_manual_register:${storeName}`).setLabel('✍️ 手入力出退勤登録').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId(`kuro_register:${storeName}`).setLabel('🕒 出退勤登録').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`kuro_manual_register:${storeName}`).setLabel('✏️ 手入力出退勤登録').setStyle(ButtonStyle.Danger),
   );
 
-  try {
-    const message = await ch.messages.fetch(panelMessageId);
-    await message.edit({ embeds: [embed], components: [row1, row2] });
-  } catch (error) {
-    console.error(`❌ 黒服パネルメッセージの更新に失敗しました: ${error}`);
-  }
+  const msg = await channel.send({ embeds: [embed], components: [row1, row2] });
+
+  config.kurofukuPanelList ||= {};
+  config.kurofukuPanelList[storeName] ||= {};
+  config.kurofukuPanelList[storeName].panelMessageId = msg.id;
+  config.kurofukuPanelList[storeName].panelChannelId = channel.id;
+  await saveSyutConfig(guildId, config);
+
+  return msg;
 }
 
-module.exports = { createBlackPanel, updateBlackPanel };
+async function updateKuroPanelMessage(guild, storeName) {
+  const config = await getSyutConfig(guild.id);
+  const info = config.kurofukuPanelList?.[storeName];
+  if (!info?.panelMessageId || !info?.panelChannelId) return;
+
+  const panelChannel = guild.channels.cache.get(info.panelChannelId);
+  if (!panelChannel) return;
+
+  const msg = await panelChannel.messages.fetch(info.panelMessageId).catch(() => null);
+  if (!msg) return;
+
+  const embed = buildKuroPanelEmbed(storeName, info);
+  await msg.edit({ embeds: [embed], components: msg.components });
+}
+
+module.exports = { postKuroPanel, updateKuroPanelMessage };

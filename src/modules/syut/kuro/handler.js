@@ -22,7 +22,7 @@ const {
   getDailySyuttaikin,
   saveDailySyuttaikin,
 } = require('../../../utils/syut/syutConfigManager');
-const { updateBlackPanel } = require('./panel');
+const { updateKuroPanelMessage } = require('./panel');
 
 /** 店舗_役職_ロール.json のパス */
 function getRoleConfigPath(guildId) {
