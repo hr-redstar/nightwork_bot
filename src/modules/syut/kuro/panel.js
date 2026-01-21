@@ -1,6 +1,7 @@
 const { ButtonStyle } = require('discord.js');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
 const { buildPanel } = require('../../../utils/ui/panelBuilder');
+const { IDS } = require('./ids');
 
 function createKuroPanel(storeName, info) {
   const fields = [
@@ -10,12 +11,12 @@ function createKuroPanel(storeName, info) {
 
   const buttons = [
     [
-      { id: `kuro_today_setup:${storeName}`, label: '📢 本日の黒服設置', style: ButtonStyle.Primary },
-      { id: `kuro_role_setup:${storeName}`, label: '🧩 役職/ロール設定', style: ButtonStyle.Secondary },
+      { id: `${IDS.BUTTON.TODAY_SETUP}:${storeName}`, label: '📢 本日の黒服設置', style: ButtonStyle.Primary },
+      { id: `${IDS.BUTTON.ROLE_SETUP}:${storeName}`, label: '🧩 役職/ロール設定', style: ButtonStyle.Secondary },
     ],
     [
-      { id: `kuro_register:${storeName}`, label: '🕒 出退勤登録', style: ButtonStyle.Success },
-      { id: `kuro_manual_register:${storeName}`, label: '✏️ 手入力出退勤登録', style: ButtonStyle.Danger },
+      { id: `${IDS.BUTTON.REGISTER}:${storeName}`, label: '🕒 出退勤登録', style: ButtonStyle.Success },
+      { id: `${IDS.BUTTON.MANUAL_REGISTER}:${storeName}`, label: '✏️ 手入力出退勤登録', style: ButtonStyle.Danger },
     ]
   ];
 

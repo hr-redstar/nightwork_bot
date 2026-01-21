@@ -15,6 +15,8 @@ const {
   ButtonStyle,
   EmbedBuilder,
 } = require('discord.js');
+const { URIAGE_SETTING_PANEL_SCHEMA } = require('./panelSchema');
+const { buildPanel } = require('../../../utils/ui/panelBuilder');
 const logger = require('../../../utils/logger');
 const {
   loadUriageConfig,
@@ -66,27 +68,8 @@ function describePositions(ids = [], roles = [], positionRoles = {}, guild) {
     .join('\n');
 }
 
-function buildSettingButtonsRow1() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_SET_PANEL)
-      .setLabel('売上報告パネル設置')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_SET_APPROVER)
-      .setLabel('承認役職')
-      .setStyle(ButtonStyle.Secondary),
-  );
-}
-
-function buildSettingButtonsRow2() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(IDS.BTN_EXPORT_CSV)
-      .setLabel('売上CSV発行')
-      .setStyle(ButtonStyle.Success),
-  );
-}
+// function buildSettingButtonsRow1() ... removed
+// function buildSettingButtonsRow2() ... removed
 
 function resolveStoreName(storeRoleConfig, storeId) {
   if (!storeRoleConfig) return storeId;
@@ -176,7 +159,7 @@ async function buildUriageSettingPanelPayload(guild, uriageConfig) {
   const approverPositionIds = uriageConfig.approverPositionIds || [];
   const legacyApproverRoleIds = uriageConfig.approverRoleIds || []; // 旧形式フォールバック
 
-  let approverLines = '未設定';
+  let approverLines = null;
 
   if (approverPositionIds.length) {
     approverLines = approverPositionIds
@@ -200,32 +183,31 @@ async function buildUriageSettingPanelPayload(guild, uriageConfig) {
   const csvUpdatedAt = uriageConfig.csvUpdatedAt
     ? `<t:${Math.floor(new Date(uriageConfig.csvUpdatedAt).getTime() / 1000)}:f>`
     : '未集計';
+  const csvValue = `最新更新：${csvUpdatedAt}\n※「売上CSV発行」ボタンから生成できます。`;
 
-  const embed = new EmbedBuilder()
-    .setTitle('売上設定パネル')
-    .setColor(0x2ecc71)
-    .addFields(
-      {
-        name: '売上報告パネル一覧',
-        value: panelLines.length
-          ? panelLines.join('\n')
-          : '未設置\n「売上報告パネル設置」ボタンからパネルを作成してください。',
-      },
-      {
-        name: '承認役職',
-        value: approverLines || '未設定',
-      },
-      {
-        name: '売上CSV出力',
-        value: `最新更新：${csvUpdatedAt}\n※「売上CSV発行」ボタンから生成できます。`,
-      },
-    )
-    .setTimestamp(new Date());
+  // Schema Mapping
+  const dataMap = {
+    panels: panelLines.length > 0
+      ? panelLines.join('\n')
+      : URIAGE_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'panels').fallback,
+    approvers: approverLines || URIAGE_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'approvers').fallback,
+    csv: csvValue
+  };
 
-  const row1 = buildSettingButtonsRow1();
-  const row2 = buildSettingButtonsRow2();
+  const embedFields = URIAGE_SETTING_PANEL_SCHEMA.fields.map(f => ({
+    name: f.name,
+    value: dataMap[f.key] || f.fallback
+  }));
 
-  return { embeds: [embed], components: [row1, row2] };
+  const panel = buildPanel({
+    title: URIAGE_SETTING_PANEL_SCHEMA.title,
+    description: URIAGE_SETTING_PANEL_SCHEMA.description,
+    color: URIAGE_SETTING_PANEL_SCHEMA.color,
+    fields: embedFields,
+    buttons: URIAGE_SETTING_PANEL_SCHEMA.buttons
+  });
+
+  return panel;
 }
 
 async function postUriageSettingPanel(interaction) {
