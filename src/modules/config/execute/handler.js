@@ -146,8 +146,11 @@ router.on('config_slack_webhook_modal_submit', (i) => modalSlackWebhook.handle(i
 // =====================================================
 async function handleInteraction(interaction) {
   try {
-
-    return false; // 未処理
+    const handled = await router.dispatch(interaction);
+    if (!handled) {
+      logger.debug(`[Config] Unhandled interaction: ${interaction.customId}`);
+    }
+    return handled;
   } catch (err) {
     logger.error('[configBotHandlers] エラー:', err);
     if (!interaction.replied && !interaction.deferred) {
@@ -156,6 +159,7 @@ async function handleInteraction(interaction) {
         flags: MessageFlags.Ephemeral,
       });
     }
+    return false;
   }
 }
 

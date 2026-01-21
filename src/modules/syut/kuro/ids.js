@@ -13,9 +13,12 @@ const IDS = {
         ROLE_SELECT: `${PREFIX}:sel:role_select`, // + :storeName
         MEMBER_SELECT: `${PREFIX}:sel:user_select`, // + :storeName
         STATUS_SELECT: `${PREFIX}:sel:status_select`, // + :storeName:userId
+        TODAY_CHANNEL: `${PREFIX}:sel:today_channel`, // + :storeName
     },
     MODAL: {
         MANUAL: `${PREFIX}:modal:manual`,         // + :storeName
+        ENTRY: `${PREFIX}:modal:entry`,           // + :storeName:userId
+        TODAY_TIME: `${PREFIX}:modal:today_time`, // + :storeName:channelId
     },
     // Legacy prefixes
     LEGACY_PREFIX: 'kuro_',

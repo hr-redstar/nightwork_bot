@@ -102,7 +102,7 @@ async function handleSyutCast(interaction) {
       return interaction.reply({ content: '⚠️ 指定役職に所属するメンバーがいません。', flags: MessageFlags.Ephemeral });
 
     const select = new UserSelectMenuBuilder()
-      .setCustomId(`cast_user_select:${storeName}`)
+      .setCustomId(`${IDS.SELECT.MEMBER_SELECT}:${storeName}`)
       .setPlaceholder('出退勤登録するキャストを選択')
       .setMinValues(1)
       .setMaxValues(1);
@@ -115,12 +115,12 @@ async function handleSyutCast(interaction) {
   }
 
   // ユーザー選択後 → モーダル入力
-  if (interaction.isUserSelectMenu() && interaction.customId.startsWith('cast_user_select:')) {
+  if (interaction.isUserSelectMenu() && (interaction.customId.startsWith(IDS.SELECT.MEMBER_SELECT) || interaction.customId.startsWith('cast_user_select:'))) {
     const [, storeName] = interaction.customId.split(':');
     const userId = interaction.values[0];
 
     const modal = new ModalBuilder()
-      .setCustomId(`cast_entry_modal:${storeName}:${userId}`)
+      .setCustomId(`${IDS.MODAL.ENTRY}:${storeName}:${userId}`)
       .setTitle('出退勤登録');
 
     const dateInput = new TextInputBuilder()
@@ -151,7 +151,7 @@ async function handleSyutCast(interaction) {
   }
 
   // モーダル送信後 → 登録保存
-  if (interaction.isModalSubmit() && interaction.customId.startsWith('cast_entry_modal:')) {
+  if (interaction.isModalSubmit() && (interaction.customId.startsWith(IDS.MODAL.ENTRY) || interaction.customId.startsWith('cast_entry_modal:'))) {
     const [, storeName, userId] = interaction.customId.split(':');
     const member = await interaction.guild.members.fetch(userId);
     const name = member.displayName;
@@ -175,10 +175,12 @@ async function handleSyutCast(interaction) {
   /* ---------------------------------------------------------------------- */
   /* ✏️ 手動出退勤登録 */
   /* ---------------------------------------------------------------------- */
-  if (interaction.isButton() && interaction.customId.startsWith('cast_manual_register:')) {
+  /* ✏️ 手動出退勤登録 */
+  /* ---------------------------------------------------------------------- */
+  if (interaction.isButton() && (interaction.customId.startsWith(IDS.BUTTON.MANUAL_REGISTER) || interaction.customId.startsWith('cast_manual_register:'))) {
     const [, storeName] = interaction.customId.split(':');
     const modal = new ModalBuilder()
-      .setCustomId(`cast_manual_modal:${storeName}`)
+      .setCustomId(`${IDS.MODAL.MANUAL}:${storeName}`)
       .setTitle('手動出退勤登録');
 
     const nameInput = new TextInputBuilder()
@@ -216,7 +218,7 @@ async function handleSyutCast(interaction) {
   }
 
   // 手入力モーダル送信
-  if (interaction.isModalSubmit() && interaction.customId.startsWith('cast_manual_modal:')) {
+  if (interaction.isModalSubmit() && (interaction.customId.startsWith(IDS.MODAL.MANUAL) || interaction.customId.startsWith('cast_manual_modal:'))) {
     const [, storeName] = interaction.customId.split(':');
     const names = interaction.fields.getTextInputValue('names').split('\n').map(v => v.trim()).filter(Boolean);
     const dates = interaction.fields.getTextInputValue('dates').split('\n').map(v => v.trim()).filter(Boolean);
@@ -240,11 +242,13 @@ async function handleSyutCast(interaction) {
   /* ---------------------------------------------------------------------- */
   /* 📢 本日のキャスト設置 */
   /* ---------------------------------------------------------------------- */
-  if (interaction.isButton() && interaction.customId.startsWith('cast_today_setup:')) {
+  /* 📢 本日のキャスト設置 */
+  /* ---------------------------------------------------------------------- */
+  if (interaction.isButton() && (interaction.customId.startsWith(IDS.BUTTON.TODAY_SETUP) || interaction.customId.startsWith('cast_today_setup:'))) {
     const [, storeName] = interaction.customId.split(':');
 
     const select = new ChannelSelectMenuBuilder()
-      .setCustomId(`cast_today_channel_select:${storeName}`)
+      .setCustomId(`${IDS.SELECT.TODAY_CHANNEL}:${storeName}`)
       .setPlaceholder('投稿先チャンネルを選択してください')
       .addChannelTypes(ChannelType.GuildText);
 
@@ -256,11 +260,11 @@ async function handleSyutCast(interaction) {
   }
 
   // チャンネル選択後 → 時刻入力
-  if (interaction.isChannelSelectMenu() && interaction.customId.startsWith('cast_today_channel_select:')) {
+  if (interaction.isChannelSelectMenu() && (interaction.customId.startsWith(IDS.SELECT.TODAY_CHANNEL) || interaction.customId.startsWith('cast_today_channel_select:'))) {
     const [, storeName] = interaction.customId.split(':');
     const channelId = interaction.values[0];
     const modal = new ModalBuilder()
-      .setCustomId(`cast_today_time_modal:${storeName}:${channelId}`)
+      .setCustomId(`${IDS.MODAL.TODAY_TIME}:${storeName}:${channelId}`)
       .setTitle('📅 本日のキャスト 投稿時間設定');
 
     const timeInput = new TextInputBuilder()
@@ -274,7 +278,7 @@ async function handleSyutCast(interaction) {
   }
 
   // 時刻入力モーダル送信後 → 投稿 + 保存 + パネル更新
-  if (interaction.isModalSubmit() && interaction.customId.startsWith('cast_today_time_modal:')) {
+  if (interaction.isModalSubmit() && (interaction.customId.startsWith(IDS.MODAL.TODAY_TIME) || interaction.customId.startsWith('cast_today_time_modal:'))) {
     const [, storeName, channelId] = interaction.customId.split(':');
     const time = interaction.fields.getTextInputValue('time').trim();
 

@@ -23,6 +23,7 @@ const {
   saveDailySyuttaikin,
 } = require('../../../utils/syut/syutConfigManager');
 const { updateKuroPanelMessage } = require('./panel');
+const { IDS } = require('./ids');
 
 /** 店舗_役職_ロール.json のパス */
 function getRoleConfigPath(guildId) {
@@ -36,7 +37,9 @@ async function handleSyutKuro(interaction) {
   /* ---------------------------------------------------------------------- */
   /* 🧩 役職ロール設定 */
   /* ---------------------------------------------------------------------- */
-  if (interaction.isButton() && interaction.customId.startsWith('kuro_role_setup:')) {
+  /* 🧩 役職ロール設定 */
+  /* ---------------------------------------------------------------------- */
+  if (interaction.isButton() && (interaction.customId.startsWith(IDS.BUTTON.ROLE_SETUP) || interaction.customId.startsWith('kuro_role_setup:'))) {
     const [, storeName] = interaction.customId.split(':');
     const filePath = getRoleConfigPath(interaction.guild.id);
 
@@ -53,7 +56,7 @@ async function handleSyutKuro(interaction) {
       return interaction.reply({ content: `⚠️ 店舗「${storeName}」に役職データがありません。`, flags: MessageFlags.Ephemeral });
 
     const select = new StringSelectMenuBuilder()
-      .setCustomId(`kuro_role_select:${storeName}`)
+      .setCustomId(`${IDS.SELECT.ROLE_SELECT}:${storeName}`)
       .setPlaceholder('役職を選択してください')
       .addOptions(roles.map(r => ({ label: r, value: r })));
 
@@ -65,8 +68,9 @@ async function handleSyutKuro(interaction) {
   }
 
   // 選択完了 → 保存
-  if (interaction.isStringSelectMenu() && interaction.customId.startsWith('kuro_role_select:')) {
-    const [, storeName] = interaction.customId.split(':');
+  if (interaction.isStringSelectMenu() && (interaction.customId.startsWith(IDS.SELECT.ROLE_SELECT) || interaction.customId.startsWith('kuro_role_select:'))) {
+    const parts = interaction.customId.split(':');
+    const storeName = parts[parts.length - 1];
     const roleName = interaction.values[0];
     const config = await getSyutConfig(interaction.guild.id);
 
@@ -84,7 +88,7 @@ async function handleSyutKuro(interaction) {
   /* ---------------------------------------------------------------------- */
   /* 🕒 出退勤登録（役職指定ユーザー） */
   /* ---------------------------------------------------------------------- */
-  if (interaction.isButton() && interaction.customId.startsWith('kuro_register:')) {
+  if (interaction.isButton() && (interaction.customId.startsWith(IDS.BUTTON.REGISTER) || interaction.customId.startsWith('kuro_register:'))) {
     const [, storeName] = interaction.customId.split(':');
     const config = await getSyutConfig(interaction.guild.id);
     const roleName = config.kurofukuPanelList?.[storeName]?.role;
