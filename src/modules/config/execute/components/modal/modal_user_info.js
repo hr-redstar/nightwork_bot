@@ -11,8 +11,8 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { updateUserInfo, readUserInfo } = require('../../../../utils/config/gcsUserInfo.js');
-const { sendSettingLog } = require('../../configLogger');
+const { updateUserInfo, readUserInfo } = require('../../../../../utils/config/gcsUserInfo.js');
+const { sendSettingLog } = require('../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../configPanel');
 const {
   getRegistrationState,

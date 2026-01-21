@@ -10,9 +10,9 @@ const {
 const {
   loadStoreRoleConfig,
   saveStoreRoleConfig,
-} = require('../../../../utils/config/storeRoleConfigManager');
+} = require('../../../../../utils/config/storeRoleConfigManager');
 
-const { sendSettingLog } = require('../../configLogger');
+const { sendSettingLog } = require('../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../configPanel');
 
 module.exports = {

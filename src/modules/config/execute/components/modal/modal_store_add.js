@@ -34,7 +34,7 @@ module.exports = {
   async handle(interaction) {
     const storeName = interaction.fields.getTextInputValue('storeName');
 
-    const { addStore } = require('../../../../utils/config/storeRoleConfigManager');
+    const { addStore } = require('../../../../../utils/config/storeRoleConfigManager');
 
     await addStore(interaction.guild.id, storeName);
 

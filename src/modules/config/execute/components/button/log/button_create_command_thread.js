@@ -1,6 +1,6 @@
 const { MessageFlags } = require('discord.js');
-const { getGuildConfig, saveGuildConfig } = require('../../../../../utils/config/gcsConfigManager');
-const { sendSettingLog } = require('../../../configLogger');
+const { getGuildConfig, saveGuildConfig } = require('../../../../../../utils/config/gcsConfigManager');
+const { sendSettingLog } = require('../../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../../configPanel');
 
 module.exports = {

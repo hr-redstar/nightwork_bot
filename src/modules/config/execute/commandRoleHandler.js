@@ -1,14 +1,14 @@
-// src/handlers/config/commandRoleHandler.js
 const {
   ActionRowBuilder,
   RoleSelectMenuBuilder,
   ComponentType,
   MessageFlags,
 } = require('discord.js');
-const { updateGuildConfig } = require('../../utils/config/gcsConfigManager');
+const { updateGuildConfig } = require('../../../utils/config/gcsConfigManager');
+// Let's use the verified relative path: ../../../utils/config/configLogger
 const { sendConfigPanel } = require('./configPanel');
-const { sendSettingLog } = require('./configLogger');
-const logger = require('../../utils/logger');
+const { sendSettingLog } = require('../../../utils/config/configLogger');
+const logger = require('../../../utils/logger');
 
 /**
  * 「コマンド実行役職」ボタンのインタラクションを処理

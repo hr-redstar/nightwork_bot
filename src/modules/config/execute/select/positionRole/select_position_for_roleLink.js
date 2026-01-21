@@ -7,7 +7,7 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const { loadStoreRoleConfig } = require('../../../../utils/config/storeRoleConfigManager');
+const { loadStoreRoleConfig } = require('../../../../../utils/config/storeRoleConfigManager');
 
 const nextStep = require('./select_roles_for_position.js');
 

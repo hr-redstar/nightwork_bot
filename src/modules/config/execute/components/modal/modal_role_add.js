@@ -10,7 +10,7 @@ const {
   ActionRowBuilder,
 } = require('discord.js');
 
-const { addRole } = require('../../../../utils/config/storeRoleConfigManager');
+const { addRole } = require('../../../../../utils/config/storeRoleConfigManager');
 
 module.exports = {
   customId: 'CONFIG_ROLE_ADD_MODAL',

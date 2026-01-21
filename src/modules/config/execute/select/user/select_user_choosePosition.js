@@ -12,8 +12,8 @@ const {
 
 const {
   loadStoreRoleConfig,
-} = require('../../../../utils/config/storeRoleConfigManager');
-const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
+} = require('../../../../../utils/config/storeRoleConfigManager');
+const { readUserInfo } = require('../../../../../utils/config/gcsUserInfo');
 
 const nextStep = require('./select_user_birth_year.js');
 const {
@@ -111,8 +111,8 @@ module.exports = {
         `👔 ユーザー **<@${userId}>** の役職を選択してください。\n店舗：**${storeName}**\n` +
         (defaultPositionId
           ? `（ロール情報から **${positions.find(
-              (p) => p.id === defaultPositionId
-            )?.name || ''}** が自動選択されています）`
+            (p) => p.id === defaultPositionId
+          )?.name || ''}** が自動選択されています）`
           : ''),
       components,
     });

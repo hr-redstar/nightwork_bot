@@ -11,7 +11,7 @@ const {
 } = require('discord.js');
 
 const nextStep = require('./select_user_birth_month.js');
-const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
+const { readUserInfo } = require('../../../../../utils/config/gcsUserInfo');
 const {
   getRegistrationState,
   updateRegistrationState,
