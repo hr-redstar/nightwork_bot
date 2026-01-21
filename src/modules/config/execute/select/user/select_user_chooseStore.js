@@ -12,8 +12,8 @@ const {
 
 const {
   loadStoreRoleConfig,
-} = require('../../../../utils/config/storeRoleConfigManager');
-const { readUserInfo } = require('../../../../utils/config/gcsUserInfo');
+} = require('../../../../../utils/config/storeRoleConfigManager');
+const { readUserInfo } = require('../../../../../utils/config/gcsUserInfo');
 
 const nextStep = require('./select_user_choosePosition.js');
 const {
@@ -92,16 +92,16 @@ module.exports = {
         .setCustomId(`config_user_goto_position_${stateId}`) // GOTO
         .setLabel('この店舗で決定')
         .setStyle(ButtonStyle.Success);
-      
+
       const row2 = new ActionRowBuilder().addComponents(nextButton);
       components.push(row2);
     }
 
     await interaction.update({
-      content: 
+      content:
         `🏪 ユーザー **<@${userId}>** の所属店舗を選択してください。\n` +
-        (defaultStore 
-          ? `（ロール情報から **${defaultStore}** が自動選択されています）` 
+        (defaultStore
+          ? `（ロール情報から **${defaultStore}** が自動選択されています）`
           : ''),
       components: components,
     });
@@ -111,7 +111,7 @@ module.exports = {
    * 店舗を選んだ後の処理（Step3へ）
    */
   async handle(interaction) {
-    const customId = interaction.customId; 
+    const customId = interaction.customId;
     // → CONFIG_USER_SELECT_STORE_<stateId>
 
     const stateId = customId.replace('config_user_select_store_', '');

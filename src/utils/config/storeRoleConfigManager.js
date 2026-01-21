@@ -5,14 +5,21 @@
 
 const dayjs = require('dayjs');
 const logger = require('../logger');
-const { readJSON, saveJSON } = require('../gcs');
+const BaseConfigManager = require('../baseConfigManager');
+
+// インスタンス作成
+// GCS/{guildId}/config/店舗_役職_ロール.json に対応
+const manager = new BaseConfigManager({
+  baseDir: 'config',
+  fileName: '店舗_役職_ロール.json',
+});
 
 // ====================================================
 // 🧭 パス生成
 // ====================================================
 
 function storeRoleConfigPath(guildId) {
-  return `${guildId}/config/店舗_役職_ロール.json`;
+  return manager.getGlobalPath(guildId);
 }
 
 // ====================================================
@@ -53,27 +60,23 @@ function normalizeStoreRoleConfig(raw) {
 // ====================================================
 
 async function loadStoreRoleConfig(guildId) {
-  const path = storeRoleConfigPath(guildId);
-
   try {
-    const data = await readJSON(path);
+    const data = await manager.loadGlobal(guildId, defaultStoreRoleConfig());
     return normalizeStoreRoleConfig(data);
   } catch (err) {
-    logger.warn(`⚠️ storeRoleConfig 読み込み失敗 → デフォルト使用 (${guildId})`);
+    logger.warn(`⚠️ storeRoleConfig 読み込み失敗 → デフォルト使用 (${guildId})`, err);
     return defaultStoreRoleConfig();
   }
 }
 
 async function saveStoreRoleConfig(guildId, config) {
-  const path = storeRoleConfigPath(guildId);
-
   const saveData = {
     ...normalizeStoreRoleConfig(config),
     updatedAt: dayjs().format('YYYY/MM/DD HH:mm:ss'),
   };
 
   try {
-    await saveJSON(path, saveData);
+    await manager.saveGlobal(guildId, saveData);
     logger.info(`💾 storeRoleConfig 保存 (${guildId})`);
   } catch (err) {
     logger.error(`❌ storeRoleConfig 保存エラー (${guildId})`, err);

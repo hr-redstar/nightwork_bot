@@ -1,26 +1,14 @@
 // src/utils/uriage/uriageConfigManager.js
 // ----------------------------------------------------
 // 売上機能の GCS 読み書きユーティリティ
-//   - ギルド共通:   GCS/{guildId}/uriage/config.json
-//   - 店舗ごと:     GCS/{guildId}/uriage/{storeId}/config.json
 // ----------------------------------------------------
 
-const path = require('path');
-const { readJSON, saveJSON } = require('../gcs');
+const BaseConfigManager = require('../baseConfigManager');
 
-// ----------------------------------------------------
-// パス
-// ----------------------------------------------------
-function getUriageGlobalConfigPath(guildId) {
-  if (!guildId) throw new Error('[uriageConfigManager] guildId が未指定です');
-  return path.join('GCS', guildId, 'uriage', 'config.json');
-}
-
-function getUriageStoreConfigPath(guildId, storeId) {
-  if (!guildId) throw new Error('[uriageConfigManager] guildId が未指定です');
-  if (!storeId) throw new Error('[uriageConfigManager] storeId が未指定です');
-  return path.join('GCS', guildId, 'uriage', storeId, 'config.json');
-}
+const manager = new BaseConfigManager({
+  baseDir: 'uriage',
+  fileName: 'config.json',
+});
 
 // ----------------------------------------------------
 // デフォルト
@@ -57,15 +45,6 @@ function createDefaultStoreConfig(storeId) {
 // ----------------------------------------------------
 // ヘルパー
 // ----------------------------------------------------
-async function safeLoadJson(logicalPath, defaults) {
-  try {
-    const data = await readJSON(logicalPath);
-    return { ...defaults, ...(data || {}) };
-  } catch (err) {
-    if (err && err.code === 'ENOENT') return { ...defaults };
-    throw err;
-  }
-}
 
 function normalizeStoreConfig(raw, storeId) {
   const base = createDefaultStoreConfig(storeId);
@@ -85,31 +64,36 @@ function normalizeStoreConfig(raw, storeId) {
 // 共通設定
 // ----------------------------------------------------
 async function loadUriageConfig(guildId) {
-  const p = getUriageGlobalConfigPath(guildId);
-  return safeLoadJson(p, createDefaultGlobalConfig());
+  return manager.loadGlobal(guildId, createDefaultGlobalConfig());
 }
 
 async function saveUriageConfig(guildId, config) {
-  const p = getUriageGlobalConfigPath(guildId);
-  await saveJSON(p, config || {});
-  return config;
+  return manager.saveGlobal(guildId, config);
 }
 
 // ----------------------------------------------------
 // 店舗別設定
 // ----------------------------------------------------
 async function loadUriageStoreConfig(guildId, storeId) {
-  const p = getUriageStoreConfigPath(guildId, storeId);
-  const data = await safeLoadJson(p, createDefaultStoreConfig(storeId));
+  const defaults = createDefaultStoreConfig(storeId);
+  const data = await manager.loadStore(guildId, storeId, defaults);
   return normalizeStoreConfig(data, storeId);
 }
 
 async function saveUriageStoreConfig(guildId, storeId, config) {
-  const p = getUriageStoreConfigPath(guildId, storeId);
   const cfg = normalizeStoreConfig(config, storeId);
   cfg.lastUpdated = new Date().toISOString();
-  await saveJSON(p, cfg);
-  return cfg;
+  return manager.saveStore(guildId, storeId, cfg);
+}
+
+// ----------------------------------------------------
+// パスヘルパー (BaseConfigManagerプロキシ)
+// ----------------------------------------------------
+function getUriageGlobalConfigPath(guildId) {
+  return manager.getGlobalPath(guildId);
+}
+function getUriageStoreConfigPath(guildId, storeId) {
+  return manager.getStorePath(guildId, storeId);
 }
 
 module.exports = {

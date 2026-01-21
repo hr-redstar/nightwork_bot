@@ -1,30 +1,15 @@
 // src/utils/keihi/keihiConfigManager.js
 // ----------------------------------------------------
 // 経費設定の GCS 読み書きユーティリティ
-//   - ギルド共通:   GCS/{guildId}/keihi/config.json
-//   - 店舗ごと設定: GCS/{guildId}/keihi/{storeName}/config.json
 // ----------------------------------------------------
 
-const path = require('path');
-const { readJSON, saveJSON } = require('../gcs');
+const BaseConfigManager = require('../baseConfigManager');
 
-// ==============================
-// パスヘルパー
-// ==============================
-
-function getKeihiGlobalConfigPath(guildId) {
-  if (!guildId) throw new Error('[keihiConfigManager] guildId が未指定です');
-  return path.join('GCS', guildId, 'keihi', 'config.json');
-}
-
-function getKeihiStoreConfigPath(guildId, storeName) {
-  if (!guildId) throw new Error('[keihiConfigManager] guildId が未指定です');
-  if (!storeName) throw new Error('[keihiConfigManager] storeName が未指定です');
-  return path.join('GCS', guildId, 'keihi', storeName, 'config.json');
-}
-
-// 互換用
-const getKeihiConfigPath = getKeihiStoreConfigPath;
+// インスタンス作成
+const manager = new BaseConfigManager({
+  baseDir: 'keihi',
+  fileName: 'config.json',
+});
 
 // ==============================
 // デフォルト値
@@ -51,32 +36,15 @@ function createDefaultStoreConfig(storeName) {
 }
 
 // ==============================
-// 内部ユーティリティ
-// ==============================
-
-async function safeLoadJson(pathLogical, defaults) {
-  try {
-    const data = await readJSON(pathLogical);
-    return { ...defaults, ...(data || {}) };
-  } catch (err) {
-    if (err && err.code === 'ENOENT') return { ...defaults };
-    throw err;
-  }
-}
-
-// ==============================
 // ギルド共通設定
 // ==============================
 
 async function loadKeihiGlobalConfig(guildId) {
-  const filePath = getKeihiGlobalConfigPath(guildId);
-  return safeLoadJson(filePath, createDefaultGlobalConfig());
+  return manager.loadGlobal(guildId, createDefaultGlobalConfig());
 }
 
 async function saveKeihiGlobalConfig(guildId, config) {
-  const filePath = getKeihiGlobalConfigPath(guildId);
-  await saveJSON(filePath, config || {});
-  return config;
+  return manager.saveGlobal(guildId, config);
 }
 
 async function updateKeihiGlobalConfig(guildId, updater) {
@@ -85,11 +53,10 @@ async function updateKeihiGlobalConfig(guildId, updater) {
     typeof updater === 'function'
       ? await updater(current)
       : { ...current, ...(updater || {}) };
-  await saveKeihiGlobalConfig(guildId, next);
-  return next;
+  return saveKeihiGlobalConfig(guildId, next);
 }
 
-// 互換エイリアス（旧API対応）
+// 互換エイリアス
 async function loadKeihiConfig(guildId) {
   return loadKeihiGlobalConfig(guildId);
 }
@@ -102,14 +69,15 @@ async function saveKeihiConfig(guildId, config) {
 // ==============================
 
 async function loadKeihiStoreConfig(guildId, storeName) {
-  const filePath = getKeihiStoreConfigPath(guildId, storeName);
-  return safeLoadJson(filePath, createDefaultStoreConfig(storeName));
+  const defaults = createDefaultStoreConfig(storeName);
+  const data = await manager.loadStore(guildId, storeName, defaults);
+  // storeName が保存データに含まれていない場合の安全策 (defaults由来なら入っているが念のため)
+  if (!data.storeName) data.storeName = storeName;
+  return data;
 }
 
 async function saveKeihiStoreConfig(guildId, storeName, config) {
-  const filePath = getKeihiStoreConfigPath(guildId, storeName);
-  await saveJSON(filePath, config || {});
-  return config;
+  return manager.saveStore(guildId, storeName, config);
 }
 
 async function updateKeihiStoreConfig(guildId, storeName, updater) {
@@ -118,29 +86,31 @@ async function updateKeihiStoreConfig(guildId, storeName, updater) {
     typeof updater === 'function'
       ? await updater(current)
       : { ...current, ...(updater || {}) };
-  await saveKeihiStoreConfig(guildId, storeName, next);
-  return next;
+  return saveKeihiStoreConfig(guildId, storeName, next);
 }
 
+// ==============================
+// パスヘルパー (BaseConfigManagerへのプロキシ)
+// ==============================
+function getKeihiGlobalConfigPath(guildId) {
+  return manager.getGlobalPath(guildId);
+}
+function getKeihiStoreConfigPath(guildId, storeName) {
+  return manager.getStorePath(guildId, storeName);
+}
+const getKeihiConfigPath = getKeihiStoreConfigPath;
+
 module.exports = {
-  // パス
   getKeihiGlobalConfigPath,
   getKeihiStoreConfigPath,
   getKeihiConfigPath,
-
-  // デフォルト
   createDefaultGlobalConfig,
   createDefaultStoreConfig,
-
-  // ギルド共通設定
   loadKeihiGlobalConfig,
   saveKeihiGlobalConfig,
   updateKeihiGlobalConfig,
-  // 互換エイリアス（旧API）
   loadKeihiConfig,
   saveKeihiConfig,
-
-  // 店舗別設定
   loadKeihiStoreConfig,
   saveKeihiStoreConfig,
   updateKeihiStoreConfig,
