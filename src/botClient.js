@@ -2,6 +2,12 @@
 const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js');
 const logger = require('./utils/logger');
 
+// discord.js v14未満チェック
+if (!GatewayIntentBits) {
+  console.error('❌ [Fatal] discord.js のバージョンが古すぎます。v14以上が必要です。\n👉 ターミナルで "npm install discord.js@latest" を実行して更新してください。');
+  process.exit(1);
+}
+
 // Discord クライアント初期化
 const client = new Client({
   intents: [

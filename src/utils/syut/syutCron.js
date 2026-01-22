@@ -8,14 +8,21 @@ function initSyutCron(client) {
   //   return;
   // }
   logger.info('🕒 node-cron スケジュール起動');
-  // 毎日13:00（Asia/Tokyo）に実行
-  cron.schedule('0 13 * * *', async () => {
+  
+  // 1分ごとに実行し、設定時刻と一致する店舗があれば投稿
+  cron.schedule('* * * * *', async () => {
     try {
-      logger.info('📢 本日のキャスト自動投稿を実行中...');
-      await postTodaysCastAll(client);
-      logger.info('✅ 自動投稿完了');
+      // 現在時刻(JST)を取得して HH:mm 形式にする
+      const now = new Date();
+      const currentTime = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(now);
+
+      await postTodaysCastAll(client, currentTime);
     } catch (err) {
-      logger.error('❌ 自動投稿エラー:', err);
+      logger.error('❌ 自動投稿チェックエラー:', err);
     }
   }, { timezone: 'Asia/Tokyo' });
 }

@@ -1,7 +1,6 @@
 // src/events/ready.js
 const { Events, ActivityType, Collection } = require('discord.js');
 const logger = require('../utils/logger');
-const { initializeGCS } = require('../utils/gcs');
 const { initSyutCron } = require('../utils/syut/syutCron');
 
 // ★ マイグレーション追加 ★
@@ -31,13 +30,6 @@ module.exports = {
       const tag = client.user?.tag || 'unknown user';
       const guildCount = client.guilds.cache.size;
       logger.info(`✅ ログイン完了: ${tag} | 接続ギルド数: ${guildCount}`);
-
-      // === GCS初期化 ===
-      try {
-        initializeGCS();
-      } catch (e) {
-        logger.warn('[ready] GCS初期化に失敗:', e?.stack || e);
-      }
 
       // ⭐⭐⭐ ここでマイグレーション実行 ⭐⭐⭐
       // try {

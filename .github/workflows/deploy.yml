@@ -122,7 +122,7 @@ jobs:
             --cpu 1 \
             --memory 2Gi \
             --min-instances 1 \
-            --max-instances 10 \
+            --max-instances 1 \
             --port 8080 \
             --timeout 900 \
             --concurrency 80 \

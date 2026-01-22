@@ -5,7 +5,7 @@ const logger = require('../logger');
 /**
  * 全店舗の設定を読み取り、各店舗の「本日のキャスト」を送信
  */
-async function postTodaysCastAll(client) {
+async function postTodaysCastAll(client, targetTime = null) {
   if (!client) {
     logger.error('❌ Discord Clientが利用できません。');
     return;
@@ -17,6 +17,12 @@ async function postTodaysCastAll(client) {
 
     for (const [storeName, info] of Object.entries(config.castPanelList)) {
       if (!info.channel || !info.time) continue;
+
+      // 全角コロンを半角に変換して正規化
+      const configTime = info.time.replace(/：/g, ':');
+
+      // 自動投稿（targetTime指定あり）の場合、時間が一致しなければスキップ
+      if (targetTime && configTime !== targetTime) continue;
 
       const channel = guild.channels.cache.get(info.channel.replace(/[<#>]/g, ''));
       if (!channel) continue;
