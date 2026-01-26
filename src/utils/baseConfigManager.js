@@ -1,20 +1,23 @@
 const path = require('path');
-const { readJSON, saveJSON } = require('./gcs');
+const storageFactory = require('./storage/StorageFactory');
 const logger = require('./logger');
 
 /**
  * 設定管理の基底クラス
- * GCS上のJSONファイルの読み書きを共通化する
+ * GCS/Local JSONファイルの読み書きを共通化する
  */
 class BaseConfigManager {
     /**
      * @param {Object} options
      * @param {string} options.baseDir - 機能ディレクトリ名 (例: 'keihi', 'uriage')
      * @param {string} options.fileName - 設定ファイル名 (例: 'config.json')
+     * @param {Object} options.storage - ストレージアダプタ (省略時はFactoryから取得)
      */
-    constructor({ baseDir, fileName = 'config.json' }) {
+    constructor({ baseDir, fileName = 'config.json', storage = null }) {
         this.baseDir = baseDir;
         this.fileName = fileName;
+        // 依存注入されたストレージ、またはFactoryから取得
+        this.storage = storage || storageFactory.getInstance();
     }
 
     /**
@@ -50,7 +53,7 @@ class BaseConfigManager {
      */
     async _load(filePath, defaults = {}) {
         try {
-            const data = await readJSON(filePath);
+            const data = await this.storage.readJSON(filePath);
             const merged = { ...defaults, ...(data || {}) };
 
             // バリデーション実行
@@ -58,8 +61,9 @@ class BaseConfigManager {
 
             return merged;
         } catch (err) {
+            // LocalStorage, GcsStorage ともにファイルなしは null を返すが、
+            // 追加のエラーハンドリングとして念のため
             if (err && err.code === 'ENOENT') {
-                // ファイルが存在しない場合はデフォルト値を返す
                 return { ...defaults };
             }
 
@@ -76,7 +80,7 @@ class BaseConfigManager {
             // バリデーション実行
             this.validate(data);
 
-            await saveJSON(filePath, data || {});
+            await this.storage.saveJSON(filePath, data || {});
             return data;
         } catch (err) {
             throw new Error(`[${this.constructor.name}] Failed to save config to ${filePath}: ${err.message}`);

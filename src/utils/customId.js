@@ -2,46 +2,53 @@
  * Custom Id Utility
  * ----------------------------------------------------
  * 命名規則: [domain]:[action]:[target]:[id?]
- * 例:
- *   keihi:approve:request:123
- *   config:store:add
- *   uriage:delete:csv
  * ----------------------------------------------------
  */
 
+const { z } = require('zod');
+
+// CustomID スキーマ定義
+const CustomIdSchema = z.object({
+    domain: z.string().min(1),
+    action: z.string().min(1),
+    target: z.string().default(''),
+    id: z.string().optional(),
+});
+
 /**
  * CustomId をオブジェクトにパースする
- * @param {string} customId - "domain:action:target:id" or "domain:action:target"
+ * @param {string} customId
  * @returns {{ domain: string, action: string, target?: string, id?: string }}
  */
 function parseCustomId(customId) {
     if (!customId) return {};
     const parts = customId.split(':');
-    return {
+    const data = {
         domain: parts[0] || '',
         action: parts[1] || '',
         target: parts[2] || '',
-        id: parts[3] || '', // オプショナル
+        id: parts[3] || '',
     };
+
+    // パース結果もバリデーションはしない（読み取りは柔軟に）
+    return data;
 }
 
 /**
  * オブジェクトから CustomId 文字列を生成する
  * @param {Object} params
- * @param {string} params.domain
- * @param {string} params.action
- * @param {string} params.target
- * @param {string} [params.id]
  * @returns {string}
- * @throws {Error} CustomIDがDiscordの100文字制限を超える場合
+ * @throws {Error} Length limit or Validation error
  */
-function buildCustomId({ domain, action, target, id }) {
-    const parts = [domain, action, target];
-    if (id) parts.push(id);
+function buildCustomId(params) {
+    // スキーマ検証
+    const validated = CustomIdSchema.parse(params);
+
+    const parts = [validated.domain, validated.action, validated.target];
+    if (validated.id) parts.push(validated.id);
 
     const customId = parts.join(':');
 
-    // Discord CustomID制限: 100文字
     if (customId.length > 100) {
         throw new Error(
             `CustomID exceeds Discord limit (${customId.length}/100 chars): ${customId.substring(0, 50)}...`
@@ -53,10 +60,6 @@ function buildCustomId({ domain, action, target, id }) {
 
 /**
  * 特定のドメイン・アクションか判定するヘルパー
- * @param {string} customId
- * @param {string} domain
- * @param {string} [action]
- * @returns {boolean}
  */
 function isCustomId(customId, domain, action) {
     const parsed = parseCustomId(customId);
@@ -69,4 +72,5 @@ module.exports = {
     parseCustomId,
     buildCustomId,
     isCustomId,
+    CustomIdSchema, // 外部で再利用可能に
 };
