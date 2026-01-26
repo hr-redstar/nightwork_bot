@@ -60,5 +60,17 @@ async function handleTennaiHikkakeInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: [
+        'tennai_hikkake',
+        'hikkake_report',
+        'hikkake_edit',
+        'setup_hikkake',
+        'select_store_for_hikkake',
+        'select_channel_for_hikkake'
+    ],
+    handleInteraction: handleTennaiHikkakeInteraction,
+
+    // Legacy
     handleTennaiHikkakeInteraction,
 };

@@ -20,5 +20,10 @@ async function handleUriageInteraction(interaction) {
 }
 
 module.exports = {
+  // AppRouter Metadata
+  prefixes: ['uriage'],
+  handleInteraction: handleUriageInteraction,
+
+  // Legacy
   handleUriageInteraction,
 };

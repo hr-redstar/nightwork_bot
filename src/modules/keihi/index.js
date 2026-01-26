@@ -20,5 +20,10 @@ async function handleKeihiInteraction(interaction) {
 }
 
 module.exports = {
+  // AppRouter Auto-Discovery Metadata
+  prefixes: ['keihi'],
+  handleInteraction: handleKeihiInteraction,
+
+  // Legacy Export
   handleKeihiInteraction,
 };

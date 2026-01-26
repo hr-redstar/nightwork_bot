@@ -27,5 +27,10 @@ async function handleConfigInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: ['config'],
+    handleInteraction: handleConfigInteraction,
+
+    // Legacy
     handleConfigInteraction,
 };

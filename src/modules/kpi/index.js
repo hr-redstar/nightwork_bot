@@ -84,5 +84,10 @@ async function handleKpiInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: ['kpi'],
+    handleInteraction: handleKpiInteraction,
+
+    // Legacy
     handleKpiInteraction,
 };

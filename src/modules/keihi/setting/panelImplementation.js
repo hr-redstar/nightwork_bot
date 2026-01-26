@@ -10,7 +10,7 @@ const {
   EmbedBuilder,
 } = require('discord.js');
 const { KEIHI_SETTING_PANEL_SCHEMA } = require('./panelSchema');
-const { buildPanel } = require('../../../utils/ui/panelBuilder');
+const { PanelBuilder } = require('../../../utils/ui/PanelBuilder');
 const logger = require('../../../utils/logger');
 const { sendCommandLog } = require('../../../utils/config/configLogger');
 const {
@@ -136,18 +136,26 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     value: dataMap[f.key] || f.fallback
   }));
 
-  const panel = buildPanel({
+  // PanelBuilder を使用して構築
+  const builder = PanelBuilder.build({
     title: KEIHI_SETTING_PANEL_SCHEMA.title,
     description: KEIHI_SETTING_PANEL_SCHEMA.description,
     color: KEIHI_SETTING_PANEL_SCHEMA.color,
-    fields: embedFields,
-    buttons: KEIHI_SETTING_PANEL_SCHEMA.buttons
+    fields: embedFields
   });
 
-  // Note: buildPanel returns { embeds: [...], components: [...] } which works as payload.
-  // Manually ensure timestamp is set if builder doesn't (Builder does setTimestamp())
+  // ボタンを追加 (Schema定義が2次元配列前提か確認しつつ追加)
+  if (KEIHI_SETTING_PANEL_SCHEMA.buttons) {
+    if (Array.isArray(KEIHI_SETTING_PANEL_SCHEMA.buttons[0])) {
+      // 2次元配列 (複数行)
+      KEIHI_SETTING_PANEL_SCHEMA.buttons.forEach(row => builder.addButtons(row));
+    } else {
+      // 1次元配列 (1行)
+      builder.addButtons(KEIHI_SETTING_PANEL_SCHEMA.buttons);
+    }
+  }
 
-  return panel;
+  return builder.toJSON();
 }
 
 async function postKeihiSettingPanel(interaction) {
