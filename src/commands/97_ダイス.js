@@ -1,3 +1,4 @@
+// src/commands/97_ダイス.js
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 

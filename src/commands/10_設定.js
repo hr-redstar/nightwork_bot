@@ -1,4 +1,5 @@
-﻿﻿const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+﻿﻿// src/commands/10_設定.js
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendConfigPanel } = require('../modules/config/execute/configPanel');
 

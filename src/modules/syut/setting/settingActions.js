@@ -6,6 +6,7 @@ const {
 
 const logger = require('../../../utils/logger');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
+const { reloadSyutCron } = require('../../../utils/syut/syutCron'); // 追加
 const { IDS } = require('./ids');
 const { showSetupMenus } = require('./config');
 const { startCsvExport } = require('../utils/csv'); // Ensure path is correct, previously specific require inside function
@@ -42,6 +43,9 @@ async function handleRoleSetSelect(interaction) {
         const config = await getSyutConfig(interaction.guild.id);
         config.approveRoleId = roleId;
         await saveSyutConfig(interaction.guild.id, config);
+
+        // スケジュール再読み込み（設定変更を反映）
+        reloadSyutCron(interaction.client).catch(err => logger.error('[Syut] reloadSyutCron error:', err));
 
         return await interaction.reply({
             content: `✅ 承認役職を <@&${roleId}> に設定しました。`,

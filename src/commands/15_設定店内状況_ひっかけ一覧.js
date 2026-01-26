@@ -1,3 +1,4 @@
+// src/commands/15_設定店内状況_ひっかけ一覧.js
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendTennaiSettingPanel } = require('../modules/tennai_hikkake/setting/sendTennaiSettingPanel');

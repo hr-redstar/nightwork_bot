@@ -1,3 +1,4 @@
+// src/commands/16_設定接客ログ.js
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 

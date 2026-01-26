@@ -38,6 +38,48 @@ async function saveSyutConfig(guildId, data) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* ⚙️ 店舗別設定管理 (Panel, Roles) - 新設計 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * パネル設定取得
+ * @param {string} guildId
+ * @param {'cast'|'staff'} type
+ * @param {string} storeName
+ */
+async function getPanelConfig(guildId, type, storeName) {
+  const filePath = `${getBasePath(guildId)}/${type}/${storeName}/panel.json`;
+  return (await readJSON(filePath)) || {};
+}
+
+/**
+ * パネル設定保存
+ */
+async function setPanelConfig(guildId, type, storeName, data) {
+  const filePath = `${getBasePath(guildId)}/${type}/${storeName}/panel.json`;
+  await saveJSON(filePath, data);
+}
+
+/**
+ * 役職設定（役職→ロール紐付け）取得
+ * @param {string} guildId
+ * @param {'cast'|'staff'} type
+ * @param {string} storeName
+ */
+async function getRoleConfig(guildId, type, storeName) {
+  const filePath = `${getBasePath(guildId)}/${type}/${storeName}/roles.json`;
+  return (await readJSON(filePath)) || {};
+}
+
+/**
+ * 役職設定保存
+ */
+async function setRoleConfig(guildId, type, storeName, data) {
+  const filePath = `${getBasePath(guildId)}/${type}/${storeName}/roles.json`;
+  await saveJSON(filePath, data);
+}
+
+/* -------------------------------------------------------------------------- */
 /* 📅 出退勤 日次／月次／年次データ管理 */
 /* -------------------------------------------------------------------------- */
 
@@ -106,15 +148,61 @@ async function saveYearlySyuttaikin(guildId, storeName, year, data) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* ⏰ スケジュール集約管理 (Cron用) */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 全ギルドの出退勤設定をスキャンし、有効な通知スケジュールリストを返す
+ * @param {Array<string>} guildIds - スキャン対象のギルドIDリスト
+ * @returns {Promise<Array<{ time: string, guildId: string, storeName: string, channelId: string }>>}
+ */
+async function getAllSyutSchedules(guildIds) {
+  const schedules = [];
+
+  for (const guildId of guildIds) {
+    try {
+      const config = await getSyutConfig(guildId);
+      if (!config || !config.castPanelList) continue;
+
+      for (const [storeName, info] of Object.entries(config.castPanelList)) {
+        if (info.time && info.channel) {
+          // 全角コロンを半角に、前後の空白を除去
+          const time = info.time.replace(/：/g, ':').trim();
+          // HH:mm 形式のみ許可
+          if (/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
+            schedules.push({
+              time,
+              guildId,
+              storeName,
+              channelId: info.channel.replace(/[<#>]/g, ''),
+            });
+          }
+        }
+      }
+    } catch (err) {
+      // 個別のギルド設定読み込みエラーはスキップして続行
+      console.warn(`[getAllSyutSchedules] Failed to load config for guild ${guildId}:`, err.message);
+    }
+  }
+
+  return schedules;
+}
+
+/* -------------------------------------------------------------------------- */
 /* 📦 エクスポート */
 /* -------------------------------------------------------------------------- */
 module.exports = {
   getSyutConfig,
   saveSyutConfig,
+  getPanelConfig,
+  setPanelConfig,
+  getRoleConfig,
+  setRoleConfig,
   getDailySyuttaikin,
   saveDailySyuttaikin,
   getMonthlySyuttaikin,
   saveMonthlySyuttaikin,
   getYearlySyuttaikin,
   saveYearlySyuttaikin,
+  getAllSyutSchedules, // 追加
 };

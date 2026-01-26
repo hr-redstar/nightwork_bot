@@ -1,3 +1,4 @@
+// src/commands/91_メッセージファイル化.js
 const { SlashCommandBuilder, ChannelType } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { exportTextChannelMessages } = require('../modules/message/execute/exportTextChannelMessages');

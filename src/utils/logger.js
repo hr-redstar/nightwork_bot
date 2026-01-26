@@ -10,6 +10,7 @@
 const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
+const settings = require('../config/settings');
 
 // -------------------------------------------------------------
 // 📁 ログ出力ディレクトリ設定（任意）
@@ -22,7 +23,7 @@ if (!fs.existsSync(LOG_DIR)) {
 // -------------------------------------------------------------
 // 🧩 ロガー本体設定
 // -------------------------------------------------------------
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = settings.nodeEnv === 'production';
 const baseFormat = [
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -46,7 +47,7 @@ const prodFormat = winston.format.combine(
 );
 
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info', // デフォルトinfo、環境変数で変更可
+  level: settings.logLevel, // settings.jsから取得
   format: isProd ? prodFormat : devFormat,
   transports: [
     // --- コンソール出力 ---
@@ -66,15 +67,6 @@ const logger = winston.createLogger({
 });
 
 // -------------------------------------------------------------
-// 🧩 debug ログの明示サポート（開発時のみ）
-// -------------------------------------------------------------
-logger.debug = (...args) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.debug('[DEBUG]', ...args);
-  }
-};
-
-// -------------------------------------------------------------
 // 🧩 未処理エラーの監視
 // -------------------------------------------------------------
 process.on('unhandledRejection', (reason) => {
@@ -90,10 +82,10 @@ process.on('uncaughtException', (err) => {
 logger.child = (opts = {}) => {
   const label = opts.label || opts.module || 'app';
   return {
-    info:  (msg) => logger.info(`[${label}] ${msg}`),
-    warn:  (msg) => logger.warn(`[${label}] ${msg}`),
+    info: (msg) => logger.info(`[${label}] ${msg}`),
+    warn: (msg) => logger.warn(`[${label}] ${msg}`),
     error: (msg, err) => logger.error(`[${label}] ${msg}`, err),
-    debug: (...args) => logger.debug(`[${label}]`, ...args),
+    debug: (...args) => logger.debug(`[${label}] ${args.join(' ')}`),
   };
 };
 

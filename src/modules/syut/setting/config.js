@@ -6,6 +6,7 @@ const { postCastPanel } = require('../cast/panel');
 const { createBlackPanel } = require('../kuro/panel');
 const { getGuildConfig, setGuildConfig } = require('../../../utils/config/gcsConfigManager');
 const { sendSettingLog } = require('../../../utils/config/configLogger');
+const { reloadSyutCron } = require('../../../utils/syut/syutCron'); // 追加
 
 /**
  * 店舗選択メニューを表示する
@@ -56,6 +57,9 @@ async function handleSetupSubmit(interaction, kind, storeName, channelId) {
   config.castPanelList[storeName] ||= {};
   config.castPanelList[storeName].panelChannelId = channel.id;
   await saveSyutConfig(interaction.guild.id, config);
+
+  // スケジュール再読み込み
+  reloadSyutCron(interaction.client).catch(e => console.error(e));
 
   // メインの設定パネルを更新して、新しい設定を反映させる
   await postSyutPanel(interaction.channel);

@@ -1,3 +1,4 @@
+// src/commands/98_設定くじ引き.js
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendKuzibikiSettingPanel } = require('../modules/kuzibiki/setting/sendKuzibikiSettingPanel');

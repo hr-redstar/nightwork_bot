@@ -1,4 +1,5 @@
-﻿﻿const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+﻿﻿// src/commands/11_設定経費.js
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendCommandLog } = require('../utils/config/configLogger');
 const { postKeihiSettingPanel } = require('../modules/keihi/setting/panel');

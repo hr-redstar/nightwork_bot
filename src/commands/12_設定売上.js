@@ -1,3 +1,4 @@
+// src/commands/12_設定売上.js
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { postUriageSettingPanel } = require('../modules/uriage/setting/panel');

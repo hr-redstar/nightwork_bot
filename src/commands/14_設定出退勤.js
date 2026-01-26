@@ -1,3 +1,4 @@
+// src/commands/14_設定出退勤.js
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendSyutSettingPanel } = require('../modules/syut/setting/sendSyutSettingPanel');

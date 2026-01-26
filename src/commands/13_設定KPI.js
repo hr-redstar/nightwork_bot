@@ -1,3 +1,4 @@
+// src/commands/13_設定KPI.js
 const { SlashCommandBuilder } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendKpiSettingPanel } = require('../modules/kpi/setting/sendKpiSettingPanel');
