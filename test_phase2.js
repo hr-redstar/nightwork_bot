@@ -28,12 +28,9 @@ async function runTests() {
         console.error('❌ Auto-discovery failed. Missing:', missing);
     }
 
-    // 2. Load Legacy Registry (Should add remaining if any)
-    const legacyRegistry = require('./src/handlers/interactionRegistry');
-    AppRouter.loadFromLegacyRegistry(legacyRegistry);
-
+    // 2. Load Legacy Registry (Skipped - Legacy Registry Removed)
     const afterLegacyCount = AppRouter.modules.length;
-    console.log(`[Test] Total Modules after Legacy Load: ${afterLegacyCount}`);
+    console.log(`[Test] Total Modules: ${afterLegacyCount}`);
 
     // 3. Dispatch Test Mock
     console.log('\n[Test 3] Dispatch Simulation');

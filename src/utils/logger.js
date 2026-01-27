@@ -1,9 +1,9 @@
 /**
  * src/utils/logger.js
- * ログ出力ユーティリティ
+ * ログ出力ユーティリティ (Context-Aware)
  * ---------------------------------------
  * - winstonベースの統一ロガー
- * - Cloud Run / GitHub Actions / ローカル共通
+ * - AsyncLocalStorageによるリクエストコンテキスト追跡
  * - エラー時にstack traceも出力
  */
 
@@ -11,9 +11,13 @@ const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
 const settings = require('../config/settings');
+const { AsyncLocalStorage } = require('async_hooks');
+
+// コンテキスト保持用
+const contextStorage = new AsyncLocalStorage();
 
 // -------------------------------------------------------------
-// 📁 ログ出力ディレクトリ設定（任意）
+// 📁 ログ出力ディレクトリ設定
 // -------------------------------------------------------------
 const LOG_DIR = path.resolve(process.cwd(), 'logs');
 if (!fs.existsSync(LOG_DIR)) {
@@ -21,43 +25,66 @@ if (!fs.existsSync(LOG_DIR)) {
 }
 
 // -------------------------------------------------------------
-// 🧩 ロガー本体設定
+// 🧩 フォーマッター
 // -------------------------------------------------------------
 const isProd = settings.nodeEnv === 'production';
+
+// コンテキスト注入フォーマット
+const contextFormat = winston.format((info) => {
+  const store = contextStorage.getStore();
+  if (store) {
+    // 既存のメタデータがあれば維持しつつマージ
+    info.requestId = store.requestId || info.requestId;
+    info.guildId = store.guildId || info.guildId;
+    info.userId = store.userId || info.userId;
+    info.context = store.context || info.context;
+  }
+  return info;
+});
+
 const baseFormat = [
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
+  contextFormat(), // コンテキスト注入
 ];
 
+// ログメッセージの組み立て (Dev)
 const devFormat = winston.format.combine(
   ...baseFormat,
   winston.format.colorize({ all: true }),
-  winston.format.printf(({ level, message, timestamp, stack }) => {
-    const base = `[${level} ${timestamp}] ${message}`;
+  winston.format.printf(({ level, message, timestamp, stack, requestId, guildId }) => {
+    let prefix = `[${level} ${timestamp}]`;
+    if (requestId) prefix += ` [Req:${requestId}]`;
+    if (guildId) prefix += ` [G:${guildId}]`;
+
+    const base = `${prefix} ${message}`;
     return stack ? `${base}\n${stack}` : base;
   })
 );
 
+// ログメッセージの組み立て (Prod - JSON推奨だが、一旦プレーンテキストで視認性重視)
 const prodFormat = winston.format.combine(
   ...baseFormat,
-  winston.format.printf(({ level, message, timestamp, stack }) => {
-    const base = `[${level.toUpperCase()} ${timestamp}] ${message}`;
+  winston.format.printf(({ level, message, timestamp, stack, requestId, guildId, userId }) => {
+    let prefix = `[${level.toUpperCase()} ${timestamp}]`;
+    if (requestId) prefix += ` [Req:${requestId}]`;
+    if (guildId) prefix += ` [G:${guildId}]`;
+    if (userId) prefix += ` [U:${userId}]`;
+
+    const base = `${prefix} ${message}`;
     return stack ? `${base}\n${stack}` : base;
   })
 );
 
 const logger = winston.createLogger({
-  level: settings.logLevel, // settings.jsから取得
+  level: settings.logLevel,
   format: isProd ? prodFormat : devFormat,
   transports: [
-    // --- コンソール出力 ---
     new winston.transports.Console(),
-
-    // --- ファイル出力（任意） ---
     new winston.transports.File({
       filename: path.join(LOG_DIR, 'error.log'),
       level: 'error',
-      maxsize: 5 * 1024 * 1024, // 5MBでローテーション
+      maxsize: 5 * 1024 * 1024,
     }),
     new winston.transports.File({
       filename: path.join(LOG_DIR, 'combined.log'),
@@ -67,7 +94,25 @@ const logger = winston.createLogger({
 });
 
 // -------------------------------------------------------------
-// 🧩 未処理エラーの監視
+// 🧩 コンテキスト・ヘルパー
+// -------------------------------------------------------------
+// 特定の処理をコンテキスト付きで実行する
+logger.runWithContext = (context, fn) => {
+  return contextStorage.run(context, fn);
+};
+
+// コンテキストを作成するヘルパー
+logger.createContext = (interaction) => {
+  return {
+    requestId: Math.random().toString(36).substring(7), // 簡易ID
+    guildId: interaction?.guildId,
+    userId: interaction?.user?.id,
+    context: interaction?.customId || interaction?.commandName || 'unknown'
+  };
+};
+
+// -------------------------------------------------------------
+// 🧩 未処理エラー
 // -------------------------------------------------------------
 process.on('unhandledRejection', (reason) => {
   logger.error(`⚠️ Promise未処理拒否: ${reason}`);
@@ -76,20 +121,4 @@ process.on('uncaughtException', (err) => {
   logger.error('💥 未処理例外:', err);
 });
 
-// -------------------------------------------------------------
-// 🧩 子ロガー生成
-// -------------------------------------------------------------
-logger.child = (opts = {}) => {
-  const label = opts.label || opts.module || 'app';
-  return {
-    info: (msg) => logger.info(`[${label}] ${msg}`),
-    warn: (msg) => logger.warn(`[${label}] ${msg}`),
-    error: (msg, err) => logger.error(`[${label}] ${msg}`, err),
-    debug: (...args) => logger.debug(`[${label}] ${args.join(' ')}`),
-  };
-};
-
-// -------------------------------------------------------------
-// 🧩 エクスポート
-// -------------------------------------------------------------
 module.exports = logger;

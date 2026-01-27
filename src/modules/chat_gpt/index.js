@@ -37,5 +37,10 @@ async function handleChatGptInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: ['chat_gpt', 'chatgpt'],
+    handleInteraction: handleChatGptInteraction,
+
+    // Legacy
     handleChatGptInteraction,
 };

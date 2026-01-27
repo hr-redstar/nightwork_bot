@@ -13,12 +13,10 @@ const { KEIHI_SETTING_PANEL_SCHEMA } = require('./panelSchema');
 const { PanelBuilder } = require('../../../utils/ui/PanelBuilder');
 const logger = require('../../../utils/logger');
 const { sendCommandLog } = require('../../../utils/config/configLogger');
-const {
-  loadKeihiConfig,
-  saveKeihiConfig,
-} = require('../../../utils/keihi/keihiConfigManager');
-const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { IDS } = require('./ids');
+const service = require('../KeihiService');
+const repo = require('../KeihiRepository');
+
 const {
   handleExportCsvButton,
   handleCsvFlowInteraction,
@@ -37,71 +35,9 @@ const { resolveStoreName } = require('./storeNameResolver');
 // function buildSettingButtonsRow1() ... removed (replaced by Schema)
 // function buildSettingButtonsRow2() ... removed (replaced by Schema)
 
-function roleMentionFromIds(guild, ids = []) {
-  const mentions = ids
-    .map((id) => {
-      const role = guild.roles.cache.get(id);
-      return role ? `<@&${role.id}>` : null;
-    })
-    .filter(Boolean);
-  return mentions.length ? mentions.join(' ') : null;
-}
-
-function describeApprovers(guild, storeRoleConfig, keihiConfig) {
-  const positionRoles =
-    storeRoleConfig?.positionRoles || storeRoleConfig?.positionRoleMap || {};
-
-  const positionLookup = (positionId) => {
-    const roles = storeRoleConfig?.roles || storeRoleConfig?.positions || [];
-    const found = Array.isArray(roles)
-      ? roles.find(
-        (r) =>
-          String(r.id ?? r.positionId ?? r.position) === String(positionId),
-      )
-      : null;
-    if (found && found.name) return found.name;
-    return typeof positionId === 'string' ? positionId : String(positionId);
-  };
-
-  const positionIds = keihiConfig.approverPositionIds || [];
-  const fallbackRoleIds =
-    keihiConfig.approverRoleIds?.length || keihiConfig.approvalRoles?.length
-      ? keihiConfig.approverRoleIds.length
-        ? keihiConfig.approverRoleIds
-        : keihiConfig.approvalRoles
-      : [];
-
-  const lines = [];
-
-  if (positionIds.length) {
-    for (const posId of positionIds) {
-      const mention = roleMentionFromIds(
-        guild,
-        Array.isArray(positionRoles[posId])
-          ? positionRoles[posId]
-          : positionRoles[posId]
-            ? [positionRoles[posId]]
-            : [],
-      );
-      const name = positionLookup(posId);
-      lines.push(`${name}: ${mention || '未紐付ロール'}`);
-    }
-  } else if (fallbackRoleIds.length) {
-    const mentions = roleMentionFromIds(guild, fallbackRoleIds);
-    lines.push(mentions || '役職IDあり');
-  }
-
-  return lines.length ? lines.join('\n') : '未設定';
-}
-
 async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   const guildId = guild.id;
-  let storeRoleConfig = null;
-  try {
-    storeRoleConfig = await loadStoreRoleConfig(guildId);
-  } catch (err) {
-    logger.warn('[keihi/setting/panel] storeRoleConfig 読み込み失敗', err);
-  }
+  const { storeRoleConfig } = await service.prepareSettingPanelData(guild);
 
   const panels = keihiConfig.panels || {};
   const panelLines = [];
@@ -123,7 +59,7 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
       ? panelLines.join('\n')
       : KEIHI_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'panels').fallback;
 
-  const approverValue = describeApprovers(guild, storeRoleConfig, keihiConfig);
+  const approverValue = service.describeApprovers(guild, storeRoleConfig, keihiConfig);
 
   // Schema Mapping
   const dataMap = {
@@ -166,7 +102,7 @@ async function postKeihiSettingPanel(interaction) {
     await interaction.deferReply({ ephemeral: true });
   }
 
-  const keihiConfig = await loadKeihiConfig(guildId);
+  const keihiConfig = await repo.getGlobalConfig(guildId);
   const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
 
   const panelInfo = keihiConfig.configPanel || {};
@@ -201,7 +137,7 @@ async function postKeihiSettingPanel(interaction) {
     channelId: sent.channelId,
     messageId: sent.id,
   };
-  await saveKeihiConfig(guildId, keihiConfig);
+  await repo.save(guildId, keihiConfig);
 
   await interaction.editReply({
     content: '経費設定パネルを送信しました。',

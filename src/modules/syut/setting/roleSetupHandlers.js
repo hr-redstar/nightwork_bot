@@ -8,6 +8,7 @@ const {
 } = require('discord.js');
 const { readJSON } = require('../../../utils/gcs');
 const { getRoleConfig, setRoleConfig } = require('../../../utils/syut/syutConfigManager');
+const { handleInteractionError } = require('../../../utils/errorHandlers');
 
 /**
  * 店舗_役職_ロール.json のパス
@@ -125,8 +126,7 @@ async function handleRoleSetup(interaction, type) {
     });
 
   } catch (error) {
-    console.error(`${logPrefix} Error:`, error);
-    await interaction.reply({ content: '❌ エラーが発生しました。', flags: MessageFlags.Ephemeral });
+    await handleInteractionError(interaction, error, { userMessage: '❌ エラーが発生しました。' });
   }
 }
 
@@ -158,8 +158,7 @@ async function handleRoleSelect(interaction, type) {
     });
 
   } catch (error) {
-    console.error(`${logPrefix} Error:`, error);
-    await interaction.reply({ content: '❌ エラーが発生しました。', flags: MessageFlags.Ephemeral });
+    await handleInteractionError(interaction, error, { userMessage: '❌ エラーが発生しました。' });
   }
 }
 
@@ -186,8 +185,7 @@ async function saveRoleSelection(interaction, type) {
       components: []
     });
   } catch (error) {
-    console.error(`[${type}DiscordRoleSelect] Error:`, error);
-    await interaction.reply({ content: '❌ 保存中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+    await handleInteractionError(interaction, error, { userMessage: '❌ 保存中にエラーが発生しました。' });
   }
 }
 

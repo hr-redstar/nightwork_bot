@@ -61,5 +61,10 @@ async function handleKuzibikiInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: ['kuzibiki'],
+    handleInteraction: handleKuzibikiInteraction,
+
+    // Legacy
     handleKuzibikiInteraction,
 };

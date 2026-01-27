@@ -5,6 +5,7 @@ const { buildPanel } = require('../../../utils/ui/panelBuilder');
 const getBotFooter = require('../../common/utils/embed/getBotFooter');
 const getEmbedColor = require('../../common/utils/embed/getEmbedColor');
 const { getSyutConfig } = require('../../../utils/syut/syutConfigManager');
+const { handleInteractionError } = require('../../../utils/errorHandlers');
 
 async function sendSyutSettingPanel(interaction) {
     try {
@@ -67,7 +68,7 @@ async function sendSyutSettingPanel(interaction) {
             await interaction.reply(panel);
         }
     } catch (err) {
-        logger.error('[Syut] sendSyutSettingPanel error:', err);
+        await handleInteractionError(interaction, err);
     }
 }
 

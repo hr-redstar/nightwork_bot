@@ -8,13 +8,11 @@ const path = require('path');
 
 // --- App Router Initialization ---
 const appRouter = require('../structures/AppRouter');
-const legacyRegistry = require('../handlers/interactionRegistry');
 
-// Initialize Router (Load modules + Legacy)
+// Initialize Router (Load modules)
 // 一度だけ実行されるようにトップレベルで行う
 const modulesDir = path.join(__dirname, '../modules'); // events/../modules -> src/modules
 appRouter.loadModules(modulesDir);
-appRouter.loadFromLegacyRegistry(legacyRegistry);
 
 // --- 各機能のハンドラー ---
 const { handleInteractionError } = require('../utils/errorHandlers');

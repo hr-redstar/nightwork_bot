@@ -20,5 +20,10 @@ async function handleMessageInteraction(interaction) {
 }
 
 module.exports = {
+    // AppRouter Metadata
+    prefixes: ['message'],
+    handleInteraction: handleMessageInteraction,
+
+    // Legacy
     handleMessageInteraction,
 };

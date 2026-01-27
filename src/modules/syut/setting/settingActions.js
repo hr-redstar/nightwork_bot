@@ -5,6 +5,7 @@ const {
 } = require('discord.js');
 
 const logger = require('../../../utils/logger');
+const { handleInteractionError } = require('../../../utils/errorHandlers');
 const { getSyutConfig, saveSyutConfig } = require('../../../utils/syut/syutConfigManager');
 const { reloadSyutCron } = require('../../../utils/syut/syutCron'); // 追加
 const { IDS } = require('./ids');
@@ -52,8 +53,7 @@ async function handleRoleSetSelect(interaction) {
             flags: MessageFlags.Ephemeral,
         });
     } catch (err) {
-        logger.error('[Syut] handleRoleSetSelect error:', err);
-        await interaction.reply({ content: 'エラーが発生しました', flags: MessageFlags.Ephemeral }).catch(() => { });
+        await handleInteractionError(interaction, err, { userMessage: 'エラーが発生しました' });
     }
 }
 

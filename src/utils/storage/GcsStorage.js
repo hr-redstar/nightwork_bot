@@ -8,6 +8,7 @@ const { Storage } = require('@google-cloud/storage');
 const StorageInterface = require('./StorageInterface');
 const logger = require('../logger');
 const settings = require('../../config/settings');
+const { retryWithBackoff } = require('../asyncUtils');
 
 // リトライ設定
 const MAX_RETRIES = 3;
@@ -48,21 +49,18 @@ class GcsStorage extends StorageInterface {
     }
 
     /**
-     * 指数バックオフでリトライ
+     * 共通ユーティリティを使用してリトライ
      */
-    async _retryWithBackoff(fn) {
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    async _executeWithRetry(fn) {
+        return retryWithBackoff(async () => {
             try {
                 return await fn();
             } catch (err) {
+                // 永続的エラーの場合はリトライせずに即時スロー
                 if (this._isPermanentError(err)) throw err;
-                if (attempt === MAX_RETRIES - 1) throw err;
-
-                const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt);
-                logger.warn(`[GcsStorage] Retry attempt ${attempt + 1}/${MAX_RETRIES} after ${delay}ms: ${err.message}`);
-                await new Promise(resolve => setTimeout(resolve, delay));
+                throw err;
             }
-        }
+        }, MAX_RETRIES, INITIAL_RETRY_DELAY_MS);
     }
 
     /**
@@ -72,7 +70,7 @@ class GcsStorage extends StorageInterface {
         logger.debug(`[GcsStorage] read: bucket="${this.bucketName}", object="${objectPath}"`);
         const file = this.bucket.file(objectPath);
 
-        return await this._retryWithBackoff(async () => {
+        return await this._executeWithRetry(async () => {
             try {
                 const [buf] = await file.download();
                 if (!buf || !buf.length) return null;
@@ -95,7 +93,7 @@ class GcsStorage extends StorageInterface {
         logger.debug(`[GcsStorage] save: bucket="${this.bucketName}", object="${objectPath}"`);
         const file = this.bucket.file(objectPath);
 
-        return await this._retryWithBackoff(async () => {
+        return await this._executeWithRetry(async () => {
             await file.save(jsonStr, {
                 contentType: 'application/json',
                 resumable: false,
