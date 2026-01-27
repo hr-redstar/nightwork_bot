@@ -59,11 +59,14 @@ function buildStoreOptions(storeConfig) {
  * 「経費csv発行」ボタン
  */
 async function handleExportCsvButton(interaction) {
+  // 先に ACK (3秒対策)
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => { });
+
   const guildId = interaction.guild?.id;
   if (!guildId) {
-    return interaction.reply({
+    return interaction.editReply({
       content: 'ギルド情報が取得できませんでした。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
   }
 
@@ -72,9 +75,9 @@ async function handleExportCsvButton(interaction) {
     const storeOptions = buildStoreOptions(storeConfig);
 
     if (!storeOptions.length) {
-      return interaction.reply({
+      return interaction.editReply({
         content: '店舗設定がまだありません。先に「店舗_役職_ロール」を設定してください。',
-        flags: MessageFlags.Ephemeral,
+        components: [],
       });
     }
 
@@ -88,16 +91,15 @@ async function handleExportCsvButton(interaction) {
 
     const row = new ActionRowBuilder().addComponents(select);
 
-    await interaction.reply({
+    await interaction.editReply({
       content: '経費CSVを発行する店舗を選択してください。',
       components: [row],
-      flags: MessageFlags.Ephemeral,
     });
   } catch (err) {
     logger.error('[keihi/csv] handleExportCsvButton エラー', err);
-    return interaction.reply({
+    return interaction.editReply({
       content: '経費CSV発行の店舗一覧取得に失敗しました。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
   }
 }
