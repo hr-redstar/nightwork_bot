@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const { isCustomId } = require('../utils/customId');
 
 /**
@@ -28,10 +29,17 @@ class InteractionRouter {
         if (!interaction.customId) return false;
         const id = interaction.customId;
 
-        for (const { pattern, handler } of this.routes) {
+        for (let i = 0; i < this.routes.length; i++) {
+            const { pattern, handler } = this.routes[i];
             if (this._match(pattern, id)) {
-                await handler(interaction);
-                return true;
+                logger.debug(`[InteractionRouter] Matched route #${i} (pattern: ${pattern}) for ID: ${id}`);
+                try {
+                    await handler(interaction);
+                    return true;
+                } catch (err) {
+                    // Rethrow to let the module index handler catch it
+                    throw err;
+                }
             }
         }
         return false;
@@ -54,7 +62,12 @@ class InteractionRouter {
         }
         // 関数判定
         if (typeof pattern === 'function') {
-            return pattern(id);
+            try {
+                return pattern(id);
+            } catch (err) {
+                logger.error('[InteractionRouter] Match function error:', err);
+                return false;
+            }
         }
         return false;
     }

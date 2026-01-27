@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * src/modules/uriage/UriageService.js
  * 売上機能のビジネスロジック
@@ -8,9 +9,17 @@ const repo = require('./UriageRepository');
 const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 const logger = require('../../utils/logger');
 
+/**
+ * @typedef {Object} UriageConfig
+ * @property {string[]} [approverPositionIds]
+ * @property {string[]} [approverRoleIds]
+ * @property {string} [csvUpdatedAt]
+ */
+
 class UriageService extends BaseService {
     /**
      * 設定パネル用のデータを準備
+     * @param {import('discord.js').Guild} guild
      */
     async prepareSettingPanelData(guild) {
         const guildId = guild.id;
@@ -31,6 +40,9 @@ class UriageService extends BaseService {
 
     /**
      * ロールIDの配列をメンション文字列に変換
+     * @param {import('discord.js').Guild} guild
+     * @param {string[]} ids
+     * @returns {string | null}
      */
     roleMentionFromIds(guild, ids = []) {
         const mentions = ids
@@ -44,16 +56,20 @@ class UriageService extends BaseService {
 
     /**
      * 承認権限を持つロール名を解決
+     * @param {import('discord.js').Guild} guild
+     * @param {any} storeRoleConfig
+     * @param {UriageConfig} config
+     * @returns {string}
      */
-    describeApprovers(guild, storeRoleConfig, config) {
+    resolveApproverMention(guild, storeRoleConfig, config) {
         const positionRoles =
             storeRoleConfig?.positionRoles || storeRoleConfig?.positionRoleMap || {};
 
-        const positionLookup = (positionId) => {
+        const positionLookup = (/** @type {string} */ positionId) => {
             const roles = storeRoleConfig?.roles || storeRoleConfig?.positions || [];
             const found = Array.isArray(roles)
                 ? roles.find(
-                    (r) => String(r.id ?? r.positionId ?? r.position) === String(positionId)
+                    (/** @type {any} */ r) => String(r.id ?? r.positionId ?? r.position) === String(positionId)
                 )
                 : null;
             if (found && found.name) return found.name;

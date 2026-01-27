@@ -16,12 +16,9 @@ const {
   MessageFlags,
 } = require('discord.js');
 const { readJSON } = require('../../../utils/gcs');
-const {
-  getSyutConfig,
-  saveSyutConfig,
-  getDailySyuttaikin,
-  saveDailySyuttaikin,
-} = require('../../../utils/syut/syutConfigManager');
+const repo = require('../SyutRepository');
+const service = require('../SyutService');
+const { PanelBuilder } = require('../../../utils/ui/PanelBuilder');
 const { updateCastPanelMessage } = require('./panel');
 const { IDS } = require('./ids');
 
@@ -161,9 +158,12 @@ async function handleSyutCast(interaction) {
     const end = interaction.fields.getTextInputValue('end').trim();
 
     for (const date of dates) {
-      const daily = await getDailySyuttaikin(interaction.guild.id, storeName, date);
+      // NOTE: Here we still handle composite punch manually for multi-day, 
+      // but normally we use service.processPunch for single event.
+      // For consistency in this pilot, we use repo directly for multi-day bulk saving.
+      const daily = await repo.getDailyAttendance(interaction.guild.id, storeName, date);
       daily.cast.push({ name, start, end, note: '' });
-      await saveDailySyuttaikin(interaction.guild.id, storeName, date, daily);
+      await repo.saveDailyAttendance(interaction.guild.id, storeName, date, daily);
     }
 
     return interaction.reply({

@@ -10,10 +10,9 @@ async function handleKeihiInteraction(interaction) {
   try {
     if (!interaction.customId) return;
 
+    logger.debug(`[Keihi] Dispatching to InteractionRouter: ${interaction.customId}`);
     const handled = await router.dispatch(interaction);
-    if (!handled) {
-      logger.debug(`[Keihi] Unhandled interaction: ${interaction.customId}`);
-    }
+    logger.debug(`[Keihi] Interaction handled: ${handled}`);
   } catch (err) {
     await handleInteractionError(interaction, err);
   }

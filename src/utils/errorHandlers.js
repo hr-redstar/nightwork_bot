@@ -43,7 +43,7 @@ async function handleInteractionError(interaction, error, options = {}) {
   }
 
   // ユーザーへのエラーメッセージ
-  const content = userMessage 
+  const content = userMessage
     ? `${userMessage}\n(TraceID: ${traceId})`
     : `⚠️ 処理中にエラーが発生しました。管理者に連絡してください。\n(TraceID: ${traceId})`;
 
@@ -56,11 +56,22 @@ async function handleInteractionError(interaction, error, options = {}) {
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply(payload);
     } else {
-      await interaction.reply(payload);
+      // reply か deferReply が一度でも呼ばれていたら Discord 側は「受付済み」になるが、
+      // editReply を使うべきかどうかは replied または deferred フラグで判断する。
+      // もし既に acknowledged 状態で reply を呼ぶと 40060 が出る。
+      // ここに来る時点で replied/deferred が false のはずだが、直前の処理で変わった可能性も考慮する。
+      try {
+        await interaction.reply(payload);
+      } catch (innerError) {
+        if (innerError.code === 40060) {
+          await interaction.editReply(payload).catch(() => { });
+        } else {
+          throw innerError;
+        }
+      }
     }
   } catch (replyError) {
-    // reply自体が失敗した場合もログに記録 (デバッグ情報として)
-    logger.debug(`[errorHandlers] Failed to send error reply (TraceID: ${traceId}):`, replyError.message);
+    logger.debug(`[errorHandlers] Final fallback failed (TraceID: ${traceId}):`, replyError.message);
   }
 }
 

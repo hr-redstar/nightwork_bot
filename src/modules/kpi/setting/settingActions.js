@@ -16,8 +16,8 @@ const {
 
 const logger = require('../../../utils/logger');
 
-// 仮ストア（後でDB / JSONに置き換え）
-const kpiConfigStore = require('../store/kpiConfigStore');
+// 新しい Repository
+const repo = require('../KpiRepository');
 const storeMaster = require('../../common/constants/stores');
 
 // ====================================================

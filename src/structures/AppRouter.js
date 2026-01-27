@@ -20,6 +20,9 @@ class AppRouter {
      * @param {string} modulesDir 
      */
     loadModules(modulesDir) {
+        if (this.modulesInitialized) return;
+        this.modulesInitialized = true;
+
         if (!fs.existsSync(modulesDir)) {
             logger.warn(`[AppRouter] Modules directory not found: ${modulesDir}`);
             return;
@@ -103,6 +106,11 @@ class AppRouter {
             for (const prefix of mod.prefixes) {
                 // 完全一致 または "prefix:" または "prefix_"
                 if (customId === prefix || customId.startsWith(prefix + ':') || customId.startsWith(prefix + '_')) {
+                    if (typeof mod.handler !== 'function') {
+                        logger.error(`[AppRouter] Handler for ${mod.name} is not a function! (prefix: ${prefix})`);
+                        continue;
+                    }
+                    logger.debug(`[AppRouter] Dispatching to module: ${mod.name} (prefix match: ${prefix})`);
                     await mod.handler(interaction);
                     return true;
                 }

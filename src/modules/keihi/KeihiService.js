@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * src/modules/keihi/KeihiService.js
  * 経費機能のビジネスロジック
@@ -8,9 +9,17 @@ const repo = require('./KeihiRepository');
 const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 const logger = require('../../utils/logger');
 
+/**
+ * @typedef {Object} KeihiConfig
+ * @property {string[]} [approverPositionIds]
+ * @property {string[]} [approverRoleIds]
+ * @property {string[]} [approvalRoles]
+ */
+
 class KeihiService extends BaseService {
     /**
      * 設定パネル用のデータを準備
+     * @param {import('discord.js').Guild} guild
      */
     async prepareSettingPanelData(guild) {
         const guildId = guild.id;
@@ -31,6 +40,9 @@ class KeihiService extends BaseService {
 
     /**
      * ロールIDの配列をメンション文字列に変換
+     * @param {import('discord.js').Guild} guild
+     * @param {string[]} ids
+     * @returns {string | null}
      */
     roleMentionFromIds(guild, ids = []) {
         const mentions = ids
@@ -43,17 +55,21 @@ class KeihiService extends BaseService {
     }
 
     /**
-     * 承認権限を持つロール名を解決 (ロジックの移動)
+     * 承認権限を持つロール名を解決
+     * @param {import('discord.js').Guild} guild
+     * @param {any} storeRoleConfig
+     * @param {KeihiConfig} keihiConfig
+     * @returns {string}
      */
     describeApprovers(guild, storeRoleConfig, keihiConfig) {
         const positionRoles =
             storeRoleConfig?.positionRoles || storeRoleConfig?.positionRoleMap || {};
 
-        const positionLookup = (positionId) => {
+        const positionLookup = (/** @type {string} */ positionId) => {
             const roles = storeRoleConfig?.roles || storeRoleConfig?.positions || [];
             const found = Array.isArray(roles)
                 ? roles.find(
-                    (r) =>
+                    (/** @type {any} */ r) =>
                         String(r.id ?? r.positionId ?? r.position) === String(positionId),
                 )
                 : null;
@@ -61,12 +77,12 @@ class KeihiService extends BaseService {
             return typeof positionId === 'string' ? positionId : String(positionId);
         };
 
-        const positionIds = keihiConfig.approverPositionIds || [];
+        const positionIds = keihiConfig?.approverPositionIds || [];
         const fallbackRoleIds =
-            keihiConfig.approverRoleIds?.length || keihiConfig.approvalRoles?.length
-                ? keihiConfig.approverRoleIds.length
+            (keihiConfig?.approverRoleIds?.length || keihiConfig?.approvalRoles?.length)
+                ? (keihiConfig.approverRoleIds?.length
                     ? keihiConfig.approverRoleIds
-                    : keihiConfig.approvalRoles
+                    : keihiConfig.approvalRoles || [])
                 : [];
 
         const lines = [];
@@ -84,7 +100,7 @@ class KeihiService extends BaseService {
                 const name = positionLookup(posId);
                 lines.push(`${name}: ${mention || '未紐付ロール'}`);
             }
-        } else if (fallbackRoleIds.length) {
+        } else if (fallbackRoleIds && fallbackRoleIds.length) {
             const mentions = this.roleMentionFromIds(guild, fallbackRoleIds);
             lines.push(mentions || '役職IDあり');
         }

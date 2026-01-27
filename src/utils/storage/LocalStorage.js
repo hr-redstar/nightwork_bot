@@ -19,9 +19,13 @@ class LocalStorage extends StorageInterface {
      * 論理パスをローカルファイルパスに変換
      */
     _toLocalPath(logicalPath) {
-        // "GCS/..." などのプレフィックスがもしあれば、ここで調整可能
-        // 基本的には logicalPath をそのままファイルパスとして扱う
-        return path.join(this.localRoot, logicalPath);
+        // "GCS/..." などのプレフィックスがあれば除去してローカルパスを解決
+        let stripped = logicalPath;
+        if (typeof logicalPath === 'string') {
+            if (logicalPath.startsWith('GCS/')) stripped = logicalPath.slice(4);
+            else if (logicalPath.startsWith('GCS\\')) stripped = logicalPath.slice(4);
+        }
+        return path.join(this.localRoot, stripped);
     }
 
     /**
@@ -50,7 +54,7 @@ class LocalStorage extends StorageInterface {
     async saveJSON(objectPath, data) {
         const filePath = this._toLocalPath(objectPath);
         const jsonStr = JSON.stringify(data ?? {}, null, 2);
-        
+
         logger.debug(`[LocalStorage] save: "${objectPath}" -> "${filePath}"`);
 
         try {

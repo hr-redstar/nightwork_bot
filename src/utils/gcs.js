@@ -171,7 +171,7 @@ async function saveJSON(objectPath, data) {
     );
     try {
       await fs.mkdir(path.dirname(filePath), { recursive: true });
-      await fs.writeFile(filePath, json, 'utf8');
+      await fs.writeFile(filePath, jsonStr, 'utf8');
     } catch (err) {
       logger.error('[gcs.js] saveJSON (local) エラー:', err);
       throw err;

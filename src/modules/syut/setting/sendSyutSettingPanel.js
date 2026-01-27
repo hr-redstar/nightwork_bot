@@ -1,10 +1,5 @@
-// modules/syut/setting/sendSyutSettingPanel.js
-const { ButtonStyle } = require('discord.js');
-const logger = require('../../../utils/logger');
-const { buildPanel } = require('../../../utils/ui/panelBuilder');
-const getBotFooter = require('../../common/utils/embed/getBotFooter');
-const getEmbedColor = require('../../common/utils/embed/getEmbedColor');
-const { getSyutConfig } = require('../../../utils/syut/syutConfigManager');
+const repo = require('../SyutRepository');
+const service = require('../SyutService');
 const { handleInteractionError } = require('../../../utils/errorHandlers');
 
 async function sendSyutSettingPanel(interaction) {
@@ -13,9 +8,9 @@ async function sendSyutSettingPanel(interaction) {
         if (!guild) return;
 
         // --------------------------------------------
-        // 設定取得
+        // 設定取得 (Service経由)
         // --------------------------------------------
-        const config = await getSyutConfig(guild.id);
+        const { config } = await service.prepareSettingData(guild.id);
 
         // キャストパネルサマリー
         const castText = (config.castPanelList && Object.keys(config.castPanelList).length > 0)
@@ -31,41 +26,35 @@ async function sendSyutSettingPanel(interaction) {
         const approveRoleText = approveRoleId ? `<@&${approveRoleId}>` : '未設定';
 
         // --------------------------------------------
-        // Panel Construction
+        // Panel Construction (PanelBuilder)
         // --------------------------------------------
-        const fields = [
-            { name: '設置店舗 (キャスト)', value: castText, inline: false },
-            { name: '設置店舗 (黒服)', value: kuroText, inline: false },
-            { name: '出退勤承認役職', value: `役職名：${approveRoleText}`, inline: false }
-        ];
-
-        const buttons = [
-            [
-                { id: 'syut:setting:installCast', label: 'キャストパネル設置', style: ButtonStyle.Primary },
-                { id: 'syut:setting:installKuro', label: '黒服パネル設置', style: ButtonStyle.Secondary },
-                { id: 'syut:setting:csv', label: 'CSV出力', style: ButtonStyle.Success },
-            ],
-            [
-                { id: 'syut:setting:approveRole', label: '承認役職設定', style: ButtonStyle.Secondary }
-            ]
-        ];
-
-        const panel = buildPanel({
-            title: '🕐 出退勤設定パネル',
-            description: '出退勤機能に関する設定を行うパネルです。',
-            fields: fields,
-            buttons: buttons
-        });
-
-        // Apply dynamic styles
-        panel.embeds[0]
+        const builder = new PanelBuilder()
+            .setTitle('🕐 出退勤設定パネル')
+            .setDescription('出退勤機能に関する設定を行うパネルです。')
             .setColor(getEmbedColor('syut', config))
-            .setFooter(getBotFooter(interaction));
+            .addFields([
+                { name: '設置店舗 (キャスト)', value: castText, inline: false },
+                { name: '設置店舗 (黒服)', value: kuroText, inline: false },
+                { name: '出退勤承認役職', value: `役職名：${approveRoleText}`, inline: false }
+            ])
+            .setFooter(getBotFooter(interaction).text);
+
+        builder.addButtons([
+            { id: 'syut:setting:installCast', label: 'キャストパネル設置', style: ButtonStyle.Primary },
+            { id: 'syut:setting:installKuro', label: '黒服パネル設置', style: ButtonStyle.Secondary },
+            { id: 'syut:setting:csv', label: 'CSV出力', style: ButtonStyle.Success },
+        ]);
+
+        builder.addButtons([
+            { id: 'syut:setting:approveRole', label: '承認役職設定', style: ButtonStyle.Secondary }
+        ]);
+
+        const payload = builder.toJSON();
 
         if (interaction.replied || interaction.deferred) {
-            await interaction.editReply(panel);
+            await interaction.editReply(payload);
         } else {
-            await interaction.reply(panel);
+            await interaction.reply(payload);
         }
     } catch (err) {
         await handleInteractionError(interaction, err);

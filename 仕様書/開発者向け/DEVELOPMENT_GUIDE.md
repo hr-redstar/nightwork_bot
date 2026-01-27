@@ -2,108 +2,39 @@
 
 ## 新機能追加の手順
 
-### 1. 新しいモジュールの作成
+### 1. 推奨フォルダ構造 (三層アーキテクチャ)
+
+大規模開発とテスト容易性を確保するため、各モジュールは **Handler / Service / Repository** の三層構造で構成します。
 
 ```bash
 src/modules/{module_name}/
-├── index.js              # エントリーポイント
-├── router.js             # Router初期化
-├── routes/
-│   └── {feature}.js      # ルート定義
-├── {feature}/
-│   ├── ids.js           # CustomID定義
-│   ├── handler.js       # ビジネスロジック
-│   └── panel.js         # UI構築（必要に応じて）
-└── setting/
-    ├── ids.js
-    ├── panelSchema.js   # Panel定義
-    └── panel.js
+├── index.js              # エントリーポイント（AppRouterへの公開）
+├── {Module}Repository.js # データアクセス層 (BaseRepositoryを継承)
+├── {Module}Service.js    # ビジネスロジック層 (BaseServiceを継承)
+├── routes/               # ルート定義ディレクトリ
+│   └── {feature}.js
+└── {feature}/
+    └── handler.js        # Handler層 (UI構築・ディスパッチ)
 ```
 
-### 2. CustomID定義
+### 2. 各レイヤーの責務とルール
 
-```javascript
-// src/modules/{module}/{feature}/ids.js
-const PREFIX = '{module}:{feature}';
+#### **Service 層 (最重要)**
+- データの加工、権限チェックの判定ロジック、ビジネスルールを記述します。
+- **命名規則**:
+    - `prepare...Data`: UI表示に必要なデータを集約・整形する (例: `prepareSettingPanelData`)
+    - `resolve...`: 複雑な紐付けや名前解決を行う (例: `resolveApproverMention`)
+    - `process...`: 一連のビジネスプロセスを実行する (例: `processPunch`)
+    - `validate...`: ビジネスルールに基づく整合性チェックを行う (例: `validateRequestAmount`)
+- **制約**: `discord.js` を `require` してはいけません。
+- **制約**: 引数には可能な限り Discord オブジェクト（Interaction等）を直接渡さず、必要なIDや名前のみを渡すか、DTOを使用します。
+- これにより、Botを起動せずにロジックのユニットテストが可能になります。
 
-const IDS = {
-  PREFIX,
-  BTN_ACTION: `${PREFIX}:btn:action`,
-  SELECT_ITEM: `${PREFIX}:sel:item`,
-  MODAL_EDIT: `${PREFIX}:modal:edit`,
-};
-
-module.exports = { IDS };
-```
-
-### 3. Handler実装
-
-```javascript
-// src/modules/{module}/{feature}/handler.js
-const { IDS } = require('./ids');
-
-async function handleAction(interaction) {
-  try {
-    // ビジネスロジック
-    await interaction.reply({
-      content: '処理完了',
-      flags: MessageFlags.Ephemeral
-    });
-  } catch (error) {
-    logger.error('[Module] Error:', error);
-    throw error;
-  }
-}
-
-module.exports = { handleAction };
-```
-
-### 4. Router登録
-
-```javascript
-// src/modules/{module}/routes/{feature}.js
-const { IDS } = require('../{feature}/ids');
-const { handleAction } = require('../{feature}/handler');
-
-module.exports = (router) => {
-  router.on(IDS.BTN_ACTION, handleAction);
-  router.on(IDS.SELECT_ITEM, handleSelectItem);
-  router.on(IDS.MODAL_EDIT, handleModalEdit);
-};
-```
-
-```javascript
-// src/modules/{module}/router.js
-const InteractionRouter = require('../../structures/InteractionRouter');
-const router = new InteractionRouter();
-
-require('./routes/{feature}')(router);
-
-module.exports = router;
-```
-
-### 5. モジュールエントリーポイント
-
-```javascript
-// src/modules/{module}/index.js
-const router = require('./router');
-const { handleInteractionError } = require('../../utils/errorHandlers');
-
-async function handleModuleInteraction(interaction) {
-  try {
-    if (!interaction.customId) return;
-    
-    const handled = await router.dispatch(interaction);
-    if (!handled) {
-      logger.debug(`[Module] Unhandled: ${interaction.customId}`);
-    }
-  } catch (err) {
-    await handleInteractionError(interaction, err);
-  }
-}
-
-module.exports = { handleModuleInteraction };
-```
+#### **Handler 層 (Controller)**
+- UIの構築（Embed, Button）と、Interactionの受付を実地します。
+- **役割**: Handler は Discord I/O と Service 層を繋ぐ「アダプタ」です。
+- ビジネスロジック（計算、加工、DB保存の順序決定など）は書かず、Service層を呼び出すのみに留めます。
+- `PanelBuilder` を使用して、一貫したデザインを維持します。
 
 ---
 
