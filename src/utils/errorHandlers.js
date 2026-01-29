@@ -8,9 +8,20 @@ const { MessageFlags } = require('discord.js');
 const crypto = require('crypto');
 
 /**
+ * バリデーションエラー用クラス (ユーザー入力ミス等の通知用)
+ */
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+    this.isValidationError = true;
+  }
+}
+
+/**
  * インタラクションエラーの統一処理
  * @param {import('discord.js').Interaction} interaction 
- * @param {Error} error 
+ * @param {Error|any} error 
  * @param {Object} options - オプション設定
  * @param {boolean} [options.ephemeral=true] - エフェメラルメッセージ
  * @param {string|null} [options.userMessage=null] - ユーザー向けメッセージ
@@ -19,33 +30,41 @@ const crypto = require('crypto');
 async function handleInteractionError(interaction, error, options = {}) {
   const {
     ephemeral = true,
-    userMessage = null,
     logLevel = 'error'
   } = options;
 
   // Trace ID 生成 (short UUID)
   const traceId = crypto.randomUUID().split('-')[0];
+  const errorCode = error?.code || 'N/A';
+  const isValidation = error?.isValidationError || error?.name === 'ValidationError';
 
-  // ログ出力 (logger は AsyncLocalStorage により context 情報を自動で付与する)
-  const logMsg = `[Req:${traceId}] [InteractionError] ${interaction?.customId || 'unknown'}: ${error.message}`;
+  // ログ出力 (バリデーションエラーは warn 以下で十分なことが多い)
+  const actualLogLevel = isValidation ? 'warn' : logLevel;
+  const logMsg = `[Req:${traceId}] [InteractionError] ID:${interaction?.id} Code:${errorCode} CustomId:${interaction?.customId || 'unknown'}: ${error?.message || error}`;
 
-  if (logLevel === 'error') {
+  if (actualLogLevel === 'error') {
     logger.error(logMsg, error);
-  } else if (logLevel === 'warn') {
-    logger.warn(logMsg);
   } else {
-    logger.info(logMsg);
+    logger.warn(logMsg);
   }
 
-  // インタラクションが既に応答済みで、かつデフェアドでもない場合は何もしない (またはログのみ)
-  if (!interaction || (interaction.replied && !interaction.deferred)) {
+  // インタラクションが死んでいる（リプライ不可能）なら終了
+  // @ts-ignore
+  if (!interaction || (typeof interaction.isRepliable === 'function' && !interaction.isRepliable())) {
     return;
   }
 
   // ユーザーへのエラーメッセージ
-  const content = userMessage
-    ? `${userMessage}\n(TraceID: ${traceId})`
-    : `⚠️ 処理中にエラーが発生しました。管理者に連絡してください。\n(TraceID: ${traceId})`;
+  let content = options.userMessage;
+  if (!content) {
+    if (isValidation) {
+      content = `❌ **入力エラー**: ${error.message}`;
+    } else {
+      content = `⚠️ 処理中にエラーが発生しました。管理者に連絡してください。\n(TraceID: ${traceId})`;
+    }
+  } else {
+    content = `${content}\n(TraceID: ${traceId})`;
+  }
 
   try {
     const payload = {
@@ -53,22 +72,16 @@ async function handleInteractionError(interaction, error, options = {}) {
       flags: ephemeral ? MessageFlags.Ephemeral : undefined,
     };
 
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply(payload);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({
+        content: content,
+        flags: ephemeral ? MessageFlags.Ephemeral : undefined,
+      });
     } else {
-      // reply か deferReply が一度でも呼ばれていたら Discord 側は「受付済み」になるが、
-      // editReply を使うべきかどうかは replied または deferred フラグで判断する。
-      // もし既に acknowledged 状態で reply を呼ぶと 40060 が出る。
-      // ここに来る時点で replied/deferred が false のはずだが、直前の処理で変わった可能性も考慮する。
-      try {
-        await interaction.reply(payload);
-      } catch (innerError) {
-        if (innerError.code === 40060) {
-          await interaction.editReply(payload).catch(() => { });
-        } else {
-          throw innerError;
-        }
-      }
+      await interaction.followUp({
+        content: content,
+        flags: ephemeral ? MessageFlags.Ephemeral : undefined,
+      });
     }
   } catch (replyError) {
     logger.debug(`[errorHandlers] Final fallback failed (TraceID: ${traceId}):`, replyError.message);
@@ -104,4 +117,5 @@ module.exports = {
   handleInteractionError,
   handleCommandError,
   setupGlobalErrorHandlers,
+  ValidationError,
 };

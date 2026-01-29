@@ -27,10 +27,6 @@ async function handleSyutInteraction(interaction) {
 }
 
 module.exports = {
-    // AppRouter Auto-Discovery Metadata
     prefixes: ['syut', 'cast', 'kuro', 'role_select'],
-    handleInteraction: handleSyutInteraction,
-
-    // Legacy
-    handleSyutInteraction,
+    router
 };

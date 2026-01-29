@@ -35,7 +35,7 @@ function loadEvents(dir) {
       } else {
         client.on(event.name, (...args) => event.execute(...args, client));
       }
-      logger.info(`📡 イベント読込: ${event.name}`);
+      logger.silly(`📡 イベント読込: ${event.name}`);
     }
   }
 }
@@ -52,7 +52,6 @@ function loadCommands(dir) {
 
       if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
-        logger.info(`📝 コマンド読込: /${command.data.name}`);
       } else {
         logger.warn(`⚠️ [${file}] に data または execute が定義されていません。`);
       }
@@ -74,8 +73,8 @@ function loadCommands(dir) {
 
   // --- 開発用ギルド ID ログ ---
   if (DEV_GUILD_IDS.length > 0) {
-    logger.info(`🧪 開発用ギルドID一覧: ${DEV_GUILD_IDS.join(', ')}`);
-    logger.info(`🧪 DEV_GUILD_IDS (raw): ${process.env.DEV_GUILD_IDS}`);
+    logger.silly(`🧪 開発用ギルドID一覧: ${DEV_GUILD_IDS.join(', ')}`);
+    logger.silly(`🧪 DEV_GUILD_IDS (raw): ${process.env.DEV_GUILD_IDS}`);
   }
 
   // --- コマンド / イベント読込 ---
@@ -103,9 +102,9 @@ function loadCommands(dir) {
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-  // --- Discord ログイン ---
   try {
     await client.login(DISCORD_TOKEN);
+    logger.info('✅ bot起動');
   } catch (e) {
     logger.error('❌ Discord ログインに失敗しました:', e);
     process.exit(1);

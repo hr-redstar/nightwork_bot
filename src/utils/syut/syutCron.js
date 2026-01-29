@@ -29,7 +29,7 @@ async function reloadSyutCron(client) {
     const schedules = await getAllSyutSchedules(guildIds);
 
     if (schedules.length === 0) {
-      logger.info('ℹ️ [syutCron] 有効な自動投稿設定はありません。');
+      logger.debug('ℹ️ [syutCron] 有効な自動投稿設定はありません。');
       return;
     }
 
@@ -72,7 +72,7 @@ async function reloadSyutCron(client) {
       scheduledJobs.push(job);
     }
 
-    logger.info(`✅ [syutCron] スケジュール登録完了: ${scheduledJobs.length}件のタイマー (対象合計: ${schedules.length}店舗)`);
+    logger.silly(`✅ [syutCron] スケジュール登録完了: ${scheduledJobs.length}件のタイマー (対象合計: ${schedules.length}店舗)`);
 
   } catch (err) {
     logger.error('❌ [syutCron] スケジュール再読み込みエラー:', err);
@@ -83,7 +83,7 @@ async function reloadSyutCron(client) {
  * 初期化（Bot起動時）
  */
 function initSyutCron(client) {
-  logger.info('🕒 [syutCron] スケジュール管理を開始します...');
+  logger.silly('🕒 [syutCron] スケジュール管理を開始します...');
   reloadSyutCron(client);
 }
 

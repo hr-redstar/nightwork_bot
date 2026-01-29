@@ -9,6 +9,7 @@ const {
     ButtonStyle,
     EmbedBuilder,
 } = require('discord.js');
+const Theme = require('../../../utils/ui/Theme');
 const dayjs = require('dayjs');
 const { readKujiConfig, saveKujiConfig } = require('../../../utils/kuzibiki/kuzibikiStorage');
 
@@ -21,7 +22,7 @@ function buildPanelEmbed(config) {
         : '未設定';
 
     return new EmbedBuilder()
-        .setColor(0x00bfff)
+        .setColor(Theme.COLORS.BRAND)
         .setTitle('🎲 くじ引きパネル')
         .setDescription(
             `【現在の設定内容】\n更新時間：${updatedTime}\n\n${(config.settings && config.settings.length)

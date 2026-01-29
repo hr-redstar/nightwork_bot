@@ -12,9 +12,9 @@ src/modules/{module_name}/
 ├── {Module}Repository.js # データアクセス層 (BaseRepositoryを継承)
 ├── {Module}Service.js    # ビジネスロジック層 (BaseServiceを継承)
 ├── routes/               # ルート定義ディレクトリ
-│   └── {feature}.js
-└── {feature}/
-    └── handler.js        # Handler層 (UI構築・ディスパッチ)
+├── handlers/             # Handlerクラス定義ディレクトリ (BaseInteractionHandlerを継承)
+│   └── {Feature}Handler.js
+└── {feature}/            # (Legacy) 旧来の機能別ディレクトリ
 ```
 
 ### 2. 各レイヤーの責務とルール
@@ -32,9 +32,16 @@ src/modules/{module_name}/
 
 #### **Handler 層 (Controller)**
 - UIの構築（Embed, Button）と、Interactionの受付を実地します。
+- **原則**: 全ての Handler は `BaseInteractionHandler` を継承します。
 - **役割**: Handler は Discord I/O と Service 層を繋ぐ「アダプタ」です。
 - ビジネスロジック（計算、加工、DB保存の順序決定など）は書かず、Service層を呼び出すのみに留めます。
 - `PanelBuilder` を使用して、一貫したデザインを維持します。
+
+> [!IMPORTANT]
+> **インタラクション・ライフサイクル原則**
+> - ❗ Handler / Service 内で `reply`, `deferReply`, `editReply` を**直接呼び出してはいけません**。
+> - ❗ Interaction応答は `BaseInteractionHandler` に委ね、応答が必要な場合は `this.safeReply(interaction, payload)` を使用してください。
+> - これにより、タイムアウト(10062)や二重応答(40060)を構造的に防止します。
 
 ---
 
@@ -66,36 +73,40 @@ const PANEL_SCHEMA = {
 module.exports = { PANEL_SCHEMA };
 ```
 
-### 2. Panel構築
+### 2. Panel構築 (`PanelBuilder`)
+
+埋め込みメッセージ（Embed）とコンポーネントを構築します。`src/utils/ui/panelBuilder.js` を使用することで、一貫したデザインと自動的な行分割（5ボタン制限への対応）が保証されます。
 
 ```javascript
-// src/modules/{module}/setting/panel.js
 const { buildPanel } = require('../../../utils/ui/panelBuilder');
-const { PANEL_SCHEMA } = require('./panelSchema');
 
 async function buildSettingPanel(guildId) {
   const config = await getConfig(guildId);
   
-  const dataMap = {
-    field1: config.value1 || '未設定',
-    field2: config.value2 || '未設定',
-  };
-  
-  const fields = PANEL_SCHEMA.fields.map(f => ({
-    name: f.name,
-    value: dataMap[f.key] || f.fallback
-  }));
-  
   return buildPanel({
-    title: PANEL_SCHEMA.title,
-    description: PANEL_SCHEMA.description,
-    color: PANEL_SCHEMA.color,
-    fields,
-    buttons: PANEL_SCHEMA.buttons,
-    footer: 'フッター（オプション）',
-    timestamp: true
+    title: '経費パネル設定',
+    description: '経費申請の挙動を設定します。',
+    fields: [
+       { name: '承認役職', value: config.approver || '未設定' }
+    ],
+    buttons: [
+      { id: IDS.BTN_SET_APPROVER, label: '承認役職設定', style: ButtonStyle.Primary },
+      { id: IDS.BTN_EXPORT_CSV, label: 'CSV発行', style: ButtonStyle.Secondary }
+    ],
+    footer: 'Version 1.0.0'
   });
 }
+```
+
+### 3. UI部品の共通化 (`ComponentFactory`)
+
+ボタンやセレクトメニューを個別に生成する場合は、原則として `src/utils/ui/ComponentFactory.js` を使用します。これにより、ボイラープレート（定型コード）を削減し、将来的なデザイン変更を一括適用しやすくなります。
+
+```javascript
+const ui = require('../../../utils/ui/ComponentFactory');
+
+const button = ui.createButton({ id: 'my_btn', label: '保存', style: ButtonStyle.Success });
+const select = ui.createSelect({ id: 'my_sel', options: [...] });
 ```
 
 ---
@@ -146,42 +157,26 @@ const { IDS } = require('./ids');
 
 ## エラーハンドリング
 
-### 基本パターン
+### 推奨パターン（BaseInteractionHandler）
 
 ```javascript
-async function handleAction(interaction) {
-  try {
-    // メイン処理
-    await doSomething();
+// src/modules/{module}/handlers/{Feature}Handler.js
+class FeatureHandler extends BaseInteractionHandler {
+  async handle(interaction, param) {
+    // 💡 deferReply は自動で行われるため、いきなりロジックを書いてOK
+    const result = await service.process(param);
     
-    await interaction.reply({
-      content: '✅ 成功',
-      flags: MessageFlags.Ephemeral
+    // 💡 safeReply を使うことで、状態に応じた最適な応答が保証される
+    await this.safeReply(interaction, {
+      content: '✅ 処理完了',
+      ephemeral: true
     });
-  } catch (error) {
-    logger.error('[Module] Error:', error);
-    
-    await interaction.reply({
-      content: '❌ エラーが発生しました',
-      flags: MessageFlags.Ephemeral
-    }).catch(() => {});
   }
 }
 ```
 
 ### グローバルエラーハンドラー
-
-```javascript
-const { handleInteractionError } = require('../../utils/errorHandlers');
-
-async function handleModuleInteraction(interaction) {
-  try {
-    await router.dispatch(interaction);
-  } catch (err) {
-    await handleInteractionError(interaction, err);
-  }
-}
-```
+ハンドラー内でスローされた例外は、`BaseInteractionHandler` により自動的にキャッチされ、共通の `handleInteractionError` にトレースID付きで委ねられます。個別の `try-catch` 乱立は避けてください。
 
 ---
 
@@ -220,16 +215,34 @@ describe('Module Handler', () => {
 
 ---
 
-## デバッグ
+## インフラ層の共通パーツ (`utils`)
 
-### ログレベル
+### 1. バリデーション (`Validator`)
+ビジネスルールに基づく検証は、Service層で行います。`src/utils/validator.js` を活用してください。エラー時は `ValidationError` をスローすることで、`BaseInteractionHandler` が自動的にユーザーへ分かりやすいエラーを返送します。
 
 ```javascript
-logger.debug('詳細情報');  // 開発時のみ
-logger.info('通常情報');   // 重要なイベント
-logger.warn('警告');       // 問題の可能性
-logger.error('エラー');    // エラー発生
+const validator = require('../../../utils/validator');
+
+function processRequest(amount) {
+  // 💡 エラー時は自動で ephemeral な通知がユーザーへ送られます
+  validator.checkAmount(amount, '申請金額'); 
+}
 ```
+
+### 2. 権限・役職チェック (`RoleResolver`)
+モジュール内でロールIDの保持判定を行う場合は `src/utils/permission/RoleResolver.js` を使用してください。
+
+```javascript
+const roles = require('../../../utils/permission/RoleResolver');
+
+if (!roles.hasAnyRole(member, allowedRoleIds)) {
+    throw new ValidationError('権限がありません。');
+}
+```
+
+### 3. ID生成 (`CustomId`)
+インタラクションの ID 生成・パースは `src/utils/customId.js` に集約してください。
+命名規則: `[module]:[feature]:[action]:[extra]`
 
 ### CustomID確認
 

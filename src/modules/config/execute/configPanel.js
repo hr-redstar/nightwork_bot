@@ -1,7 +1,6 @@
-﻿﻿// src/modules/config/execute/configPanel.js
-const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
+﻿﻿const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const { getGuildConfig, saveGuildConfig } = require('../../../utils/config/gcsConfigManager');
-const { buildPanel } = require('../../../utils/ui/panelBuilder');
+const { buildPanel } = require('../../../utils/ui/PanelBuilder');
 const { CONFIG_PANEL_SCHEMA } = require('./panelSchema');
 const logger = require('../../../utils/logger');
 

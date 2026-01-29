@@ -31,7 +31,7 @@ class GcsStorage extends StorageInterface {
         try {
             this.storage = new Storage();
             this.bucket = this.storage.bucket(this.bucketName);
-            logger.info(`[GcsStorage] Initialized with bucket: ${this.bucketName}`);
+            logger.debug(`[GcsStorage] Initialized with bucket: ${this.bucketName}`);
         } catch (err) {
             logger.error('[GcsStorage] Initialization failed:', err);
             throw err;

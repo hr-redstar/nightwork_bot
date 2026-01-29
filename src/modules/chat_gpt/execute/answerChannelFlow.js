@@ -12,14 +12,14 @@ const {
   MessageFlags,
 } = require('discord.js');
 
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 const { IDS } = require('./ids');
-const { buildStoreSelectOptions: buildStoreOptions } = require('../../utils/config/storeSelectHelper');
+const { buildStoreSelectOptions: buildStoreOptions } = require('../../../utils/config/storeSelectHelper');
 const {
   loadAnswerChannels,
   saveAnswerChannels,
-} = require('../../utils/chat_gpt/gcsChatGptManager');
-const { sendSettingLog } = require('../../utils/config/configLogger');
+} = require('../../../utils/chat_gpt/gcsChatGptManager');
+const { sendSettingLog } = require('../../../utils/config/configLogger');
 const { postConversationPanel } = require('./conversationPanel');
 const { postChatGptSettingPanel } = require('./panel');
 

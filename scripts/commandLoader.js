@@ -40,7 +40,6 @@ function loadCommands(baseDir, logger, logPrefix = '[CommandLoader]') {
 
         if (command?.data) {
           commands.push(command.data.toJSON());
-          logger.info(`${logPrefix} ✅ コマンド読み込み: ${command.data.name}`);
         } else {
           logger.warn(`${logPrefix} ⚠️ data未定義コマンド: ${file.name}`);
         }

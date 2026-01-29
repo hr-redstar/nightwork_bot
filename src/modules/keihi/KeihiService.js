@@ -4,9 +4,8 @@
  * 経費機能のビジネスロジック
  */
 
-const BaseService = require('../../structures/BaseService');
+const StoreServiceBase = require('../common/StoreServiceBase');
 const repo = require('./KeihiRepository');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 const logger = require('../../utils/logger');
 
 /**
@@ -16,7 +15,7 @@ const logger = require('../../utils/logger');
  * @property {string[]} [approvalRoles]
  */
 
-class KeihiService extends BaseService {
+class KeihiService extends StoreServiceBase {
     /**
      * 設定パネル用のデータを準備
      * @param {import('discord.js').Guild} guild
@@ -24,34 +23,12 @@ class KeihiService extends BaseService {
     async prepareSettingPanelData(guild) {
         const guildId = guild.id;
         const config = await repo.getGlobalConfig(guildId);
-
-        let storeRoleConfig = null;
-        try {
-            storeRoleConfig = await loadStoreRoleConfig(guildId);
-        } catch (err) {
-            logger.warn('[KeihiService] storeRoleConfig 読み込み失敗', err);
-        }
+        const storeRoleConfig = await this.loadStoreRoleConfig(guildId);
 
         return {
             config,
             storeRoleConfig
         };
-    }
-
-    /**
-     * ロールIDの配列をメンション文字列に変換
-     * @param {import('discord.js').Guild} guild
-     * @param {string[]} ids
-     * @returns {string | null}
-     */
-    roleMentionFromIds(guild, ids = []) {
-        const mentions = ids
-            .map((id) => {
-                const role = guild.roles.cache.get(id);
-                return role ? `<@&${role.id}>` : null;
-            })
-            .filter(Boolean);
-        return mentions.length ? mentions.join(' ') : null;
     }
 
     /**
@@ -62,50 +39,103 @@ class KeihiService extends BaseService {
      * @returns {string}
      */
     describeApprovers(guild, storeRoleConfig, keihiConfig) {
-        const positionRoles =
-            storeRoleConfig?.positionRoles || storeRoleConfig?.positionRoleMap || {};
+        return this.resolveApproverMention(
+            guild,
+            storeRoleConfig,
+            keihiConfig?.approverPositionIds,
+            keihiConfig?.approverRoleIds || keihiConfig?.approvalRoles
+        );
+    }
+    /**
+     * 経費操作権限チェック
+     * @param {'approve' | 'modify' | 'delete'} action
+     * @param {import('discord.js').GuildMember} member
+     * @param {string|null} requesterId
+     * @param {any} keihiConfig
+     */
+    checkPermission(action, member, requesterId, keihiConfig) {
+        const approverRoleIds = this._collectApproverRoleIds(keihiConfig);
+        const memberRoleIds = new Set(member.roles.cache.keys());
+        const isApprover = approverRoleIds.some((id) => memberRoleIds.has(id));
 
-        const positionLookup = (/** @type {string} */ positionId) => {
-            const roles = storeRoleConfig?.roles || storeRoleConfig?.positions || [];
-            const found = Array.isArray(roles)
-                ? roles.find(
-                    (/** @type {any} */ r) =>
-                        String(r.id ?? r.positionId ?? r.position) === String(positionId),
-                )
-                : null;
-            if (found && found.name) return found.name;
-            return typeof positionId === 'string' ? positionId : String(positionId);
-        };
-
-        const positionIds = keihiConfig?.approverPositionIds || [];
-        const fallbackRoleIds =
-            (keihiConfig?.approverRoleIds?.length || keihiConfig?.approvalRoles?.length)
-                ? (keihiConfig.approverRoleIds?.length
-                    ? keihiConfig.approverRoleIds
-                    : keihiConfig.approvalRoles || [])
-                : [];
-
-        const lines = [];
-
-        if (positionIds.length) {
-            for (const posId of positionIds) {
-                const mention = this.roleMentionFromIds(
-                    guild,
-                    Array.isArray(positionRoles[posId])
-                        ? positionRoles[posId]
-                        : positionRoles[posId]
-                            ? [positionRoles[posId]]
-                            : [],
-                );
-                const name = positionLookup(posId);
-                lines.push(`${name}: ${mention || '未紐付ロール'}`);
+        if (action === 'approve') {
+            if (!isApprover) {
+                return { ok: false, message: 'この経費申請を承認する権限がありません。' };
             }
-        } else if (fallbackRoleIds && fallbackRoleIds.length) {
-            const mentions = this.roleMentionFromIds(guild, fallbackRoleIds);
-            lines.push(mentions || '役職IDあり');
+        } else {
+            // modify, delete
+            const isOriginalRequester = requesterId === member.id;
+            if (!isApprover && !isOriginalRequester) {
+                return { ok: false, message: 'この経費申請を操作する権限がありません。' };
+            }
+        }
+        return { ok: true, message: null };
+    }
+
+    /**
+     * 承認役職IDを収集（コンフィグの複数フィールドを統合）
+     */
+    _collectApproverRoleIds(keihiConfig) {
+        const set = new Set();
+        const sources = [keihiConfig.approverRoleIds, keihiConfig.approvalRoles];
+        for (const src of sources) {
+            if (Array.isArray(src)) {
+                src.forEach(id => id && set.add(id));
+            }
+        }
+        return Array.from(set);
+    }
+
+    /**
+     * 経費レコードのステータス更新計算
+     * @param {any} records 日/月/年のレコード
+     * @param {string} targetId
+     * @param {string} newStatus
+     * @param {object} metadata
+     */
+    updateRecordStatus(records, targetId, newStatus, metadata) {
+        if (!Array.isArray(records)) return null;
+
+        const record = records.find(r => String(r.id) === String(targetId));
+        if (!record) return null;
+
+        const prevStatus = record.status;
+        const amount = Number(record.amount || 0);
+
+        // Update fields
+        record.status = newStatus;
+        record.statusJa = newStatus === 'APPROVED' ? '承認' : '申請中';
+        record.lastUpdated = new Date().toISOString();
+
+        if (newStatus === 'APPROVED' && metadata.approver) {
+            record.approvedById = metadata.approver.id;
+            record.approvedBy = metadata.approver.displayName || metadata.approver.user?.username;
+            record.approvedAt = record.lastUpdated;
         }
 
-        return lines.length ? lines.join('\n') : '未設定';
+        return { record, prevStatus, amount };
+    }
+
+    /**
+     * 合計金額の再計算
+     * @param {any} dataObject
+     * @param {string} type 'daily' | 'monthly' | 'yearly'
+     */
+    recalculateTotal(dataObject, type) {
+        if (type === 'daily') {
+            if (!Array.isArray(dataObject.requests)) return;
+            dataObject.totalApprovedAmount = dataObject.requests
+                .filter(r => r.status === 'APPROVED')
+                .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        } else if (type === 'monthly') {
+            if (!dataObject.byDay) return;
+            dataObject.totalApprovedAmount = Object.values(dataObject.byDay)
+                .reduce((sum, v) => sum + (Number(v) || 0), 0);
+        } else if (type === 'yearly') {
+            if (!dataObject.byMonth) return;
+            dataObject.totalApprovedAmount = Object.values(dataObject.byMonth)
+                .reduce((sum, v) => sum + (Number(v) || 0), 0);
+        }
     }
 }
 

@@ -28,9 +28,6 @@ const { resolveStoreName } = require('../setting/storeNameResolver');
 // 経費申請ボタン → 経費項目セレクト表示
 // ----------------------------------------------------
 async function handleRequestStart(interaction, storeKey) {
-  // 先に ACK (3秒対策)
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => { });
-
   const guild = interaction.guild;
   const guildId = guild.id;
   const member = interaction.member;
@@ -45,9 +42,10 @@ async function handleRequestStart(interaction, storeKey) {
   const panelConfig = keihiConfig.panels?.[storeKey] || {};
 
   if (!panelConfig?.channelId) {
-    await interaction.editReply({
+    await interaction.reply({
       content: 'この店舗の経費申請パネル設定が見つかりません。',
       components: [],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -63,10 +61,11 @@ async function handleRequestStart(interaction, storeKey) {
     allowedRoleIds.length > 0 && allowedRoleIds.some((id) => memberRoleIds.has(id));
 
   if (!hasPermission) {
-    await interaction.editReply({
+    await interaction.reply({
       content:
         'この店舗で経費申請を行う権限がありません。\nスレッド閲覧役職 / 申請役職 / 承認役職、または設定された申請用ロールのいずれかを付与してください。',
       components: [],
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -104,6 +103,9 @@ async function handleRequestStart(interaction, storeKey) {
       value: safe,
     });
   }
+
+  // 選択メニューを表示する場合のみ deferReply → editReply
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => { });
 
   await interaction.editReply({
     content: '経費項目を選択してください。',

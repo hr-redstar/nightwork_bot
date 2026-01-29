@@ -27,7 +27,7 @@ class StorageFactory {
         if (useGcs && bucketName) {
             try {
                 this.instance = new GcsStorage();
-                logger.info('[StorageFactory] Using GcsStorage');
+                logger.silly('[StorageFactory] Using GcsStorage');
             } catch (err) {
                 logger.error(`[StorageFactory] Failed to initialize GcsStorage: ${err.message}. Falling back to LocalStorage.`);
                 this.instance = new LocalStorage();
@@ -37,10 +37,17 @@ class StorageFactory {
                 logger.warn('[StorageFactory] USE_GCS is true but GCS_BUCKET_NAME is missing. Falling back to LocalStorage.');
             }
             this.instance = new LocalStorage();
-            logger.info('[StorageFactory] Using LocalStorage');
+            logger.silly('[StorageFactory] Using LocalStorage');
         }
 
         return this.instance;
+    }
+
+    /**
+     * エイリアス: ストレージインスタンスを取得
+     */
+    create() {
+        return this.getInstance();
     }
 }
 

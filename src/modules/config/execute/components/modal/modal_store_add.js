@@ -4,6 +4,7 @@
 // ----------------------------------------------------
 
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const showModalSafe = require('../../../../../utils/showModalSafe');
 
 module.exports = {
   customId: 'config_store_add_modal',
@@ -12,6 +13,7 @@ module.exports = {
    * モーダルを表示
    */
   show(interaction) {
+    // 💡 Platinum Rule: showModal は即座に呼ぶ（3秒ルール厳守）
     const modal = new ModalBuilder()
       .setCustomId('config_store_add_modal')
       .setTitle('🏪 店舗を追加');
@@ -25,7 +27,7 @@ module.exports = {
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
-    return interaction.showModal(modal);
+    return showModalSafe(interaction, modal);
   },
 
   /**

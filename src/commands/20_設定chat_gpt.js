@@ -1,5 +1,5 @@
 // src/commands/20_設定chat_gpt.js
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendChatGptSettingPanel } = require('../modules/chat_gpt/setting/sendChatGptSettingPanel');
 

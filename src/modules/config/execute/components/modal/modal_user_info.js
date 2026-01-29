@@ -14,6 +14,7 @@ const {
 const { updateUserInfo, readUserInfo } = require('../../../../../utils/config/gcsUserInfo.js');
 const { sendSettingLog } = require('../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../configPanel');
+const showModalSafe = require('../../../../../utils/showModalSafe');
 const {
   getRegistrationState,
   deleteRegistrationState,
@@ -78,7 +79,7 @@ module.exports = {
       new ActionRowBuilder().addComponents(memo),
     );
 
-    return interaction.showModal(modal);
+    return showModalSafe(interaction, modal);
   },
 
   async handle(interaction) {

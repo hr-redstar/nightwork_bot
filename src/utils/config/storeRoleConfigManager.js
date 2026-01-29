@@ -6,13 +6,16 @@
 const dayjs = require('dayjs');
 const logger = require('../logger');
 const BaseConfigManager = require('../baseConfigManager');
+const SimpleCache = require('../cache/SimpleCache');
 
 // インスタンス作成
-// GCS/{guildId}/config/店舗_役職_ロール.json に対応
 const manager = new BaseConfigManager({
   baseDir: 'config',
   fileName: '店舗_役職_ロール.json',
 });
+
+// キャッシュ (1分)
+const configCache = new SimpleCache(60 * 1000);
 
 // ====================================================
 // 🧭 パス生成
@@ -60,9 +63,15 @@ function normalizeStoreRoleConfig(raw) {
 // ====================================================
 
 async function loadStoreRoleConfig(guildId) {
+  // キャッシュチェック
+  const cached = configCache.get(guildId);
+  if (cached) return cached;
+
   try {
     const data = await manager.loadGlobal(guildId, defaultStoreRoleConfig());
-    return normalizeStoreRoleConfig(data);
+    const normalized = normalizeStoreRoleConfig(data);
+    configCache.set(guildId, normalized);
+    return normalized;
   } catch (err) {
     logger.warn(`⚠️ storeRoleConfig 読み込み失敗 → デフォルト使用 (${guildId})`, err);
     return defaultStoreRoleConfig();
@@ -77,6 +86,7 @@ async function saveStoreRoleConfig(guildId, config) {
 
   try {
     await manager.saveGlobal(guildId, saveData);
+    configCache.set(guildId, saveData); // キャッシュ更新
     logger.info(`💾 storeRoleConfig 保存 (${guildId})`);
   } catch (err) {
     logger.error(`❌ storeRoleConfig 保存エラー (${guildId})`, err);

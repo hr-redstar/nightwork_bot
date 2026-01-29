@@ -34,7 +34,11 @@ class InteractionRouter {
             if (this._match(pattern, id)) {
                 logger.debug(`[InteractionRouter] Matched route #${i} (pattern: ${pattern}) for ID: ${id}`);
                 try {
-                    await handler(interaction);
+                    if (typeof handler.execute === 'function') {
+                        await handler.execute(interaction);
+                    } else {
+                        await handler(interaction);
+                    }
                     return true;
                 } catch (err) {
                     // Rethrow to let the module index handler catch it

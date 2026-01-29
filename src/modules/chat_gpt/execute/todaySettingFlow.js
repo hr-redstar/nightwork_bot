@@ -6,9 +6,9 @@ const {
   StringSelectMenuBuilder,
 } = require('discord.js');
 
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 const { IDS } = require('./ids');
-const { buildStoreSelectOptions: buildStoreOptions } = require('../../utils/config/storeSelectHelper');
+const { buildStoreSelectOptions: buildStoreOptions } = require('../../../utils/config/storeSelectHelper');
 
 // ① ボタン押下 → 店舗リスト表示
 async function handleTodaySettingButton(interaction) {

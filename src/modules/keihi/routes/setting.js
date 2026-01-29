@@ -4,6 +4,11 @@ const settingLocation = require('../setting/panelLocation');
 const settingApprover = require('../setting/approver');
 const settingPanel = require('../setting/panel');
 
+// New Structured Handlers
+const setPanelHandler = require('../setting/handlers/SetPanelHandler');
+const setApproverHandler = require('../setting/handlers/SetApproverHandler');
+const exportCsvHandler = require('../setting/handlers/ExportCsvHandler');
+
 module.exports = (router) => {
     // ====================================================
     // Setting Module Routes
@@ -11,8 +16,8 @@ module.exports = (router) => {
 
     // --- Panel Setting ---
     // BTN_SET_PANEL (keihi:setting:panel:refresh)
-    router.on(SETTING_IDS.BTN_SET_PANEL, (i) => settingLocation.handleSetPanelButton(i));
-    router.on('keihi_config:btn:set_panel', (i) => settingLocation.handleSetPanelButton(i)); // Legacy
+    router.on(SETTING_IDS.BTN_SET_PANEL, setPanelHandler);
+    router.on('keihi_config:btn:set_panel', setPanelHandler); // Legacy
 
     // SEL_STORE_FOR_PANEL (keihi:setting:panel:store_select)
     router.on(SETTING_IDS.SEL_STORE_FOR_PANEL, (i) => settingLocation.handleStoreForPanelSelect(i));
@@ -28,8 +33,8 @@ module.exports = (router) => {
 
     // --- Approver Setting ---
     // BTN_SET_APPROVER (keihi:setting:approver:set)
-    router.on(SETTING_IDS.BTN_SET_APPROVER, (i) => settingApprover.handleSetApproverButton(i));
-    router.on('keihi_config:btn:set_approver', (i) => settingApprover.handleSetApproverButton(i)); // Legacy
+    router.on(SETTING_IDS.BTN_SET_APPROVER, setApproverHandler);
+    router.on('keihi_config:btn:set_approver', setApproverHandler); // Legacy
 
     // SEL_APPROVER_ROLES (keihi:setting:approver:role_select)
     router.on(SETTING_IDS.SEL_APPROVER_ROLES, (i) => settingApprover.handleApproverRolesSelect(i));
@@ -37,8 +42,8 @@ module.exports = (router) => {
 
     // --- CSV Flow ---
     // BTN_EXPORT_CSV (keihi:setting:csv:export)
-    router.on(SETTING_IDS.BTN_EXPORT_CSV, (i) => settingCsv.handleExportCsvButton(i));
-    router.on('keihi_config:btn:export_csv', (i) => settingCsv.handleExportCsvButton(i)); // Legacy
+    router.on(SETTING_IDS.BTN_EXPORT_CSV, exportCsvHandler);
+    router.on('keihi_config:btn:export_csv', exportCsvHandler); // Legacy
 
     // CSV Buttons (Range)
     const csvButtons = [

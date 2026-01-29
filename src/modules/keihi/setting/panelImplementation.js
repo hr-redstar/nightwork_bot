@@ -1,39 +1,11 @@
-// src/handlers/keihi/setting/panelImplementation.js
-// ----------------------------------------------------
-// 経費設定パネル送信/更新のロジック
-// ----------------------------------------------------
-
-const {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-} = require('discord.js');
-const { KEIHI_SETTING_PANEL_SCHEMA } = require('./panelSchema');
+const { ButtonStyle, MessageFlags } = require('discord.js');
 const { PanelBuilder } = require('../../../utils/ui/PanelBuilder');
-const logger = require('../../../utils/logger');
-const { sendCommandLog } = require('../../../utils/config/configLogger');
-const { IDS } = require('./ids');
+const Theme = require('../../../utils/ui/Theme');
+const { KEIHI_SETTING_PANEL_SCHEMA } = require('./panelSchema');
 const service = require('../KeihiService');
 const repo = require('../KeihiRepository');
-
-const {
-  handleExportCsvButton,
-  handleCsvFlowInteraction,
-} = require('./csv');
-const {
-  handleSetPanelButton,
-  handleStoreForPanelSelect,
-  handlePanelChannelSelect,
-} = require('./panelLocation');
-const {
-  handleSetApproverButton,
-  handleApproverRolesSelect,
-} = require('./approver');
+const logger = require('../../../utils/logger');
 const { resolveStoreName } = require('./storeNameResolver');
-
-// function buildSettingButtonsRow1() ... removed (replaced by Schema)
-// function buildSettingButtonsRow2() ... removed (replaced by Schema)
 
 async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
   const guildId = guild.id;
@@ -54,17 +26,12 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     panelLines.push(line);
   }
 
-  const panelFieldValue =
-    panelLines.length > 0
-      ? panelLines.join('\n')
-      : KEIHI_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'panels').fallback;
-
+  const panelFieldValue = panelLines.length > 0 ? panelLines.join('\n') : '未設置';
   const approverValue = service.describeApprovers(guild, storeRoleConfig, keihiConfig);
 
-  // Schema Mapping
   const dataMap = {
     panels: panelFieldValue,
-    approvers: approverValue || KEIHI_SETTING_PANEL_SCHEMA.fields.find(f => f.key === 'approvers').fallback,
+    approvers: approverValue || '未設定',
   };
 
   const embedFields = KEIHI_SETTING_PANEL_SCHEMA.fields.map(f => ({
@@ -72,37 +39,26 @@ async function buildKeihiSettingPanelPayload(guild, keihiConfig) {
     value: dataMap[f.key] || f.fallback
   }));
 
-  // PanelBuilder を使用して構築
-  const builder = PanelBuilder.build({
-    title: KEIHI_SETTING_PANEL_SCHEMA.title,
-    description: KEIHI_SETTING_PANEL_SCHEMA.description,
-    color: KEIHI_SETTING_PANEL_SCHEMA.color,
-    fields: embedFields
-  });
+  const builder = new PanelBuilder()
+    .setTitle(KEIHI_SETTING_PANEL_SCHEMA.title)
+    .setDescription(KEIHI_SETTING_PANEL_SCHEMA.description)
+    .setColor(Theme.COLORS.BRAND)
+    .addFields(embedFields);
 
-  // ボタンを追加 (Schema定義が2次元配列前提か確認しつつ追加)
-  if (KEIHI_SETTING_PANEL_SCHEMA.buttons) {
-    if (Array.isArray(KEIHI_SETTING_PANEL_SCHEMA.buttons[0])) {
-      // 2次元配列 (複数行)
-      KEIHI_SETTING_PANEL_SCHEMA.buttons.forEach(row => builder.addButtons(row));
-    } else {
-      // 1次元配列 (1行)
-      builder.addButtons(KEIHI_SETTING_PANEL_SCHEMA.buttons);
-    }
-  }
+  const buttons = Array.isArray(KEIHI_SETTING_PANEL_SCHEMA.buttons[0])
+    ? KEIHI_SETTING_PANEL_SCHEMA.buttons.flat()
+    : KEIHI_SETTING_PANEL_SCHEMA.buttons;
 
-  return builder.toJSON();
+  return builder.addButtons(buttons).toJSON();
 }
 
 async function postKeihiSettingPanel(interaction) {
   const guild = interaction.guild;
-  const guildId = guild.id;
-
   if (!interaction.deferred && !interaction.replied) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   }
 
-  const keihiConfig = await repo.getGlobalConfig(guildId);
+  const keihiConfig = await repo.getGlobalConfig(guild.id);
   const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
 
   const panelInfo = keihiConfig.configPanel || {};
@@ -114,117 +70,24 @@ async function postKeihiSettingPanel(interaction) {
         const message = await channel.messages.fetch(panelInfo.messageId);
         if (message) {
           await message.edit(payload);
-          await interaction.editReply({
-            content: '経費設定パネルを更新しました。'
-          });
-          await sendCommandLog(interaction, {
-            title: '経費設定パネル更新',
-            description: '既存パネルを更新しました。',
-          }).catch(() => { });
+          await interaction.editReply({ content: '✅ 経費設定パネルを更新しました。' });
           return;
         }
       }
     } catch (err) {
-      logger.warn(
-        '[keihi/setting/panel] パネル更新失敗、再作成します',
-        err,
-      );
+      logger.warn('[KeihiSetting] パネル更新失敗、再送します', err);
     }
   }
 
   const sent = await interaction.channel.send(payload);
-  keihiConfig.configPanel = {
-    channelId: sent.channelId,
-    messageId: sent.id,
-  };
-  await repo.save(guildId, keihiConfig);
+  keihiConfig.configPanel = { channelId: sent.channelId, messageId: sent.id };
+  await repo.save(guild.id, keihiConfig);
 
-  await interaction.editReply({
-    content: '経費設定パネルを送信しました。',
-  });
-  await sendCommandLog(interaction, {
-    title: '経費設定パネル作成',
-    description: '新しく経費設定パネルを送信しました。',
-  }).catch(() => { });
-
+  await interaction.editReply({ content: '✅ 経費設定パネルを送信しました。' });
   return sent;
 }
 
-async function refreshKeihiSettingPanelMessage(guild, keihiConfig) {
-  const panelInfo = keihiConfig.configPanel;
-  if (!panelInfo?.channelId || !panelInfo?.messageId) return;
-
-  const channel = await guild.channels.fetch(panelInfo.channelId).catch(() => null);
-  if (!channel || !channel.isTextBased()) return;
-
-  const payload = await buildKeihiSettingPanelPayload(guild, keihiConfig);
-  const message = await channel.messages.fetch(panelInfo.messageId).catch(() => null);
-  if (message) {
-    await message.edit(payload).catch(() => { });
-  }
-}
-
-async function handleSettingInteraction(interaction) {
-  const customId = interaction.customId || '';
-
-  if (interaction.isButton()) {
-    if (customId === IDS.BTN_SET_PANEL) {
-      return handleSetPanelButton(interaction);
-    }
-    if (customId === IDS.BTN_SET_APPROVER) {
-      return handleSetApproverButton(interaction);
-    }
-    if (customId === IDS.BTN_EXPORT_CSV || customId === IDS.BUTTON_EXPORT_CSV) {
-      return handleExportCsvButton(interaction);
-    }
-    if (
-      customId === IDS.BUTTON_CSV_RANGE_DAILY ||
-      customId === IDS.BUTTON_CSV_RANGE_MONTHLY ||
-      customId === IDS.BUTTON_CSV_RANGE_YEARLY ||
-      customId === IDS.BUTTON_CSV_RANGE_QUARTER
-    ) {
-      return handleCsvFlowInteraction(interaction);
-    }
-    return;
-  }
-
-  if (interaction.isAnySelectMenu()) {
-    if (customId === IDS.SEL_STORE_FOR_PANEL) {
-      return handleStoreForPanelSelect(interaction);
-    }
-    if (customId.startsWith(IDS.PANEL_CHANNEL_PREFIX)) {
-      return handlePanelChannelSelect(
-        interaction,
-        refreshKeihiSettingPanelMessage,
-      );
-    }
-    if (customId === IDS.SEL_APPROVER_ROLES) {
-      return handleApproverRolesSelect(interaction);
-    }
-    if (
-      customId === IDS.SELECT_STORE_FOR_CSV ||
-      customId === IDS.SELECT_CSV_TARGET
-    ) {
-      return handleCsvFlowInteraction(interaction);
-    }
-  }
-}
-
-async function sendKeihiPanel() {
-  return null;
-}
-
-async function handleKeihiSettingInteraction(...args) {
-  const interaction = args[0];
-  return handleSettingInteraction(interaction);
-}
-
 module.exports = {
-  resolveStoreName,
   buildKeihiSettingPanelPayload,
   postKeihiSettingPanel,
-  refreshKeihiSettingPanelMessage,
-  sendKeihiPanel,
-  handleKeihiSettingInteraction,
-  handleSettingInteraction,
 };

@@ -19,11 +19,10 @@ class LocalStorage extends StorageInterface {
      * 論理パスをローカルファイルパスに変換
      */
     _toLocalPath(logicalPath) {
-        // "GCS/..." などのプレフィックスがあれば除去してローカルパスを解決
-        let stripped = logicalPath;
-        if (typeof logicalPath === 'string') {
-            if (logicalPath.startsWith('GCS/')) stripped = logicalPath.slice(4);
-            else if (logicalPath.startsWith('GCS\\')) stripped = logicalPath.slice(4);
+        // 論理パスに 'GCS/' が含まれる場合は除去 (互換性のため残すが、基本は直通にする)
+        let stripped = logicalPath || '';
+        if (typeof stripped === 'string') {
+            stripped = stripped.replace(/^[Gg][Cc][Ss][\\/]/, '');
         }
         return path.join(this.localRoot, stripped);
     }

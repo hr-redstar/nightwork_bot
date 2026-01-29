@@ -4,9 +4,8 @@
  * 売上機能のビジネスロジック
  */
 
-const BaseService = require('../../structures/BaseService');
+const StoreServiceBase = require('../common/StoreServiceBase');
 const repo = require('./UriageRepository');
-const { loadStoreRoleConfig } = require('../../utils/config/storeRoleConfigManager');
 const logger = require('../../utils/logger');
 
 /**
@@ -16,7 +15,7 @@ const logger = require('../../utils/logger');
  * @property {string} [csvUpdatedAt]
  */
 
-class UriageService extends BaseService {
+class UriageService extends StoreServiceBase {
     /**
      * 設定パネル用のデータを準備
      * @param {import('discord.js').Guild} guild
@@ -24,34 +23,12 @@ class UriageService extends BaseService {
     async prepareSettingPanelData(guild) {
         const guildId = guild.id;
         const config = await repo.getGlobalConfig(guildId);
-
-        let storeRoleConfig = null;
-        try {
-            storeRoleConfig = await loadStoreRoleConfig(guildId);
-        } catch (err) {
-            logger.warn('[UriageService] storeRoleConfig 読み込み失敗', err);
-        }
+        const storeRoleConfig = await this.loadStoreRoleConfig(guildId);
 
         return {
             config,
             storeRoleConfig
         };
-    }
-
-    /**
-     * ロールIDの配列をメンション文字列に変換
-     * @param {import('discord.js').Guild} guild
-     * @param {string[]} ids
-     * @returns {string | null}
-     */
-    roleMentionFromIds(guild, ids = []) {
-        const mentions = ids
-            .map((id) => {
-                const role = guild.roles.cache.get(id);
-                return role ? `<@&${role.id}>` : null;
-            })
-            .filter(Boolean);
-        return mentions.length ? mentions.join(' ') : null;
     }
 
     /**
@@ -62,42 +39,83 @@ class UriageService extends BaseService {
      * @returns {string}
      */
     resolveApproverMention(guild, storeRoleConfig, config) {
-        const positionRoles =
-            storeRoleConfig?.positionRoles || storeRoleConfig?.positionRoleMap || {};
+        return super.resolveApproverMention(
+            guild,
+            storeRoleConfig,
+            config.approverPositionIds,
+            config.approverRoleIds
+        );
+    }
 
-        const positionLookup = (/** @type {string} */ positionId) => {
-            const roles = storeRoleConfig?.roles || storeRoleConfig?.positions || [];
-            const found = Array.isArray(roles)
-                ? roles.find(
-                    (/** @type {any} */ r) => String(r.id ?? r.positionId ?? r.position) === String(positionId)
-                )
-                : null;
-            if (found && found.name) return found.name;
-            return typeof positionId === 'string' ? positionId : String(positionId);
-        };
+    /**
+     * 売上操作権限チェック (Keihi パターン踏襲)
+     */
+    checkPermission(action, member, requesterId, uriageConfig) {
+        const approverRoleIds = this._collectApproverRoleIds(uriageConfig);
+        const memberRoleIds = new Set(member.roles.cache.keys());
+        const isApprover = approverRoleIds.some((id) => memberRoleIds.has(id));
 
-        const positionIds = config.approverPositionIds || [];
-        const fallbackRoleIds = config.approverRoleIds || [];
-
-        const lines = [];
-
-        if (positionIds.length) {
-            for (const posId of positionIds) {
-                const mention = this.roleMentionFromIds(
-                    guild,
-                    Array.isArray(positionRoles[posId])
-                        ? positionRoles[posId]
-                        : positionRoles[posId] ? [positionRoles[posId]] : []
-                );
-                const name = positionLookup(posId);
-                lines.push(`${name}: ${mention || '未紐付ロール'}`);
+        if (action === 'approve') {
+            if (!isApprover) {
+                return { ok: false, message: 'この売上報告を承認する権限がありません。' };
             }
-        } else if (fallbackRoleIds.length) {
-            const mentions = this.roleMentionFromIds(guild, fallbackRoleIds);
-            lines.push(mentions || '役職IDあり');
+        } else {
+            const isOriginalRequester = requesterId === member.id;
+            if (!isApprover && !isOriginalRequester) {
+                return { ok: false, message: 'この売上報告を操作する権限がありません。' };
+            }
+        }
+        return { ok: true, message: null };
+    }
+
+    _collectApproverRoleIds(uriageConfig) {
+        const set = new Set();
+        const sources = [uriageConfig.approverRoleIds, uriageConfig.approvalRoles];
+        for (const src of sources) {
+            if (Array.isArray(src)) {
+                src.forEach(id => id && set.add(id));
+            }
+        }
+        return Array.from(set);
+    }
+
+    updateRecordStatus(records, targetId, newStatus, metadata) {
+        if (!Array.isArray(records)) return null;
+
+        const record = records.find(r => String(r.id) === String(targetId));
+        if (!record) return null;
+
+        const prevStatus = record.status;
+        const amount = Number(record.amount || 0);
+
+        record.status = newStatus;
+        record.statusJa = newStatus === 'APPROVED' ? '承認' : '報告中';
+        record.lastUpdated = new Date().toISOString();
+
+        if (newStatus === 'APPROVED' && metadata.approver) {
+            record.approvedById = metadata.approver.id;
+            record.approvedBy = metadata.approver.displayName || metadata.approver.user?.username;
+            record.approvedAt = record.lastUpdated;
         }
 
-        return lines.length ? lines.join('\n') : '未設定';
+        return { record, prevStatus, amount };
+    }
+
+    recalculateTotal(dataObject, type) {
+        if (type === 'daily') {
+            if (!Array.isArray(dataObject.reports)) return;
+            dataObject.totalApprovedAmount = dataObject.reports
+                .filter(r => r.status === 'APPROVED')
+                .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        } else if (type === 'monthly') {
+            if (!dataObject.byDay) return;
+            dataObject.totalApprovedAmount = Object.values(dataObject.byDay)
+                .reduce((sum, v) => sum + (Number(v) || 0), 0);
+        } else if (type === 'yearly') {
+            if (!dataObject.byMonth) return;
+            dataObject.totalApprovedAmount = Object.values(dataObject.byMonth)
+                .reduce((sum, v) => sum + (Number(v) || 0), 0);
+        }
     }
 }
 

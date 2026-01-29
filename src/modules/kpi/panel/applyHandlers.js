@@ -1,5 +1,5 @@
 const { MessageFlags } = require('discord.js');
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 
 /**
  * KPI申請開始処理

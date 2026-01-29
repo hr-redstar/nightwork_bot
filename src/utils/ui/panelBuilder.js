@@ -5,94 +5,113 @@
 
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, StringSelectMenuBuilder, ButtonStyle } = require('discord.js');
 
+const DEFAULT_COLOR = '#2b2d31'; // Premium Dark Theme
+
 class PanelBuilder {
     constructor() {
-        this.embed = new EmbedBuilder().setTimestamp();
+        this.embed = new EmbedBuilder().setTimestamp().setColor(DEFAULT_COLOR);
         this.rows = [];
     }
 
     // --- Embed 設定 ---
     setTitle(title) {
-        this.embed.setTitle(title);
+        if (title) this.embed.setTitle(title.slice(0, 256));
         return this;
     }
 
     setDescription(description) {
-        this.embed.setDescription(description);
+        if (description) this.embed.setDescription(description.slice(0, 4096));
         return this;
     }
 
     setColor(color) {
-        this.embed.setColor(color);
+        if (color) this.embed.setColor(color);
+        return this;
+    }
+
+    setThumbnail(url) {
+        if (url) this.embed.setThumbnail(url);
+        return this;
+    }
+
+    setImage(url) {
+        if (url) this.embed.setImage(url);
         return this;
     }
 
     addFields(fields) {
-        if (fields && fields.length > 0) {
-            this.embed.addFields(fields);
+        if (Array.isArray(fields)) {
+            this.embed.addFields(fields.map(f => ({
+                name: String(f.name).slice(0, 256),
+                value: String(f.value).slice(0, 1024),
+                inline: !!f.inline
+            })));
         }
         return this;
     }
 
     setFooter(text, iconURL) {
-        this.embed.setFooter({ text, iconURL });
+        if (text) this.embed.setFooter({ text: text.slice(0, 2048), iconURL });
         return this;
     }
 
     setAuthor(name, iconURL, url) {
-        this.embed.setAuthor({ name, iconURL, url });
+        if (name) this.embed.setAuthor({ name: name.slice(0, 256), iconURL, url });
         return this;
     }
 
     // --- Component 設定 ---
 
     /**
-     * ボタンの行を追加
+     * ボタンを追加（自動的に5つずつ行分割される）
      * @param {Array<{label: string, customId: string, style?: ButtonStyle, emoji?: string, url?: string, disabled?: boolean}>} buttons 
      */
     addButtons(buttons) {
-        const row = new ActionRowBuilder();
-        const components = buttons.map(btn => {
-            const builder = new ButtonBuilder()
-                .setLabel(btn.label)
-                .setStyle(btn.style || ButtonStyle.Primary)
-                .setDisabled(!!btn.disabled);
+        if (!buttons || !buttons.length) return this;
 
-            if (btn.emoji) builder.setEmoji(btn.emoji);
+        // 5つずつに分割して追加
+        for (let i = 0; i < buttons.length; i += 5) {
+            const chunk = buttons.slice(i, i + 5);
+            const row = new ActionRowBuilder();
 
-            if (btn.style === ButtonStyle.Link && btn.url) {
-                builder.setURL(btn.url);
-            } else {
-                builder.setCustomId(btn.customId);
-            }
-            return builder;
-        });
+            const components = chunk.map(btn => {
+                const builder = new ButtonBuilder()
+                    .setLabel(btn.label?.slice(0, 80))
+                    .setStyle(btn.style || ButtonStyle.Primary)
+                    .setDisabled(!!btn.disabled);
 
-        row.addComponents(components);
-        this.rows.push(row);
+                if (btn.emoji) builder.setEmoji(btn.emoji);
+
+                if (btn.style === ButtonStyle.Link && btn.url) {
+                    builder.setURL(btn.url);
+                } else {
+                    const finalId = btn.customId || btn.id;
+                    if (finalId) {
+                        builder.setCustomId(String(finalId));
+                    }
+                }
+                return builder;
+            });
+
+            row.addComponents(components);
+            this.rows.push(row);
+        }
         return this;
     }
 
     /**
      * セレクトメニューを追加
-     * @param {object} options
-     * @param {string} options.customId
-     * @param {Array<{label: string, value: string, description?: string, default?: boolean, emoji?: string}>} options.options
-     * @param {string} [options.placeholder]
-     * @param {number} [options.minValues]
-     * @param {number} [options.maxValues]
-     * @param {boolean} [options.disabled]
      */
     addSelectMenu({ customId, options, placeholder, minValues, maxValues, disabled }) {
         const row = new ActionRowBuilder();
         const select = new StringSelectMenuBuilder()
             .setCustomId(customId)
-            .setPlaceholder(placeholder || '選択してください')
-            .addOptions(options.map(opt => ({
-                label: opt.label,
-                value: opt.value,
-                description: opt.description,
-                default: opt.default,
+            .setPlaceholder((placeholder || '選択してください').slice(0, 150))
+            .addOptions(options.slice(0, 25).map(opt => ({
+                label: String(opt.label).slice(0, 100),
+                value: String(opt.value).slice(0, 100),
+                description: opt.description?.slice(0, 100),
+                default: !!opt.default,
                 emoji: opt.emoji
             })))
             .setDisabled(!!disabled);
@@ -109,53 +128,53 @@ class PanelBuilder {
      * ペイロードを生成 (reply / send / edit 用)
      */
     toJSON() {
+        // Discord API 制限: 1メッセージ最大5行(ActionRows)
         return {
             embeds: [this.embed],
-            components: this.rows
+            components: this.rows.slice(0, 5)
         };
     }
 
-    // --- Static Utility ---
-
     /**
-     * オブジェクト定義からパネルを生成
-     * @param {object} def
-     * @param {string} def.title
-     * @param {string} [def.description]
-     * @param {number|string} [def.color]
-     * @param {Array} [def.fields]
-     * @param {Array} [def.components] - Raw ActionRows or structured Button/Select defs (Simplification mainly for Embed)
+     * オブジェクト定義からパネルを一括生成
      */
     static build(def) {
         const builder = new PanelBuilder()
             .setTitle(def.title)
-            .setColor(def.color);
+            .setColor(def.color)
+            .setDescription(def.description)
+            .addFields(def.fields);
 
-        if (def.description) builder.setDescription(def.description);
-        if (def.fields) builder.addFields(def.fields);
+        if (def.footer) {
+            if (typeof def.footer === 'string') builder.setFooter(def.footer);
+            else builder.setFooter(def.footer.text, def.footer.iconURL);
+        }
 
-        // componentsは複雑なので、基本はビルダーメソッドを使うことを推奨するか、
-        // ここで再帰的にパースするか。
-        // 一旦、Builderインスタンスを返してチェーンさせる形にする
+        if (def.thumbnail) builder.setThumbnail(def.thumbnail);
+        if (def.image) builder.setImage(def.image);
+
         return builder;
     }
 }
 
 /**
- * 簡易ヘルパー (panelImplementation.js との互換性などを考慮)
+ * 簡易ヘルパー
  * @param {object} options
+ * @returns {import('discord.js').BaseMessageOptions}
  */
 function buildPanel(options) {
     const builder = PanelBuilder.build(options);
 
-    // buttons プロパティがあれば追加 (簡易フォーマット: 行分割などは自動ではないが、配列の配列なら対応可能)
     if (options.buttons) {
-        // もし2次元配列なら複数行、1次元なら1行とみなす
-        if (Array.isArray(options.buttons[0])) {
-            options.buttons.forEach(row => builder.addButtons(row));
-        } else {
-            builder.addButtons(options.buttons);
-        }
+        // ネスト配列（複数行指定）でもフラット配列でも自動分割に任せる
+        const flatButtons = Array.isArray(options.buttons[0])
+            ? options.buttons.flat()
+            : options.buttons;
+        builder.addButtons(flatButtons);
+    }
+
+    if (options.selectMenu) {
+        builder.addSelectMenu(options.selectMenu);
     }
 
     return builder.toJSON();

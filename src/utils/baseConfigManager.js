@@ -32,20 +32,20 @@ class BaseConfigManager {
 
     /**
      * ギルド共通設定のパスを生成
-     * GCS/{guildId}/{baseDir}/{fileName}
+     * {guildId}/{baseDir}/{fileName}
      */
     getGlobalPath(guildId) {
         if (!guildId) throw new Error(`[${this.constructor.name}] guildId is required`);
-        return path.join('GCS', guildId, this.baseDir, this.fileName);
+        return path.join(guildId, this.baseDir, this.fileName);
     }
 
     /**
      * 店舗別設定のパスを生成
-     * GCS/{guildId}/{baseDir}/{storeId}/{fileName}
+     * {guildId}/{baseDir}/{storeId}/{fileName}
      */
     getStorePath(guildId, storeId) {
         if (!guildId || !storeId) throw new Error(`[${this.constructor.name}] guildId and storeId are required`);
-        return path.join('GCS', guildId, this.baseDir, storeId, this.fileName);
+        return path.join(guildId, this.baseDir, storeId, this.fileName);
     }
 
     /**

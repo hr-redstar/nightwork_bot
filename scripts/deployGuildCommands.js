@@ -28,7 +28,7 @@ async function deployCommands() {
     return;
   }
 
-  logger.info(`📜 ${commands.length}個のギルドコマンドを登録します...`);
+  logger.silly(`📜 ${commands.length}個のギルドコマンドを登録します...`);
 
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   // 重複を除外するために Set を利用する
@@ -37,7 +37,7 @@ async function deployCommands() {
   for (const guildId of guildIds) {
     try {
       const data = await rest.put(Routes.applicationGuildCommands(CLIENT_ID, guildId), { body: commands });
-      logger.info(`✅ ギルド [${guildId}] に ${data.length}個のコマンドを登録しました。`);
+      logger.silly(`✅ ギルド [${guildId}] に ${data.length}個のコマンドを登録しました。`);
     } catch (error) {
       logger.error(`❌ ギルド [${guildId}] へのコマンド登録に失敗しました:`, error);
     }

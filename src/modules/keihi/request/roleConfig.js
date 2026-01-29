@@ -43,23 +43,26 @@ function buildPositionOptions(storeRoleConfig) {
 // 閲覧役職ボタン → セレクト表示
 // ----------------------------------------------------
 async function openViewRolesSelect(interaction, storeId) {
+  // ACK (3秒対策)
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => { });
+
   const guildId = interaction.guild.id;
 
   const storeRoleConfig = await loadStoreRoleConfig(guildId).catch(() => null);
   if (!storeRoleConfig) {
-    await interaction.reply({
+    await interaction.editReply({
       content:
         '店舗_役職_ロールの設定が見つかりません。先に `/設定` で役職設定を行ってください。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
     return;
   }
 
   const optionsData = buildPositionOptions(storeRoleConfig);
   if (!optionsData.length) {
-    await interaction.reply({
+    await interaction.editReply({
       content: '登録されている役職がありません。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
     return;
   }
@@ -85,10 +88,9 @@ async function openViewRolesSelect(interaction, storeId) {
 
   const row = new ActionRowBuilder().addComponents(select);
 
-  await interaction.reply({
+  await interaction.editReply({
     content: `店舗「${storeId}」のスレッド閲覧役職を選択してください。`,
     components: [row],
-    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -96,23 +98,26 @@ async function openViewRolesSelect(interaction, storeId) {
 // 申請役職ボタン → セレクト表示
 // ----------------------------------------------------
 async function openRequestRolesSelect(interaction, storeId) {
+  // ACK (3秒対策)
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => { });
+
   const guildId = interaction.guild.id;
 
   const storeRoleConfig = await loadStoreRoleConfig(guildId).catch(() => null);
   if (!storeRoleConfig) {
-    await interaction.reply({
+    await interaction.editReply({
       content:
         '店舗_役職_ロールの設定が見つかりません。先に `/設定` で役職設定を行ってください。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
     return;
   }
 
   const optionsData = buildPositionOptions(storeRoleConfig);
   if (!optionsData.length) {
-    await interaction.reply({
+    await interaction.editReply({
       content: '登録されている役職がありません。',
-      flags: MessageFlags.Ephemeral,
+      components: [],
     });
     return;
   }
@@ -137,10 +142,9 @@ async function openRequestRolesSelect(interaction, storeId) {
 
   const row = new ActionRowBuilder().addComponents(select);
 
-  await interaction.reply({
+  await interaction.editReply({
     content: `店舗「${storeId}」の申請役職を選択してください。`,
     components: [row],
-    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -203,11 +207,11 @@ async function handleViewRoleSelect(interaction) {
   const roleMentions =
     viewRoleIds.length > 0
       ? viewRoleIds
-          .map((rid) => {
-            const role = guild.roles.cache.get(rid);
-            return role ? `<@&${role.id}>` : `ロールID: ${rid}`;
-          })
-          .join('\n')
+        .map((rid) => {
+          const role = guild.roles.cache.get(rid);
+          return role ? `<@&${role.id}>` : `ロールID: ${rid}`;
+        })
+        .join('\n')
       : 'ロール未設定';
 
   await sendSettingLog(interaction, {
@@ -279,11 +283,11 @@ async function handleRequestRoleSelect(interaction) {
   const roleMentions =
     requestRoleIds.length > 0
       ? requestRoleIds
-          .map((rid) => {
-            const role = guild.roles.cache.get(rid);
-            return role ? `<@&${role.id}>` : `ロールID: ${rid}`;
-          })
-          .join('\n')
+        .map((rid) => {
+          const role = guild.roles.cache.get(rid);
+          return role ? `<@&${role.id}>` : `ロールID: ${rid}`;
+        })
+        .join('\n')
       : 'ロール未設定';
 
   await sendSettingLog(interaction, {

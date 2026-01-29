@@ -1,27 +1,40 @@
 /**
  * src/structures/BaseRepository.js
- * データアクセスの基底クラス
- * ※現在はConfigManager等を使用しているが、将来的にDB移行などがあった際に
- *   ビジネスロジックへの影響を最小限にするための抽象レイヤー
+ * リポジトリ層の基底クラス (データアクセス標準化)
  */
 
+const StorageFactory = require('../utils/storage/StorageFactory');
+
 class BaseRepository {
-    constructor(manager) {
-        this.manager = manager;
+    /**
+     * @param {string} moduleName モジュール名 (例: 'level', 'welcome')
+     * @param {string} fileName ファイル名 (例: 'config.json')
+     */
+    constructor(moduleName, fileName = 'config.json') {
+        this.moduleName = moduleName;
+        this.fileName = fileName;
+        this.storage = StorageFactory.getInstance();
     }
 
-    async find(guildId, storeId) {
-        if (storeId) {
-            return await this.manager.loadStore(guildId, storeId);
-        }
-        return await this.manager.loadGlobal(guildId);
+    /**
+     * パス生成 (GCS/{guildId}/{moduleName}/{fileName})
+     */
+    getPath(guildId) {
+        return `GCS/${guildId}/${this.moduleName}/${this.fileName}`;
     }
 
-    async save(guildId, data, storeId) {
-        if (storeId) {
-            return await this.manager.saveStore(guildId, storeId, data);
-        }
-        return await this.manager.saveGlobal(guildId, data);
+    /**
+     * データ読み込み
+     */
+    async load(guildId, defaultValue = {}) {
+        return await this.storage.readJSON(this.getPath(guildId), defaultValue);
+    }
+
+    /**
+     * データ保存
+     */
+    async save(guildId, data) {
+        return await this.storage.writeJSON(this.getPath(guildId), data);
     }
 }
 

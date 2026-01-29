@@ -1,7 +1,7 @@
-// src/events/messageCreate.js
 const { Events } = require('discord.js');
 const { handleChatGptThreadMessage } = require('../modules/chat_gpt/execute/threadMessageHandler');
 const { handleAnswerChannelMessage } = require('../modules/chat_gpt/execute/answerChannelMessageHandler');
+const levelService = require('../modules/level/LevelService');
 
 module.exports = {
   name: Events.MessageCreate,
@@ -14,7 +14,7 @@ module.exports = {
     // （こちらも内部で対象チャンネルか判定するため、if分岐は不要）
     await handleAnswerChannelMessage(message);
 
-    // ここに他の message 系処理があれば続けて呼ぶ
-    // 例: メンション反応 / くじ引き など
+    // 3. レベルXP処理
+    await levelService.handleChatMessage(message);
   },
 };

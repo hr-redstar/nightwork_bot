@@ -23,14 +23,7 @@ module.exports = {
 
   async execute(interaction) {
     try {
-      logger.info(`[INTERACTION] PID:${process.pid} isBtn:${interaction.isButton()} isSel:${interaction.isAnySelectMenu()} isModal:${interaction.isModalSubmit()} customId:${interaction.customId || ''}`);
-
-      if (!interaction) {
-        logger.warn('[interactionCreate] interaction が未定義です');
-        return;
-      }
-
-      // --- ログ共通出力 ---
+      // --- ログ共通出力 (改善版：種類を明示) ---
       const type = interaction.isChatInputCommand()
         ? 'コマンド'
         : interaction.isButton()
@@ -43,6 +36,7 @@ module.exports = {
 
       const identifier = interaction.commandName || interaction.customId || 'unknown';
 
+      logger.info(`[INTERACTION] Type:${type} PID:${process.pid} customId:${interaction.customId || ''}`);
       logger.info(
         `[${interaction.guild?.name || 'DM'}] ${type} > ${identifier} by ${interaction.user.tag} (${interaction.user.id})`
       );
@@ -86,12 +80,16 @@ module.exports = {
       // ============================================================
       // fallback: 未対応
       // ============================================================
+      // ⚠️ AppRouter が true を返さなくても、内部で showModal や reply が行われている可能性がある
       if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
         logger.warn(`[interactionCreate] 未処理のインタラクション: ${interaction.customId}`);
-        return await interaction.reply({
-          content: '⚠️ 未対応の操作です。',
-          flags: MessageFlags.Ephemeral,
-        });
+        try {
+          await interaction.reply({
+            flags: MessageFlags.Ephemeral,
+          });
+        } catch (err) {
+          logger.debug('[interactionCreate] Fallback reply failed (likely already acknowledged):', err.message);
+        }
       }
     } catch (err) {
       logger.error('[interactionCreate] ルートエラー:', err);

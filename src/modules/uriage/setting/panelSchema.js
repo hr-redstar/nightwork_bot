@@ -1,9 +1,10 @@
 const { ButtonStyle } = require('discord.js');
 const { IDS } = require('./ids');
+const Theme = require('../../../utils/ui/Theme');
 
 const URIAGE_SETTING_PANEL_SCHEMA = {
-    title: '売上設定パネル',
-    color: '#2ecc71',
+    title: '💰 売上設定パネル',
+    color: Theme.COLORS.BRAND_HEX,
     description: null,
     fields: [
         { key: 'panels', name: '売上報告パネル一覧', fallback: '未設置\n「売上報告パネル設置」ボタンからパネルを作成してください。' },

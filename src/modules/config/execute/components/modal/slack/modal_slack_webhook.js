@@ -12,14 +12,13 @@ const { getGuildConfig, saveGuildConfig } = require('../../../../../../utils/con
 const { sendSettingLog } = require('../../../../../../utils/config/configLogger');
 const { sendAdminLog } = require('../../../../../../utils/config/configLogger');
 const { sendConfigPanel } = require('../../../configPanel');
+const showModalSafe = require('../../../../../../utils/showModalSafe');
 
 module.exports = {
   customId: 'config_slack_webhook_modal',
 
   async show(interaction) {
-    const guildId = interaction.guild.id;
-    const config = await getGuildConfig(guildId);
-
+    // 💡 Platinum Rule: showModal は即座に呼ぶ（3秒ルール厳守）
     const modal = new ModalBuilder()
       .setCustomId('config_slack_webhook_modal_submit')
       .setTitle('🤖 Slack Webhook 設定');
@@ -29,12 +28,11 @@ module.exports = {
       .setLabel('Slack Webhook URL')
       .setStyle(TextInputStyle.Short)
       .setRequired(true)
-      .setPlaceholder('https://hooks.slack.com/services/xxxx')
-      .setValue(config.slackWebhookUrl || '');
+      .setPlaceholder('https://hooks.slack.com/services/xxxx');
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
-    return interaction.showModal(modal);
+    return showModalSafe(interaction, modal);
   },
 
   async handle(interaction) {

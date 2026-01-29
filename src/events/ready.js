@@ -29,11 +29,11 @@ module.exports = {
 
       const tag = client.user?.tag || 'unknown user';
       const guildCount = client.guilds.cache.size;
-      logger.info(`✅ ログイン完了: ${tag} | 接続ギルド数: ${guildCount}`);
+      logger.silly(`✅ ログイン完了: ${tag} | 接続ギルド数: ${guildCount}`);
 
       // ⭐⭐⭐ ここでマイグレーション実行 ⭐⭐⭐
       // try {
-      //   logger.info('🔧 全ギルド設定マイグレーション開始…');
+      //   logger.silly('🔧 全ギルド設定マイグレーション開始…');
       //   await migrateAllGuilds();
       // } catch (e) {
       //   logger.error('[ready] マイグレーション中にエラー:', e);
@@ -42,13 +42,13 @@ module.exports = {
       // === 出退勤cron起動 ===
       try {
         initSyutCron(client);
-        logger.info('⏰ 出退勤自動通知cron 起動済み');
+        logger.silly('⏰ 出退勤自動通知cron 起動済み');
       } catch (e) {
         logger.warn('[ready] 出退勤cron 初期化エラー:', e.message);
       }
 
       const env = process.env.NODE_ENV || 'development';
-      logger.info(`🌐 環境: ${env} | GUILD_ID: ${process.env.GUILD_ID || 'N/A'}`);
+      logger.silly(`🌐 環境: ${env} | GUILD_ID: ${process.env.GUILD_ID || 'N/A'}`);
 
       client.emit('clientReady');
     } catch (err) {

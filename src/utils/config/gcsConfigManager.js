@@ -21,6 +21,23 @@ function defaultGuildConfig() {
     slackWebhookUrl: null,
     commandExecutorRoleId: null,
     configPanelMessageId: null,
+    welcome: {
+      channelId: null,
+      message: null,
+      randomImage: {
+        enabled: false,
+        images: []
+      }
+    },
+    level: {
+      channelId: null,
+      message: null,
+      xp: {
+        chat: { type: 'count', length: 20, xp: 5 },
+        vc: { perMinute: 1 },
+        work: { enabled: false }
+      }
+    },
     configMetadata: {
       version: CURRENT_CONFIG_VERSION,
       updatedAt: new Date().toISOString(),

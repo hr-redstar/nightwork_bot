@@ -11,11 +11,13 @@ const {
 } = require('discord.js');
 
 const { addRole } = require('../../../../../utils/config/storeRoleConfigManager');
+const showModalSafe = require('../../../../../utils/showModalSafe');
 
 module.exports = {
   customId: 'CONFIG_ROLE_ADD_MODAL',
 
   show(interaction) {
+    // 💡 Platinum Rule: showModal は即座に呼ぶ（3秒ルール厳守）
     const modal = new ModalBuilder()
       .setCustomId('CONFIG_ROLE_ADD_MODAL')
       .setTitle('🎭 役職を追加');
@@ -29,7 +31,7 @@ module.exports = {
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
-    return interaction.showModal(modal);
+    return showModalSafe(interaction, modal);
   },
 
   async handle(interaction) {

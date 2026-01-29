@@ -2,13 +2,21 @@ const { IDS: REQ_IDS } = require('../request/requestIds');
 const { STATUS_IDS } = require('../request/statusIds');
 const { IDS: REQ_MAIN_IDS } = require('../request/ids');
 
-const reqStart = require('../request/requestStart');
+const reqStart = require('../request/handlers/RequestStartHandler');
 const reqModal = require('../request/requestModal');
 const reqApprove = require('../request/action_approve');
 const reqModify = require('../request/action_modify');
 const reqDelete = require('../request/action_delete');
 const reqItem = require('../request/itemConfig');
 const reqRole = require('../request/roleConfig');
+
+// 🌟 Platinum Handlers (New Architecture)
+const { handleApprove: handleApprovePlatinum } = require('../handlers/ApprovalHandler');
+const { handleModifyButton: handleModifyButtonPlatinum, handleModifyModalSubmit: handleModifyModalSubmitPlatinum } = require('../handlers/ModifyHandler');
+const { handleDelete: handleDeletePlatinum } = require('../handlers/DeleteHandler');
+
+const reqItemSelectHandler = require('../request/handlers/RequestItemSelectHandler');
+const itemConfigHandler = require('../request/handlers/ItemConfigModalHandler');
 
 /**
  * Registers a route that extracts a parameter using regex.
@@ -17,9 +25,13 @@ const reqRole = require('../request/roleConfig');
  * @param {Function} handler 
  */
 function routeWithParam(router, regex, handler) {
-    router.on(regex, (i) => {
+    router.on(regex, async (i) => {
         const match = i.customId.match(regex);
-        return handler(i, match ? match[1] : null);
+        const param = match ? match[1] : null;
+        if (handler && typeof handler.execute === 'function') {
+            return await handler.execute(i, param);
+        }
+        return await handler(i, param);
     });
 }
 
@@ -30,13 +42,13 @@ module.exports = (router) => {
 
     // --- Request Start (Button on Panel) ---
     // Pattern: keihi:request:btn:request:[storeKey]
-    routeWithParam(router, /^keihi:request:btn:request:(.+)$/, reqStart.handleRequestStart);
-    routeWithParam(router, /^keihi_request:btn:request:(.+)$/, reqStart.handleRequestStart); // Legacy
+    routeWithParam(router, /^keihi:request:btn:request:(.+)$/, reqStart);
+    routeWithParam(router, /^keihi_request:btn:request:(.+)$/, reqStart); // Legacy
 
     // --- Item Configuration (Modal & Button) ---
     // Button: keihi:request:btn:item_config:[storeKey]
-    routeWithParam(router, /^keihi:request:btn:item_config:(.+)$/, reqItem.openItemConfigModal);
-    routeWithParam(router, /^keihi_request:btn:item_config:(.+)$/, reqItem.openItemConfigModal); // Legacy
+    routeWithParam(router, /^keihi:request:btn:item_config:(.+)$/, itemConfigHandler);
+    routeWithParam(router, /^keihi_request:btn:item_config:(.+)$/, itemConfigHandler); // Legacy
 
     // Modal Submit
     const ITEM_MODAL_START = REQ_MAIN_IDS.PREFIX.ITEM_CONFIG_MODAL; // keihi:request:item:config_modal
@@ -68,8 +80,8 @@ module.exports = (router) => {
 
     // --- Request Submission ---
     // Select
-    router.on(REQ_IDS.REQUEST_ITEM_SELECT, (i) => reqStart.handleRequestItemSelect(i));
-    router.on('keihi_request_request_item', (i) => reqStart.handleRequestItemSelect(i)); // Legacy
+    router.on(REQ_IDS.REQUEST_ITEM_SELECT, reqItemSelectHandler);
+    router.on('keihi_request_request_item', reqItemSelectHandler); // Legacy
 
     // Modal
     router.on(id => id.startsWith(REQ_IDS.REQUEST_MODAL), (i) => reqModal.handleRequestModalSubmit(i));
@@ -77,17 +89,17 @@ module.exports = (router) => {
 
 
     // --- Status Actions ---
-    // Approve
-    router.on(id => id.startsWith(STATUS_IDS.APPROVE), (i) => reqApprove.handleApproveButton(i));
-    router.on(id => id.startsWith('keihi_request_approve'), (i) => reqApprove.handleApproveButton(i));
+    // Approve (🌟 Platinum Handler)
+    router.on(id => id.startsWith(STATUS_IDS.APPROVE), handleApprovePlatinum);
+    router.on(id => id.startsWith('keihi_request_approve'), handleApprovePlatinum);
 
-    // Modify
-    router.on(id => id.startsWith(STATUS_IDS.MODIFY), (i) => reqModify.handleModifyButton(i));
-    router.on(id => id.startsWith('keihi_request_modify'), (i) => reqModify.handleModifyButton(i));
-    router.on(id => id.startsWith(STATUS_IDS.MODIFY_MODAL), (i) => reqModify.handleModifyModalSubmit(i));
-    router.on(id => id.startsWith('keihi_request_modify_modal'), (i) => reqModify.handleModifyModalSubmit(i));
+    // Modify (🌟 Platinum Handler)
+    router.on(id => id.startsWith(STATUS_IDS.MODIFY), handleModifyButtonPlatinum);
+    router.on(id => id.startsWith('keihi_request_modify'), handleModifyButtonPlatinum);
+    router.on(id => id.startsWith(STATUS_IDS.MODIFY_MODAL), handleModifyModalSubmitPlatinum);
+    router.on(id => id.startsWith('keihi_request_modify_modal'), handleModifyModalSubmitPlatinum);
 
-    // Delete
-    router.on(id => id.startsWith(STATUS_IDS.DELETE), (i) => reqDelete.handleDeleteButton(i));
-    router.on(id => id.startsWith('keihi_request_delete'), (i) => reqDelete.handleDeleteButton(i));
+    // Delete (🌟 Platinum Handler)
+    router.on(id => id.startsWith(STATUS_IDS.DELETE), handleDeletePlatinum);
+    router.on(id => id.startsWith('keihi_request_delete'), handleDeletePlatinum);
 };

@@ -1,5 +1,4 @@
-﻿﻿// src/commands/10_設定.js
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+﻿﻿const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 const { sendConfigPanel } = require('../modules/config/execute/configPanel');
 
@@ -16,8 +15,17 @@ class ConfigCommand extends BaseCommand {
     // メイン設定パネルを送信
     await sendConfigPanel(interaction.channel);
 
-    // 完了メッセージ（すぐに削除）
-    await interaction.deleteReply();
+    // 完了メッセージ（承認済みの場合のみ削除を試行）
+    // interaction.deleteReply() は webhook 経由なので、
+    // DiscordAPIError[40060]等でローカルの deferred が false のままだと
+    // Discord.js が InteractionNotReplied を投げるのを回避する。
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.deleteReply();
+      }
+    } catch (err) {
+      logger.debug('[ConfigCommand] deleteReply ignored:', err.message);
+    }
   }
 }
 

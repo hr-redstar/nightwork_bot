@@ -1,55 +1,64 @@
+// @ts-check
 /**
  * src/modules/syut/SyutRepository.js
- * 出退勤データのデータアクセスレイヤー
+ * 出退勤データのデータアクセスレイヤー (Platinum Standard)
  */
 
-const BaseRepository = require('../../structures/BaseRepository');
-const {
-    getSyutConfig,
-    saveSyutConfig,
-    getPanelConfig,
-    setPanelConfig,
-    getRoleConfig,
-    setRoleConfig,
-    getDailySyuttaikin,
-    saveDailySyuttaikin
-} = require('../../utils/syut/syutConfigManager');
+const { readJSON, saveJSON } = require('../../utils/gcs');
 
-class SyutRepository extends BaseRepository {
-    constructor() {
-        super(null); // Syut handles path dynamic, so we wrap helpers
+class SyutRepository {
+    /**
+     * @param {string} guildId 
+     */
+    configPath(guildId) {
+        return `${guildId}/syut/config.json`;
     }
 
+    /**
+     * @param {string} guildId 
+     * @param {string} storeName 
+     * @param {string} date YYYY-MM-DD
+     */
+    attendancePath(guildId, storeName, date) {
+        return `${guildId}/syut/attendance/${storeName}/${date}.json`;
+    }
+
+    /**
+     * グローバル設定を取得
+     */
     async getGlobalConfig(guildId) {
-        return await getSyutConfig(guildId);
+        return await readJSON(this.configPath(guildId)) || {
+            castPanelList: {},
+            kurofukuPanelList: {},
+            lastUpdated: null
+        };
     }
 
+    /**
+     * グローバル設定を保存
+     */
     async saveGlobalConfig(guildId, data) {
-        return await saveSyutConfig(guildId, data);
+        data.lastUpdated = new Date().toISOString();
+        await saveJSON(this.configPath(guildId), data);
     }
 
-    async getStorePanelConfig(guildId, type, storeName) {
-        return await getPanelConfig(guildId, type, storeName);
-    }
-
-    async saveStorePanelConfig(guildId, type, storeName, data) {
-        return await setPanelConfig(guildId, type, storeName, data);
-    }
-
-    async getStoreRoleConfig(guildId, type, storeName) {
-        return await getRoleConfig(guildId, type, storeName);
-    }
-
-    async saveStoreRoleConfig(guildId, type, storeName, data) {
-        return await setRoleConfig(guildId, type, storeName, data);
-    }
-
+    /**
+     * 日別出退勤データを取得
+     */
     async getDailyAttendance(guildId, storeName, date) {
-        return await getDailySyuttaikin(guildId, storeName, date);
+        return await readJSON(this.attendancePath(guildId, storeName, date)) || {
+            date,
+            storeName,
+            cast: [],
+            kurofuku: []
+        };
     }
 
+    /**
+     * 日別出退勤データを保存
+     */
     async saveDailyAttendance(guildId, storeName, date, data) {
-        return await saveDailySyuttaikin(guildId, storeName, date, data);
+        await saveJSON(this.attendancePath(guildId, storeName, date), data);
     }
 }
 

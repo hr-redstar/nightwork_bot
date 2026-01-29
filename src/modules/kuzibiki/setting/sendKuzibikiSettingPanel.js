@@ -8,9 +8,12 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    MessageFlags,
 } = require('discord.js');
 
 const logger = require('../../../utils/logger');
+const Theme = require('../../../utils/ui/Theme');
+const { PanelBuilder } = require('../../../utils/ui/PanelBuilder');
 const getBotFooter = require('../../common/utils/embed/getBotFooter');
 const getEmbedColor = require('../../common/utils/embed/getEmbedColor');
 const { readKujiConfig } = require('../../../utils/kuzibiki/kuzibikiStorage');
@@ -54,7 +57,7 @@ async function sendKuzibikiSettingPanel(interaction) {
                     inline: false,
                 }
             )
-            .setColor(getEmbedColor('kuzibiki', config))
+            .setColor(Theme.COLORS.BRAND)
             .setFooter(getBotFooter(interaction))
             .setTimestamp();
 
@@ -88,7 +91,7 @@ async function sendKuzibikiSettingPanel(interaction) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '❌ くじ引き設定パネルの表示に失敗しました。',
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
     }

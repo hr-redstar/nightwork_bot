@@ -18,11 +18,12 @@ const {
   ButtonStyle,
 } = require('discord.js');
 
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 const {
   loadTodaySettings,
   loadAnswerChannels,
-} = require('../../utils/chat_gpt/gcsChatGptManager');
+} = require('../../../utils/chat_gpt/gcsChatGptManager');
+const Theme = require('../../../utils/ui/Theme');
 const { IDS } = require('./ids');
 
 /**
@@ -110,7 +111,7 @@ async function postChatGptSettingPanel(channel) {
   const embed = new EmbedBuilder()
     .setTitle('🤖 ChatGPT設定パネル')
     .setDescription(descLines.join('\n'))
-    .setColor('#00b0f4');
+    .setColor(Theme.COLORS.BRAND_HEX);
 
   // ボタン行
   const row1 = new ActionRowBuilder().addComponents(

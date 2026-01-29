@@ -11,13 +11,13 @@ const {
   MessageFlags,
 } = require('discord.js');
 const { IDS } = require('./ids');
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 const {
   initThreadLog,
   loadThreadLog,
   saveThreadLog,
-} = require('../../utils/chat_gpt/chatGptThreadLogManager');
-const { loadAnswerChannels } = require('../../utils/chat_gpt/gcsChatGptManager');
+} = require('../../../utils/chat_gpt/chatGptThreadLogManager');
+const { loadAnswerChannels } = require('../../../utils/chat_gpt/gcsChatGptManager');
 
 // デフォルトプロンプト定義（100文字以内 & 未入力用）
 const DEFAULT_PROMPT =
@@ -131,7 +131,7 @@ async function handleConversationPromptModal(interaction) {
       .setTopic(
         '@メンションユーザー でそのユーザーもこのスレッドに強制参加させれます。'
       )
-      .catch(() => {});
+      .catch(() => { });
   }
 
   try {

@@ -1,19 +1,11 @@
 // src/commands/15_設定店内状況_ひっかけ一覧.js
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
-const { sendTennaiSettingPanel } = require('../modules/tennai_hikkake/setting/sendTennaiSettingPanel');
+const setupHandler = require('../modules/tennai_hikkake/handlers/SetupHandler');
 
 class TennaiSettingCommand extends BaseCommand {
   constructor() {
-    super({ ephemeral: true, defer: false }); // sendTennaiSettingPanel likely handles its own defer/reply?
-    // Original code: await sendTennaiSettingPanel(interaction);
-    // Let's check sendTennaiSettingPanel. If it doesn't defer/reply, command fails.
-    // Original code didn't defer.
-    // I will assume defer: true is safer. But prompt says "User setting actions -> Ephemeral: true, ... heavy -> defer".
-    // I'll set defer: true to be safe and consistent.
-    this.defer = true;
-    this.ephemeral = true;
-
+    super({ flags: MessageFlags.Ephemeral, defer: true });
     this.data = new SlashCommandBuilder()
       .setName('設定店内状況_ひっかけ一覧')
       .setDescription('店内状況・ひっかけの設定パネルを表示します')
@@ -21,7 +13,8 @@ class TennaiSettingCommand extends BaseCommand {
   }
 
   async run(interaction) {
-    await sendTennaiSettingPanel(interaction);
+    // 最新の Platinum SetupHandler を直接呼び出し
+    await setupHandler.startSetup(interaction);
   }
 }
 

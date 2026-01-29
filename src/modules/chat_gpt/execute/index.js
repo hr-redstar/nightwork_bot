@@ -1,6 +1,6 @@
 // src/handlers/chat_gpt/index.js
 const { PermissionsBitField } = require('discord.js');
-const logger = require('../../utils/logger');
+const logger = require('../../../utils/logger');
 const { postChatGptSettingPanel } = require('./panel');
 
 /**

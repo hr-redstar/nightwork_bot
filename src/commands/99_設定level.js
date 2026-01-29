@@ -1,20 +1,19 @@
-// src/commands/99_設定level.js
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
+const appRouter = require('../structures/AppRouter');
 
 class LevelSettingCommand extends BaseCommand {
   constructor() {
-    super({ ephemeral: true, defer: false });
+    super({ flags: MessageFlags.Ephemeral, defer: false });
     this.data = new SlashCommandBuilder()
       .setName('設定level')
       .setDescription('レベル設定パネルを表示します');
   }
 
   async run(interaction) {
-    await interaction.reply({
-      content: 'レベル設定パネル（未実装）',
-      flags: MessageFlags.Ephemeral,
-    });
+    // AppRouter経由でレベル設定パネルを表示
+    interaction.customId = 'level:panel:refresh';
+    return await appRouter.dispatch(interaction);
   }
 }
 

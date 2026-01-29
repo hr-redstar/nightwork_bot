@@ -14,13 +14,24 @@ module.exports = {
   customId: 'config_select_store_for_store_role',
 
   async show(interaction) {
+    // 💡 Platinum Strategy: ボタン → UI更新は deferUpdate
+    try {
+      await interaction.deferUpdate();
+    } catch (error) {
+      // 10062: Unknown interaction (他で処理された、またはタイムアウト)
+      if (error.code === 10062 || error.code === 40060) {
+        return;
+      }
+      throw error;
+    }
+
     const guildId = interaction.guild.id;
     const config = await loadStoreRoleConfig(guildId);
 
     if (!config.stores?.length) {
-      return interaction.reply({
+      return interaction.editReply({
         content: '⚠️ 店舗が登録されていません。',
-        flags: MessageFlags.Ephemeral,
+        components: [],
       });
     }
 
@@ -34,10 +45,9 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(menu);
 
-    return interaction.reply({
+    return interaction.editReply({
       content: '🏪 ロールを紐づける **店舗** を選択してください。',
       components: [row],
-      flags: MessageFlags.Ephemeral,
     });
   },
 

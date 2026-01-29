@@ -1,19 +1,18 @@
-// src/commands/97_ダイス.js
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
 
 class DiceCommand extends BaseCommand {
   constructor() {
-    super({ ephemeral: true, defer: false });
+    super({ flags: MessageFlags.Ephemeral, defer: false });
     this.data = new SlashCommandBuilder()
-      .setName('設定ダイス')
-      .setDescription('ダイス設定パネルを表示します（未実装）');
+      .setName('ダイス')
+      .setDescription('1から100のサイコロを振ります');
   }
 
   async run(interaction) {
+    const result = Math.floor(Math.random() * 100) + 1;
     await interaction.reply({
-      content: 'ダイス設定パネル（未実装）',
-      flags: MessageFlags.Ephemeral,
+      content: `🎲 ダイスの結果: **${result}**`,
     });
   }
 }

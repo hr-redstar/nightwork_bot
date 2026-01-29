@@ -64,14 +64,14 @@ class AppRouter {
                 prefixes: Array.isArray(moduleDef.prefixes) ? moduleDef.prefixes : [moduleDef.prefixes],
                 handler: handler
             });
-            logger.info(`[AppRouter] Registered module: [${name}] prefixes=[${moduleDef.prefixes.join(', ')}]`);
+            logger.silly(`[AppRouter] Registered module: [${name}] prefixes=[${moduleDef.prefixes.join(', ')}]`);
             return;
         }
 
         // 旧規格への対応はここか、あるいはLegacy Adapterで行うが、
         // 将来的にはindex.jsを修正してもらう方針。
         // ここでは警告を出すだけに留めるか、簡易的に推測する。
-        logger.debug(`[AppRouter] Skipped "${name}" (No prefixes defined in index.js)`);
+        logger.silly(`[AppRouter] Skipped "${name}" (No prefixes defined in index.js)`);
     }
 
     /**
@@ -86,7 +86,7 @@ class AppRouter {
                 handler: handler
             });
         }
-        logger.info(`[AppRouter] Loaded ${Object.keys(registry).length} legacy routes`);
+        logger.silly(`[AppRouter] Loaded ${Object.keys(registry).length} legacy routes`);
     }
 
     /**
@@ -103,6 +103,8 @@ class AppRouter {
         // ここでは一旦単純ループで、複数マッチは考慮しない（最初のマッチ優先）
 
         for (const mod of this.modules) {
+            if (interaction.replied || interaction.deferred) break; // すでに前のモジュールで応答済みなら終了
+
             for (const prefix of mod.prefixes) {
                 // 完全一致 または "prefix:" または "prefix_"
                 if (customId === prefix || customId.startsWith(prefix + ':') || customId.startsWith(prefix + '_')) {
@@ -111,11 +113,17 @@ class AppRouter {
                         continue;
                     }
                     logger.debug(`[AppRouter] Dispatching to module: ${mod.name} (prefix match: ${prefix})`);
-                    await mod.handler(interaction);
-                    return true;
+                    try {
+                        await mod.handler(interaction);
+                        // ハンドラー内で interaction.replied/deferred が true になったかチェック
+                        if (interaction.replied || interaction.deferred) {
+                            return true;
+                        }
+                    } catch (err) {
+                        // エラーは上位の interactionCreate でキャッチさせる
+                        throw err;
+                    }
                 }
-                // レガシーな "prefix" そのままで始まるケース (区切り文字なし) もケアする場合
-                // "prefix"長が十分長い場合のみ許可するなど
             }
         }
 

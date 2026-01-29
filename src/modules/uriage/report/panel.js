@@ -6,6 +6,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  MessageFlags,
 } = require('discord.js');
 const { loadStoreRoleConfig } = require('../../../utils/config/storeRoleConfigManager');
 const logger = require('../../../utils/logger');
@@ -54,7 +55,7 @@ async function sendUriageReportPanel(interaction, { storeName, channel }) {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: '売上報告パネルの設置中にエラーが発生しました。',
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
     throw err;

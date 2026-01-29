@@ -1,19 +1,20 @@
-// src/commands/98_設定くじ引き.js
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const BaseCommand = require('../structures/BaseCommand');
-const { sendKuzibikiSettingPanel } = require('../modules/kuzibiki/setting/sendKuzibikiSettingPanel');
+const { upsertKuzibikiPanel } = require('../modules/kuzibiki/execute/lotteryPanel');
 
 class KuzibikiSettingCommand extends BaseCommand {
   constructor() {
-    super({ ephemeral: true, defer: true });
+    super({ flags: MessageFlags.Ephemeral, defer: true });
     this.data = new SlashCommandBuilder()
       .setName('設定くじ引き')
-      .setDescription('くじ引きの設定パネルを表示します')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+      .setDescription('くじ引きパネルを送信/更新します。');
   }
 
   async run(interaction) {
-    await sendKuzibikiSettingPanel(interaction);
+    const msg = await upsertKuzibikiPanel(interaction.channel);
+    await interaction.editReply({
+      content: `✅ くじ引きパネルを設置・更新しました (${msg.url})`,
+    });
   }
 }
 

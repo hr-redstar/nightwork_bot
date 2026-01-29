@@ -13,6 +13,14 @@ const fs = require('fs');
 const settings = require('../config/settings');
 const { AsyncLocalStorage } = require('async_hooks');
 
+// -------------------------------------------------------------
+// 🎨 カラー設定 (デバッグレベルの青は見にくいため緑に変更)
+// -------------------------------------------------------------
+winston.addColors({
+  debug: 'green',
+  info: 'cyan', // infoを少し変えて区別しやすくする（任意だが今回は green 優先）
+});
+
 // コンテキスト保持用
 const contextStorage = new AsyncLocalStorage();
 
@@ -102,14 +110,22 @@ logger.runWithContext = (context, fn) => {
 };
 
 // コンテキストを作成するヘルパー
-logger.createContext = (interaction) => {
+logger.createContext = (interaction, traceId = null) => {
   return {
-    requestId: Math.random().toString(36).substring(7), // 簡易ID
+    requestId: traceId || Math.random().toString(36).substring(7), // 簡易ID
     guildId: interaction?.guildId,
     userId: interaction?.user?.id,
     context: interaction?.customId || interaction?.commandName || 'unknown'
   };
 };
+
+logger.getContext = () => {
+  return contextStorage.getStore() || {};
+};
+
+Object.defineProperty(logger, 'traceId', {
+  get: () => contextStorage.getStore()?.requestId || 'N/A'
+});
 
 // -------------------------------------------------------------
 // 🧩 未処理エラー

@@ -77,27 +77,21 @@ if (useGcsMode) {
 }
 
 if (useGcsMode) {
-  logger.info(
+  logger.silly(
     `[gcs.js] GCS モード有効: bucket="${GCS_BUCKET_NAME}"`,
   );
 }
 
-// 論理パスを正規化（「GCS/〜」前提だが一応揃えておく）
+// 論理パスを正規化
 function normalizeObjectPath(objectPath) {
-  let p = String(objectPath || '').replace(/\\/g, '/').replace(/^\/+/, '');
-  if (!p.startsWith('GCS/')) {
-    p = `GCS/${p}`;
-  }
-  return p;
+  return String(objectPath || '').replace(/\\/g, '/').replace(/^\/+/, '');
 }
 
 // 論理パス -> ローカル実パス
-//   GCS/1381.../xxx.json -> local_data/gcs/1381.../xxx.json
 function toLocalPath(objectPath) {
   const logicalPath = normalizeObjectPath(objectPath);
-  const stripped = logicalPath.startsWith('GCS/')
-    ? logicalPath.slice('GCS/'.length)
-    : logicalPath;
+  // もし "GCS/" で始まっていたら剥がす (完全に過去との互換用)
+  const stripped = logicalPath.replace(/^[Gg][Cc][Ss]\//, '');
   const filePath = path.join(LOCAL_GCS_ROOT, stripped);
   return { logicalPath, filePath };
 }
@@ -107,7 +101,7 @@ async function readJSON(objectPath) {
   const { logicalPath, filePath } = toLocalPath(objectPath);
 
   if (useGcsMode && bucket) {
-    logger.debug(
+    logger.silly(
       `[gcs.js] readJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );
     const file = bucket.file(logicalPath);
@@ -119,7 +113,7 @@ async function readJSON(objectPath) {
         return JSON.parse(buf.toString('utf8'));
       } catch (err) {
         if (err.code === 404) {
-          logger.debug(
+          logger.silly(
             `[gcs.js] readJSON (gcs): not found "${logicalPath}"`
           );
           return null;
@@ -128,7 +122,7 @@ async function readJSON(objectPath) {
       }
     });
   } else {
-    logger.debug(
+    logger.silly(
       `[gcs.js] readJSON (local): logical="${logicalPath}" -> "${filePath}"`
     );
     try {
@@ -136,7 +130,7 @@ async function readJSON(objectPath) {
       return data ? JSON.parse(data) : null;
     } catch (err) {
       if (err.code === 'ENOENT') {
-        logger.debug(
+        logger.silly(
           `[gcs.js] readJSON (local): not found "${filePath}"`
         );
         return null;
@@ -153,7 +147,7 @@ async function saveJSON(objectPath, data) {
   const jsonStr = JSON.stringify(data ?? {}, null, 2);
 
   if (useGcsMode && bucket) {
-    logger.debug(
+    logger.silly(
       `[gcs.js] saveJSON (gcs): bucket="${GCS_BUCKET_NAME}", object="${logicalPath}"`,
     );
     const file = bucket.file(logicalPath);
@@ -163,10 +157,10 @@ async function saveJSON(objectPath, data) {
         contentType: 'application/json',
         resumable: false,
       });
-      logger.debug(`[gcs.js] saveJSON (gcs): saved "${logicalPath}"`);
+      logger.silly(`[gcs.js] saveJSON (gcs): saved "${logicalPath}"`);
     });
   } else {
-    logger.debug(
+    logger.silly(
       `[gcs.js] saveJSON (local): logical="${logicalPath}" -> "${filePath}"`
     );
     try {
